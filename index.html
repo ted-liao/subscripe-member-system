@@ -2775,7 +2775,177 @@
                 hideLoading();
             }
         }
+        // ============ 初始化管理員帳號（只需執行一次）============
+async function initializeAdmin() {
+    try {
+        console.log('🔄 開始建立管理員帳號...');
+        
+        const adminEmail = 'admin@codm.com';
+        const adminPassword = 'Admin@123456';
+        const adminUsername = 'admin';
+        
+        // 1. 建立 Firebase Authentication 帳號
+        const userCredential = await createUserWithEmailAndPassword(
+            auth, 
+            adminEmail, 
+            adminPassword
+        );
+        
+        const user = userCredential.user;
+        console.log('✅ Authentication 帳號建立成功，UID:', user.uid);
+        
+        // 2. 寫入 members 資料
+        await set(ref(database, `members/${user.uid}`), {
+            userId: user.uid,
+            email: adminEmail,
+            username: adminUsername,
+            role: 'admin',
+            createdAt: new Date().toISOString(),
+            status: 'active'
+        });
+        console.log('✅ Members 資料寫入成功');
+        
+        // 3. 寫入 admins 資料
+        await set(ref(database, `admins/${user.uid}`), {
+            email: adminEmail,
+            username: adminUsername,
+            role: 'superadmin',
+            createdAt: new Date().toISOString()
+        });
+        console.log('✅ Admins 資料寫入成功');
+        
+        alert(`✅ 管理員帳號建立成功！\n\nEmail: ${adminEmail}\nUsername: ${adminUsername}\nPassword: ${adminPassword}\n\n請使用這些資訊登入`);
+        
+        // 4. 登出以便重新登入
+        await signOut(auth);
+        
+        return true;
+        
+    } catch (error) {
+        console.error('❌ 建立管理員失敗:', error);
+        
+        if (error.code === 'auth/email-already-in-use') {
+            console.log('ℹ️ 管理員帳號已存在');
+            alert('管理員帳號已存在，可以直接登入！\n\nEmail: admin@codm.com\nUsername: admin\nPassword: Admin@123456');
+            return false;
+        } else {
+            alert('建立管理員失敗：' + error.message);
+            return false;
+        }
+    }
+}
 
+// 暴露函數到 window 物件，方便在 Console 執行
+window.initializeAdmin = initializeAdmin;
+
+// ============ 修正登入函數 ============
+async function handleLogin(emailOrUsername, password) {
+    try {
+        console.log('🔄 嘗試登入，帳號:', emailOrUsername);
+        
+        let email = emailOrUsername;
+        
+        // 如果不包含 @，表示是 username，需要查詢 email
+        if (!emailOrUsername.includes('@')) {
+            console.log('🔍 使用 Username 登入，查詢對應的 Email...');
+            
+            const membersRef = ref(database, 'members');
+            const snapshot = await get(membersRef);
+            
+            if (snapshot.exists()) {
+                const members = snapshot.val();
+                let found = false;
+                
+                for (let uid in members) {
+                    if (members[uid].username === emailOrUsername) {
+                        email = members[uid].email;
+                        found = true;
+                        console.log('✅ 找到對應 Email:', email);
+                        break;
+                    }
+                }
+                
+                if (!found) {
+                    throw new Error('找不到此使用者名稱');
+                }
+            } else {
+                throw new Error('資料庫中沒有會員資料');
+            }
+        }
+        
+        // 使用 Email 登入
+        console.log('🔐 使用 Email 登入 Firebase Authentication...');
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        
+        console.log('✅ Firebase Authentication 登入成功');
+        console.log('User UID:', user.uid);
+        
+        // 檢查會員資料
+        const userDataRef = ref(database, `members/${user.uid}`);
+        const userSnapshot = await get(userDataRef);
+        
+        if (!userSnapshot.exists()) {
+            console.error('❌ 會員資料不存在');
+            throw new Error('會員資料不存在，請聯繫管理員');
+        }
+        
+        const userData = userSnapshot.val();
+        console.log('✅ 會員資料:', userData);
+        
+        // 儲存當前用戶資訊
+        window.currentUser = {
+            uid: user.uid,
+            email: user.email,
+            ...userData
+        };
+        
+        alert('登入成功！');
+        
+        // 關閉登入視窗，載入主控台
+        document.getElementById('loginModal').style.display = 'none';
+        loadDashboard();
+        
+    } catch (error) {
+        console.error('❌ 登入失敗:', error);
+        
+        let errorMessage = '登入失敗：';
+        switch (error.code) {
+            case 'auth/invalid-email':
+                errorMessage += 'Email 格式錯誤';
+                break;
+            case 'auth/user-not-found':
+                errorMessage += '找不到此帳號';
+                break;
+            case 'auth/wrong-password':
+                errorMessage += '密碼錯誤';
+                break;
+            case 'auth/invalid-credential':
+                errorMessage += '帳號或密碼錯誤';
+                break;
+            case 'auth/too-many-requests':
+                errorMessage += '嘗試次數過多，請稍後再試';
+                break;
+            default:
+                errorMessage += error.message;
+        }
+        
+        alert(errorMessage);
+    }
+}
+
+// 登入按鈕事件
+document.getElementById('loginBtn').addEventListener('click', async () => {
+    const emailOrUsername = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    
+    if (!emailOrUsername || !password) {
+        alert('請輸入帳號和密碼');
+        return;
+    }
+    
+    await handleLogin(emailOrUsername, password);
+});
         // ==================== 系統初始化 ====================
         async function initialize() {
             showLoading();
