@@ -1993,18 +1993,25 @@ window.forceShowAdminPanel = async function() {
     }
     
     // 離開排隊
-    window.leaveQueue = async function() {
-        if (!confirm('確定要離開排隊嗎？')) {
-            return;
-        }
-        
-        const data = await loadData();
-        data.queue = data.queue.filter(q => q.username !== currentUser.username);
-        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
-        
-        alert('已離開排隊');
-        showQueuePage();
+window.leaveQueue = async function() {
+    if (!confirm('確定要離開排隊嗎？')) {
+        return;
     }
+    
+    const data = await loadData();
+    
+    // 過濾掉當前用戶
+    const newQueue = data.queue.filter(q => q.username !== currentUser.username);
+    
+    console.log('🚪 離開排隊 - 原始隊列長度:', data.queue.length);
+    console.log('🚪 離開排隊 - 新隊列長度:', newQueue.length);
+    console.log('🚪 離開排隊 - 新隊列:', newQueue);
+    
+    await saveData(data.members, data.activationCodes, newQueue, data.gameSession);
+    
+    alert('已離開排隊');
+    showQueuePage();
+}
     
     // 顯示管理員面板
     window.showAdminPanel = async function() {
@@ -2420,20 +2427,25 @@ window.closeGameSession = async function() {
         showAdminPanel();
     }
     
-    // 清空排隊名單
-window.clearQueue = async function() {
-    if (!confirm('確定要清空所有排隊名單嗎？')) {
+    // 從排隊中移除
+window.removeFromQueue = async function(username) {
+    if (!confirm('確定要移除此人嗎？')) {
         return;
     }
     
     const data = await loadData();
-    const newQueue = [];
     
-    console.log('🗑️ 清空排隊 - queue:', newQueue);
+    // 過濾掉指定用戶
+    const newQueue = data.queue.filter(q => q.username !== username);
+    
+    console.log('❌ 移除排隊 - 原始隊列長度:', data.queue.length);
+    console.log('❌ 移除排隊 - 新隊列長度:', newQueue.length);
+    console.log('❌ 移除排隊 - 被移除的用戶:', username);
+    console.log('❌ 移除排隊 - 新隊列:', newQueue);
     
     await saveData(data.members, data.activationCodes, newQueue, data.gameSession);
     
-    alert('排隊名單已清空');
+    alert('已移除該會員');
     showAdminPanel();
 }
     
@@ -2621,6 +2633,7 @@ window.clearQueue = async function() {
     // 啟動系統
     initialize();
 </script>
+
 
 
 
