@@ -1015,15 +1015,15 @@
         // 載入所有資料
         async function loadData() {
             try {
-                const usersSnapshot = await get(ref(database, 'users'));
+                const membersSnapshot = await get(ref(database, 'members'));
                 const codesSnapshot = await get(ref(database, 'activationCodes'));
                 const queueSnapshot = await get(ref(database, 'queue'));
                 const sessionSnapshot = await get(ref(database, 'gameSession'));
 
-                const users = [];
-                if (usersSnapshot.exists()) {
-                    usersSnapshot.forEach(child => {
-                        users.push({ uid: child.key, ...child.val() });
+                const members = [];
+                if (membersSnapshot.exists()) {
+                    membersSnapshot.forEach(child => {
+                        members.push({ uid: child.key, ...child.val() });
                     });
                 }
 
@@ -1037,7 +1037,7 @@
                 const queue = queueSnapshot.exists() ? queueSnapshot.val() : [];
                 const gameSession = sessionSnapshot.exists() ? sessionSnapshot.val() : null;
 
-                return { members: users, activationCodes: codes, queue, gameSession };
+                return { members, activationCodes: codes, queue, gameSession };
             } catch (error) {
                 console.error('載入資料錯誤:', error);
                 return { members: [], activationCodes: [], queue: [], gameSession: null };
@@ -1047,7 +1047,7 @@
         // 儲存會員資料
         async function saveMember(member) {
             try {
-                await set(ref(database, 'users/' + member.uid), {
+                await set(ref(database, 'members/' + member.uid), {
                     username: member.username,
                     email: member.email,
                     nickname: member.nickname,
@@ -1072,7 +1072,7 @@
             try {
                 const updates = {};
                 members.forEach(member => {
-                    updates[`users/${member.uid}`] = {
+                    updates[`members/${member.uid}`] = {
                         username: member.username,
                         email: member.email,
                         nickname: member.nickname,
@@ -1097,7 +1097,7 @@
         // 刪除會員
         async function deleteMemberFromDB(uid) {
             try {
-                await remove(ref(database, 'users/' + uid));
+                await remove(ref(database, 'members/' + uid));
             } catch (error) {
                 console.error('刪除會員錯誤:', error);
                 throw error;
@@ -1153,7 +1153,7 @@
                 if (!adminExists) {
                     // 創建 Firebase Auth 帳號
                     const email = 'admin@codm.system';
-                    const password = 'admin123';
+                    const password = 'admin';
                     
                     try {
                         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -1178,7 +1178,7 @@
                         await saveMember(admin);
                         console.log('✅ 預設管理員帳號已創建');
                         console.log('帳號: admin');
-                        console.log('密碼: admin123');
+                        console.log('密碼: admin');
                         
                     } catch (authError) {
                         if (authError.code === 'auth/email-already-in-use') {
@@ -1199,7 +1199,7 @@
             if (user) {
                 // 用戶已登入，載入用戶資料
                 try {
-                    const userSnapshot = await get(ref(database, 'users/' + user.uid));
+                    const userSnapshot = await get(ref(database, 'members/' + user.uid));
                     if (userSnapshot.exists()) {
                         currentUser = { uid: user.uid, ...userSnapshot.val() };
                         updateUserSection();
@@ -2473,4 +2473,3 @@
     </script>
 </body>
 </html>
-
