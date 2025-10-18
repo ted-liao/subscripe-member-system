@@ -946,7 +946,6 @@ flex-wrap: wrap;
     }
     
     // 儲存資料到 Firebase
-    // 儲存資料到 Firebase
 async function saveData(members, activationCodes, queue, gameSession) {
     try {
         const membersObj = {};
@@ -959,27 +958,35 @@ async function saveData(members, activationCodes, queue, gameSession) {
             codesObj[c.code] = c;
         });
 
-        const queueObj = {};
-        queue.forEach((q, index) => {
-            queueObj[index] = q;
-        });
-
-        // 處理 queue：如果是空陣列，則刪除節點
-        const queuePromise = queue.length === 0 
-            ? remove(ref(database, 'queue'))
-            : set(ref(database, 'queue'), queueObj);
-
-        // 處理 gameSession：如果是 null，則刪除節點
-        const sessionPromise = gameSession === null
-            ? remove(ref(database, 'gameSession'))
-            : set(ref(database, 'gameSession'), gameSession);
-
-        await Promise.all([
+        // 建立 Promise 陣列
+        const promises = [
             set(ref(database, 'members'), membersObj),
-            set(ref(database, 'activationCodes'), codesObj),
-            queuePromise,
-            sessionPromise
-        ]);
+            set(ref(database, 'activationCodes'), codesObj)
+        ];
+
+        // 處理 queue：空陣列 → 刪除節點，否則儲存
+        if (!queue || queue.length === 0) {
+            promises.push(remove(ref(database, 'queue')));
+            console.log('🗑️ 正在刪除 queue 節點');
+        } else {
+            const queueObj = {};
+            queue.forEach((q, index) => {
+                queueObj[index] = q;
+            });
+            promises.push(set(ref(database, 'queue'), queueObj));
+            console.log('✏️ 正在儲存 queue 節點');
+        }
+
+        // 處理 gameSession：null → 刪除節點，否則儲存
+        if (gameSession === null || gameSession === undefined) {
+            promises.push(remove(ref(database, 'gameSession')));
+            console.log('🗑️ 正在刪除 gameSession 節點');
+        } else {
+            promises.push(set(ref(database, 'gameSession'), gameSession));
+            console.log('✏️ 正在儲存 gameSession 節點');
+        }
+
+        await Promise.all(promises);
 
         console.log('✅ 資料已成功儲存到 Firebase');
     } catch (error) {
@@ -987,7 +994,6 @@ async function saveData(members, activationCodes, queue, gameSession) {
         alert('資料儲存失敗，請稍後再試');
     }
 }
-
     // 初始化系統 - 創建預設管理員帳號
     async function initializeDefaultAdmin() {
         const data = await loadData();
@@ -2383,21 +2389,25 @@ window.forceShowAdminPanel = async function() {
     }
     
     // 關閉遊戲場次
-    window.closeGameSession = async function() {
-        if (!confirm('確定要關閉目前的遊戲場次嗎？排隊名單也會一併清空。')) {
-            return;
-        }
-        
-        const data = await loadData();
-        data.gameSession = null;
-        data.queue = [];
-        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
-        
-        alert('遊戲場次已關閉');
-        showAdminPanel();
+window.closeGameSession = async function() {
+    if (!confirm('確定要關閉目前的遊戲場次嗎？排隊名單也會一併清空。')) {
+        return;
     }
     
-    // 從排隊中移除
+    const data = await loadData();
+    
+    // 明確設置為 null 和空陣列
+    const newGameSession = null;
+    const newQueue = [];
+    
+    console.log('🎮 關閉場次 - gameSession:', newGameSession);
+    console.log('🎮 關閉場次 - queue:', newQueue);
+    
+    await saveData(data.members, data.activationCodes, newQueue, newGameSession);
+    
+    alert('遊戲場次已關閉');
+    showAdminPanel();
+}
     window.removeFromQueue = async function(username) {
         if (!confirm('確定要移除此人嗎？')) {
             return;
@@ -2411,17 +2421,21 @@ window.forceShowAdminPanel = async function() {
     }
     
     // 清空排隊名單
-    window.clearQueue = async function() {
-        if (!confirm('確定要清空所有排隊名單嗎？')) {
-            return;
-        }
-        
-        const data = await loadData();
-        data.queue = [];
-        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
-        
-        showAdminPanel();
+window.clearQueue = async function() {
+    if (!confirm('確定要清空所有排隊名單嗎？')) {
+        return;
     }
+    
+    const data = await loadData();
+    const newQueue = [];
+    
+    console.log('🗑️ 清空排隊 - queue:', newQueue);
+    
+    await saveData(data.members, data.activationCodes, newQueue, data.gameSession);
+    
+    alert('排隊名單已清空');
+    showAdminPanel();
+}
     
     // 開啟編輯會員彈窗
     window.openEditMember = async function(username) {
@@ -2607,6 +2621,7 @@ window.forceShowAdminPanel = async function() {
     // 啟動系統
     initialize();
 </script>
+
 
 
 
