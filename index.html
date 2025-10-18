@@ -1841,21 +1841,30 @@ flex-wrap: wrap;
                 <h4>⚙️ 帳號設定</h4>
                 <button class="btn btn-small" onclick="openChangePasswordModal()">🔒 更改密碼</button>
                 ${currentUser.isAdmin ? `
-                <button class="btn btn-small" onclick="forceShowAdminPanel()" style="margin-left: 10px;">👑 顯示管理員面板</button>
+                <button class="btn btn-small" onclick="showAdminPanel()" style="margin-left: 10px;">👑 顯示管理員面板</button>
                 ` : ''}
             </div>
         `;
     }
     
     // 強制顯示管理員面板（修復按鈕無反應問題）
-    window.forceShowAdminPanel = function() {
-        console.log('🔥 強制顯示管理員面板按鈕被點擊');
-        if (isAdmin()) {
-            showAdminPanel();
-        } else {
-            alert('您沒有管理員權限');
-        }
+window.forceShowAdminPanel = async function() {
+    console.log('🔥 強制顯示管理員面板按鈕被點擊');
+    console.log('當前用戶:', currentUser);
+    console.log('是否為管理員:', isAdmin());
+    
+    if (!currentUser) {
+        alert('請先登入');
+        return;
     }
+    
+    if (isAdmin()) {
+        console.log('✅ 開始顯示管理員面板');
+        await showAdminPanel();
+    } else {
+        alert('您沒有管理員權限');
+    }
+}
     
     // 顯示排隊頁面
     async function showQueuePage() {
@@ -2587,3 +2596,4 @@ flex-wrap: wrap;
     // 啟動系統
     initialize();
 </script>
+
