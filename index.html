@@ -1056,75 +1056,117 @@
         }
 
         // 初始化預設管理員
-        async function initializeDefaultAdmin() {
+async function initializeDefaultAdmin() {
+    try {
+        const data = await loadData();
+        const adminExists = data.members.some(m => m.username === 'admin');
+        
+        if (!adminExists) {
+            const email = 'admin@codm.system';
+            const password = 'admin123';
+            
             try {
-                const data = await loadData();
-                const adminExists = data.members.some(m => m.username === 'admin');
+                // 先創建 Authentication 帳號
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const uid = userCredential.user.uid;
                 
-                if (!adminExists) {
-                    const email = 'admin@codm.system';
-                    const password = 'admin123';
-                    
+                // 創建管理員資料
+                const admin = {
+                    uid: uid,
+                    username: 'admin',
+                    email: email,
+                    nickname: '系統管理員',
+                    platform: 'youtube',
+                    gameUID: 'ADMIN000000',
+                    level: 'vip',
+                    remainingSeconds: 999999999,
+                    lastUpdateTime: Math.floor(Date.now() / 1000),
+                    isAdmin: true,
+                    registerDate: new Date().toISOString(),
+                    securityQuestion: 'game',
+                    securityAnswer: 'ghost',
+                    activationCode: 'ADMIN0'
+                };
+                
+                // 儲存到資料庫
+                await saveMember(admin);
+                console.log('✅ 預設管理員帳號已創建');
+                console.log('帳號: admin');
+                console.log('密碼: admin123');
+                
+            } catch (authError) {
+                if (authError.code === 'auth/email-already-in-use') {
+                    console.log('⚠️ 管理員帳號已存在於 Authentication');
+                    // 嘗試使用現有帳號登入取得 uid
                     try {
-                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                        const userCredential = await signInWithEmailAndPassword(auth, email, password);
                         const uid = userCredential.user.uid;
                         
-                        const admin = {
-                            uid: uid,
-                            username: 'admin',
-                            email: email,
-                            nickname: '系統管理員',
-                            platform: 'youtube',
-                            gameUID: 'ADMIN000000',
-                            level: 'vip',
-                            remainingSeconds: 999999999,
-                            lastUpdateTime: Math.floor(Date.now() / 1000),
-                            isAdmin: true,
-                            registerDate: new Date().toISOString(),
-                            securityQuestion: 'game',
-                            securityAnswer: 'ghost',
-                            activationCode: 'ADMIN0'
-                        };
-                        
-                        await saveMember(admin);
-                        console.log('✅ 預設管理員帳號已創建');
-                        console.log('帳號: admin');
-                        console.log('密碼: admin123');
-                        
-                    } catch (authError) {
-                        if (authError.code === 'auth/email-already-in-use') {
-                            console.log('管理員帳號已存在於 Authentication');
-                        } else {
-                            throw authError;
+                        // 檢查資料庫中是否有資料
+                        const adminSnapshot = await get(ref(database, 'members/' + uid));
+                        if (!adminSnapshot.exists()) {
+                            // 如果沒有，創建資料
+                            const admin = {
+                                uid: uid,
+                                username: 'admin',
+                                email: email,
+                                nickname: '系統管理員',
+                                platform: 'youtube',
+                                gameUID: 'ADMIN000000',
+                                level: 'vip',
+                                remainingSeconds: 999999999,
+                                lastUpdateTime: Math.floor(Date.now() / 1000),
+                                isAdmin: true,
+                                registerDate: new Date().toISOString(),
+                                securityQuestion: 'game',
+                                securityAnswer: 'ghost',
+                                activationCode: 'ADMIN0'
+                            };
+                            await saveMember(admin);
+                            console.log('✅ 管理員資料已補充');
                         }
+                        // 登出
+                        await signOut(auth);
+                    } catch (loginError) {
+                        console.error('無法登入管理員帳號:', loginError);
                     }
+                } else {
+                    throw authError;
                 }
-            } catch (error) {
-                console.error('初始化管理員錯誤:', error);
             }
         }
-
+    } catch (error) {
+        console.error('初始化管理員錯誤:', error);
+    }
+}
+       
         // ===== 認證監聽 =====
-        
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                try {
-                    const userSnapshot = await get(ref(database, 'members/' + user.uid));
-                    if (userSnapshot.exists()) {
-                        currentUser = { uid: user.uid, ...userSnapshot.val() };
-                        updateUserSection();
-                        if (currentPage === 'member') {
-                            showMemberInfo();
-                        }
-                    }
-                } catch (error) {
-                    console.error('載入用戶資料錯誤:', error);
-                }
-            } else {
-                currentUser = null;
+
+onAuthStateChanged(auth, async (user) => {
+    if (user) {
+        try {
+            const userSnapshot = await get(ref(database, 'members/' + user.uid));
+            if (userSnapshot.exists()) {
+                currentUser = { uid: user.uid, ...userSnapshot.val() };
                 updateUserSection();
+                if (currentPage === 'member') {
+                    showMemberInfo();
+                    if (isAdmin()) {
+                        showAdminPanel();
+                    }
+                }
             }
-        });
+        } catch (error) {
+            console.error('載入用戶資料錯誤:', error);
+        }
+    } else {
+        currentUser = null;
+        updateUserSection();
+        if (currentPage !== 'home') {
+            showPage('home');
+        }
+    }
+});
 
         // ===== 工具函數 =====
         
@@ -2686,3 +2728,4 @@
     </script>
 </body>
 </html>
+
