@@ -1822,7 +1822,7 @@ flex-wrap: wrap;
                 </div>
                 <div class="info-item">
                     <span>剩餘秒數</span>
-                    <span class="countdown-time ${timeClass}" data-username="${currentUser.username}">${currentUser.remainingSeconds.toLocaleString()} 秒</span>
+                    <span class="countdown-time ${timeClass}" data-username="${member.username}">${(currentUser.remainingSeconds || 0).toLocaleString()} 秒</span>
                 </div>
                 ${currentUser.isAdmin ? `
                 <div class="info-item">
@@ -2089,7 +2089,7 @@ window.forceShowAdminPanel = async function() {
                                     </div>
                                     <div style="font-size: 14px; color: #666; margin-top: 10px;">
                                         等級: ${levelText} | 
-                                        時長: ${formatTimeDisplay(timeObj)} (${code.seconds.toLocaleString()}秒)
+                                        時長:${formatTimeDisplay(timeObj)} (${(code.seconds || 0).toLocaleString()}秒)
                                     </div>
                                 </div>
                                 <button class="btn btn-danger btn-small" onclick="deleteCode('${code.code}')">刪除</button>
@@ -2116,7 +2116,7 @@ window.forceShowAdminPanel = async function() {
                                 </div>
                                 <div style="font-size: 14px; color: #666; margin-top: 10px;">
                                     等級: ${levelText} | 
-                                    時長: ${formatTimeDisplay(timeObj)} (${code.seconds.toLocaleString()}秒)<br>
+                                    時長: ${formatTimeDisplay(timeObj)} (${(code.seconds || 0).toLocaleString()}秒)<br>
                                     使用者: ${code.usedBy} | 使用時間: ${new Date(code.usedDate).toLocaleString('zh-TW')}
                                 </div>
                             </div>
@@ -2217,7 +2217,7 @@ window.forceShowAdminPanel = async function() {
                                         <button class="btn-copy" onclick="copyToClipboard('${member.gameUID}', this)" style="margin-left: 5px;">📋 複製</button>
                                         <br>
                                         ${codeInfo}<br>
-                                        剩餘時間: <span class="countdown-time ${timeClass}" data-username="${member.username}">${formatTimeDisplay(timeObj)}</span> (${member.remainingSeconds.toLocaleString()}秒)
+                                        剩餘時間:<span class="countdown-time ${timeClass}" data-username="${member.username}">${formatTimeDisplay(timeObj)}</span> (${(member.remainingSeconds || 0).toLocaleString()}秒)
                                     </div>
                                 </div>
                                 <div class="admin-actions">
@@ -2596,4 +2596,5 @@ window.forceShowAdminPanel = async function() {
     // 啟動系統
     initialize();
 </script>
+
 
