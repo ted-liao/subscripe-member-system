@@ -917,8 +917,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const database = getDatabase(app);
 
+console.log('✅ Firebase 初始化成功');
+
 // ============================================
-// 初始化管理員函數
+// 建立管理員帳號函數
 // ============================================
 
 async function initializeAdmin() {
@@ -930,7 +932,9 @@ async function initializeAdmin() {
         const adminUsername = 'admin';
         
         // 1. 建立 Firebase Authentication 帳號
-        const userCredential = await firebase.auth().createUserWithEmailAndPassword(
+        console.log('📝 建立 Authentication 帳號...');
+        const userCredential = await createUserWithEmailAndPassword(
+            auth,
             adminEmail, 
             adminPassword
         );
@@ -940,7 +944,8 @@ async function initializeAdmin() {
         console.log('UID:', user.uid);
         
         // 2. 寫入會員資料到 Realtime Database
-        await firebase.database().ref('members/' + user.uid).set({
+        console.log('💾 寫入會員資料...');
+        await set(ref(database, 'members/' + user.uid), {
             userId: user.uid,
             email: adminEmail,
             username: adminUsername,
@@ -951,7 +956,8 @@ async function initializeAdmin() {
         console.log('✅ 會員資料寫入成功');
         
         // 3. 寫入管理員資料
-        await firebase.database().ref('admins/' + user.uid).set({
+        console.log('👑 寫入管理員資料...');
+        await set(ref(database, 'admins/' + user.uid), {
             email: adminEmail,
             username: adminUsername,
             role: 'superadmin',
@@ -959,22 +965,35 @@ async function initializeAdmin() {
         });
         console.log('✅ 管理員資料寫入成功');
         
-        alert('✅ 管理員帳號建立成功！\n\nEmail: ' + adminEmail + '\nUsername: ' + adminUsername + '\nPassword: ' + adminPassword + '\n\n請使用這些資訊登入');
+        alert(`✅ 管理員帳號建立成功！
+
+📧 Email: ${adminEmail}
+👤 Username: ${adminUsername}
+🔑 Password: ${adminPassword}
+
+請使用這些資訊登入`);
         
         // 4. 登出
-        await firebase.auth().signOut();
+        await signOut(auth);
         console.log('✅ 已登出，可以重新登入');
         
         // 5. 重新整理頁面
         setTimeout(() => {
             location.reload();
-        }, 1000);
+        }, 1500);
         
     } catch (error) {
         console.error('❌ 建立管理員失敗:', error);
+        console.error('錯誤代碼:', error.code);
+        console.error('錯誤訊息:', error.message);
         
         if (error.code === 'auth/email-already-in-use') {
-            alert('✅ 管理員帳號已存在！\n\n可以直接登入：\nEmail: admin@codm.com\nUsername: admin\nPassword: Admin@123456');
+            alert(`✅ 管理員帳號已存在！
+
+可以直接登入：
+📧 Email: admin@codm.com
+👤 Username: admin
+🔑 Password: Admin@123456`);
         } else {
             alert('❌ 建立失敗：' + error.message);
         }
@@ -999,10 +1018,14 @@ async function handleLogin(emailOrUsername, password) {
         if (!emailOrUsername.includes('@')) {
             console.log('🔍 查詢 Username 對應的 Email...');
             
-            const snapshot = await firebase.database().ref('members')
-                .orderByChild('username')
-                .equalTo(emailOrUsername)
-                .once('value');
+            const membersRef = ref(database, 'members');
+            const usernameQuery = query(
+                membersRef,
+                orderByChild('username'),
+                equalTo(emailOrUsername)
+            );
+            
+            const snapshot = await get(usernameQuery);
             
             if (snapshot.exists()) {
                 const userData = Object.values(snapshot.val())[0];
@@ -1015,14 +1038,15 @@ async function handleLogin(emailOrUsername, password) {
         
         // 使用 email 登入
         console.log('🔐 登入中...');
-        const userCredential = await firebase.auth().signInWithEmailAndPassword(email, password);
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
         console.log('✅ 登入成功！');
         console.log('User UID:', user.uid);
         
         // 取得用戶資料
-        const userSnapshot = await firebase.database().ref('members/' + user.uid).once('value');
+        const userRef = ref(database, 'members/' + user.uid);
+        const userSnapshot = await get(userRef);
         const userData = userSnapshot.val();
         
         if (!userData) {
@@ -1048,6 +1072,7 @@ async function handleLogin(emailOrUsername, password) {
         
     } catch (error) {
         console.error('❌ 登入失敗:', error);
+        console.error('錯誤代碼:', error.code);
         
         let errorMessage = '登入失敗：';
         if (error.code === 'auth/user-not-found') {
@@ -1073,6 +1098,7 @@ async function handleLogin(emailOrUsername, password) {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('✅ 頁面載入完成');
     console.log('🔥 Firebase 已初始化');
+    console.log('📌 請在 Console 輸入: initializeAdmin() 來建立管理員帳號');
     
     // 登入按鈕事件
     const loginBtn = document.getElementById('loginBtn');
@@ -1099,9 +1125,31 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // 監聽登入狀態
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            console.log('👤 用戶已登入:', user.email);
+        } else {
+            console.log('👤 用戶未登入');
+        }
+    });
+    
+    // 檢查資料庫連線狀態
+    const connectedRef = ref(database, '.info/connected');
+    onValue(connectedRef, (snap) => {
+        if (snap.val() === true) {
+            console.log('🔗 資料庫已連線');
+        } else {
+            console.log('⚠️ 資料庫未連線');
+        }
+    });
 });
 
-// 關閉登入視窗
+// ============================================
+// 輔助函數
+// ============================================
+
 function closeLoginModal() {
     const modal = document.getElementById('loginModal');
     if (modal) {
@@ -1109,13 +1157,19 @@ function closeLoginModal() {
     }
 }
 
-// 載入控制台（你需要實作這個）
 function loadDashboard() {
-    console.log('載入控制台...');
-    // 這裡加入你的控制台邏輯
+    console.log('📊 載入控制台...');
+    // TODO: 實作控制台邏輯
+    window.location.href = 'dashboard.html'; // 或你的控制台頁面
 }
 
-console.log('📌 提示：在 Console 輸入 initializeAdmin() 來建立管理員帳號');
+// 暴露函數到全域
+window.handleLogin = handleLogin;
+
+console.log('=====================================');
+console.log('🎮 CODM 會員管理系統已就緒');
+console.log('📌 輸入 initializeAdmin() 建立管理員');
+console.log('=====================================');
         // ==================== 全局變數 ====================
         let currentUser = null;
         let forgotPasswordUser = null;
@@ -3000,6 +3054,7 @@ console.log('📌 提示：在 Console 輸入 initializeAdmin() 來建立管理�
     </script>
 </body>
 </html>
+
 
 
 
