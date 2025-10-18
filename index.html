@@ -1346,7 +1346,7 @@
                                 <h3>你目前的排隊順位</h3>
                                 <div class="queue-position">#${myPosition}</div>
                                 <div style="color: #666;">前面還有 ${myPosition - 1} 人</div>
-                                <button class="btn btn-danger" onclick="leaveQueue()" style="margin-top: 20px;">離開排隊</button>
+                                <button class="btn btn-danger" onclick="leaveQueue()">離開排隊</button>
                             `;
                         } else {
                             queueCardElement.innerHTML = `
@@ -1442,7 +1442,16 @@
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             document.getElementById(pageName).classList.add('active');
-            event.target.classList.add('active');
+            
+            // 修正：找到被點擊的按鈕並設為active
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach((tab, index) => {
+                if ((pageName === 'home' && index === 0) ||
+                    (pageName === 'queue' && index === 1) ||
+                    (pageName === 'member' && index === 2)) {
+                    tab.classList.add('active');
+                }
+            });
             
             if (pageName === 'member') {
                 showMemberInfo();
@@ -1552,16 +1561,19 @@
                 const codeIndex = data.activationCodes.findIndex(c => c.code === activationCode);
                 if (codeIndex === -1) {
                     alert('兌換碼不存在，請確認是否輸入正確');
+                    hideLoading();
                     return;
                 }
                 
                 if (data.activationCodes[codeIndex].used) {
                     alert('此兌換碼已被使用');
+                    hideLoading();
                     return;
                 }
                 
                 if (data.members.find(m => m.username === username)) {
                     alert('使用者名稱已存在，請選擇其他名稱');
+                    hideLoading();
                     return;
                 }
                 
@@ -1620,6 +1632,7 @@
                 
                 if (!member) {
                     alert('使用者名稱或密碼錯誤');
+                    hideLoading();
                     return;
                 }
                 
@@ -1691,6 +1704,7 @@
                 
                 if (!member) {
                     alert('找不到此使用者');
+                    hideLoading();
                     return;
                 }
                 
@@ -1784,6 +1798,7 @@
                 const currentPasswordHash = await hashPassword(currentPassword);
                 if (currentPasswordHash !== currentUser.passwordHash) {
                     alert('目前密碼錯誤');
+                    hideLoading();
                     return;
                 }
 
@@ -1926,11 +1941,13 @@
                 
                 if (currentUser.remainingSeconds <= 0) {
                     content.innerHTML = '<div class="empty-state"><h3>您的會員已過期，無法使用排隊功能</h3></div>';
+                    hideLoading();
                     return;
                 }
                 
                 if (!data.gameSession) {
                     content.innerHTML = '<div class="empty-state"><h3>目前沒有開放的遊戲場次<br>請等待主播開放排隊</h3></div>';
+                    hideLoading();
                     return;
                 }
                 
@@ -1953,7 +1970,7 @@
                             <h3>你目前的排隊順位</h3>
                             <div class="queue-position">#${myPosition}</div>
                             <div style="color: #666;">前面還有 ${myPosition - 1} 人</div>
-                            <button class="btn btn-danger" onclick="leaveQueue()" style="margin-top: 20px;">離開排隊</button>
+                            <button class="btn btn-danger" onclick="leaveQueue()">離開排隊</button>
                         </div>
                     ` : `
                         <div class="queue-card">
@@ -2003,6 +2020,7 @@
                 
                 if (data.queue.find(q => q.username === currentUser.username)) {
                     alert('你已經在排隊中了！');
+                    hideLoading();
                     return;
                 }
                 
@@ -2040,7 +2058,7 @@
                 await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
                 
                 alert('已離開排隊');
-                showQueuePage();
+                await showQueuePage();
             } catch (error) {
                 console.error('離開排隊失敗:', error);
                 alert('離開排隊失敗，請稍後再試');
@@ -2054,7 +2072,17 @@
             currentCodeSubTab = tabName;
             document.querySelectorAll('.code-sub-tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.code-sub-page').forEach(page => page.classList.remove('active'));
-            event.target.classList.add('active');
+            
+            // 找到對應的按鈕並設為active
+            const tabs = document.querySelectorAll('.code-sub-tab');
+            tabs.forEach(tab => {
+                if (tab.textContent.includes('未使用') && tabName === 'unused') {
+                    tab.classList.add('active');
+                } else if (tab.textContent.includes('已使用') && tabName === 'used') {
+                    tab.classList.add('active');
+                }
+            });
+            
             document.getElementById(`code-${tabName}`).classList.add('active');
         }
 
@@ -2062,7 +2090,17 @@
             currentMemberSubTab = tabName;
             document.querySelectorAll('.member-sub-tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.member-sub-page').forEach(page => page.classList.remove('active'));
-            event.target.classList.add('active');
+            
+            // 找到對應的按鈕並設為active
+            const tabs = document.querySelectorAll('.member-sub-tab');
+            tabs.forEach(tab => {
+                if (tab.textContent.includes('生效中') && tabName === 'active') {
+                    tab.classList.add('active');
+                } else if (tab.textContent.includes('已到期') && tabName === 'expired') {
+                    tab.classList.add('active');
+                }
+            });
+            
             document.getElementById(`member-${tabName}`).classList.add('active');
         }
 
@@ -2387,7 +2425,7 @@
                 await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
                 
                 alert(`兌換碼生成成功！\n\n兌換碼: ${code}\n等級: ${level}\n時長: ${formatTimeDisplay(secondsToTime(totalSeconds))}`);
-                showAdminPanel();
+                await showAdminPanel();
             } catch (error) {
                 console.error('生成兌換碼失敗:', error);
                 alert('生成兌換碼失敗，請稍後再試');
@@ -2408,7 +2446,7 @@
                 data.activationCodes = data.activationCodes.filter(c => c.code !== code);
                 await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
                 
-                showAdminPanel();
+                await showAdminPanel();
             } catch (error) {
                 console.error('刪除兌換碼失敗:', error);
                 alert('刪除兌換碼失敗，請稍後再試');
@@ -2441,7 +2479,7 @@
                 await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
                 
                 alert('遊戲場次已開放！');
-                showAdminPanel();
+                await showAdminPanel();
             } catch (error) {
                 console.error('建立遊戲場次失敗:', error);
                 alert('建立遊戲場次失敗，請稍後再試');
@@ -2464,7 +2502,7 @@
                 await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
                 
                 alert('遊戲場次已關閉');
-                showAdminPanel();
+                await showAdminPanel();
             } catch (error) {
                 console.error('關閉遊戲場次失敗:', error);
                 alert('關閉遊戲場次失敗，請稍後再試');
@@ -2485,7 +2523,7 @@
                 data.queue = data.queue.filter(q => q.username !== username);
                 await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
                 
-                showAdminPanel();
+                await showAdminPanel();
             } catch (error) {
                 console.error('移除排隊失敗:', error);
                 alert('移除排隊失敗，請稍後再試');
@@ -2506,7 +2544,7 @@
                 data.queue = [];
                 await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
                 
-                showAdminPanel();
+                await showAdminPanel();
             } catch (error) {
                 console.error('清空排隊失敗:', error);
                 alert('清空排隊失敗，請稍後再試');
@@ -2670,7 +2708,7 @@
                 
                 alert('會員資訊已更新！');
                 closeEditMemberModal();
-                showAdminPanel();
+                await showAdminPanel();
             } catch (error) {
                 console.error('儲存會員編輯失敗:', error);
                 alert('儲存會員編輯失敗，請稍後再試');
@@ -2693,7 +2731,7 @@
                 await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
                 
                 alert('會員已刪除');
-                showAdminPanel();
+                await showAdminPanel();
             } catch (error) {
                 console.error('刪除會員失敗:', error);
                 alert('刪除會員失敗，請稍後再試');
@@ -2709,10 +2747,14 @@
                 const data = await loadData();
                 const member = data.members.find(m => m.username === username);
                 
-                if (!member) return;
+                if (!member) {
+                    hideLoading();
+                    return;
+                }
                 
                 const action = member.isAdmin ? '取消' : '設為';
                 if (!confirm(`確定要${action}「${member.nickname}」的管理員權限嗎？`)) {
+                    hideLoading();
                     return;
                 }
                 
@@ -2725,7 +2767,7 @@
                 }
                 
                 alert(`已${action}管理員權限`);
-                showAdminPanel();
+                await showAdminPanel();
             } catch (error) {
                 console.error('切換管理員狀態失敗:', error);
                 alert('切換管理員狀態失敗，請稍後再試');
