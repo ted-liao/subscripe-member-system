@@ -1994,23 +1994,28 @@ window.forceShowAdminPanel = async function() {
     
     // 離開排隊
 window.leaveQueue = async function() {
+    console.log('🚪 離開排隊按鈕被點擊');
+    
     if (!confirm('確定要離開排隊嗎？')) {
         return;
     }
     
     const data = await loadData();
     
+    console.log('🚪 當前用戶:', currentUser.username);
+    console.log('🚪 原始隊列:', data.queue);
+    
     // 過濾掉當前用戶
     const newQueue = data.queue.filter(q => q.username !== currentUser.username);
     
-    console.log('🚪 離開排隊 - 原始隊列長度:', data.queue.length);
-    console.log('🚪 離開排隊 - 新隊列長度:', newQueue.length);
-    console.log('🚪 離開排隊 - 新隊列:', newQueue);
+    console.log('🚪 新隊列:', newQueue);
+    console.log('🚪 原始隊列長度:', data.queue.length);
+    console.log('🚪 新隊列長度:', newQueue.length);
     
     await saveData(data.members, data.activationCodes, newQueue, data.gameSession);
     
     alert('已離開排隊');
-    showQueuePage();
+    await showQueuePage();
 }
     
     // 顯示管理員面板
@@ -2427,26 +2432,48 @@ window.closeGameSession = async function() {
         showAdminPanel();
     }
     
-    // 從排隊中移除
+    // 從排隊中移除（管理員功能）
 window.removeFromQueue = async function(username) {
+    console.log('❌ 移除排隊按鈕被點擊, 用戶:', username);
+    
     if (!confirm('確定要移除此人嗎？')) {
         return;
     }
     
     const data = await loadData();
     
+    console.log('❌ 原始隊列:', data.queue);
+    // 清空排隊名單
+window.clearQueue = async function() {
+    console.log('🗑️ 清空排隊按鈕被點擊');
+    
+    if (!confirm('確定要清空所有排隊名單嗎？')) {
+        return;
+    }
+    
+    const data = await loadData();
+    const newQueue = [];
+    
+    console.log('🗑️ 原始隊列長度:', data.queue.length);
+    console.log('🗑️ 清空後隊列:', newQueue);
+    
+    await saveData(data.members, data.activationCodes, newQueue, data.gameSession);
+    
+    alert('排隊名單已清空');
+    await showAdminPanel();
+}
+    
     // 過濾掉指定用戶
     const newQueue = data.queue.filter(q => q.username !== username);
     
-    console.log('❌ 移除排隊 - 原始隊列長度:', data.queue.length);
-    console.log('❌ 移除排隊 - 新隊列長度:', newQueue.length);
-    console.log('❌ 移除排隊 - 被移除的用戶:', username);
-    console.log('❌ 移除排隊 - 新隊列:', newQueue);
+    console.log('❌ 新隊列:', newQueue);
+    console.log('❌ 原始隊列長度:', data.queue.length);
+    console.log('❌ 新隊列長度:', newQueue.length);
     
     await saveData(data.members, data.activationCodes, newQueue, data.gameSession);
     
     alert('已移除該會員');
-    showAdminPanel();
+    await showAdminPanel();
 }
     
     // 開啟編輯會員彈窗
@@ -2633,6 +2660,7 @@ window.removeFromQueue = async function(username) {
     // 啟動系統
     initialize();
 </script>
+
 
 
 
