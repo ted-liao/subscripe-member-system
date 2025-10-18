@@ -945,53 +945,78 @@ flex-wrap: wrap;
         }
     }
     
-    // 儲存資料到 Firebase
+    // 儲存資料到 Firebase（完全重寫版本）
 async function saveData(members, activationCodes, queue, gameSession) {
     try {
+        console.log('💾 ========== 開始儲存資料 ==========');
+        console.log('📊 Members 數量:', members.length);
+        console.log('🎟️ Codes 數量:', activationCodes.length);
+        console.log('👥 Queue 數量:', queue ? queue.length : 0);
+        console.log('🎮 GameSession:', gameSession ? '存在' : 'null');
+
+        // 1️⃣ 儲存 Members
         const membersObj = {};
         members.forEach(m => {
             membersObj[m.username] = m;
         });
+        await set(ref(database, 'members'), membersObj);
+        console.log('✅ Members 已儲存');
 
+        // 2️⃣ 儲存 Activation Codes
         const codesObj = {};
         activationCodes.forEach(c => {
             codesObj[c.code] = c;
         });
+        await set(ref(database, 'activationCodes'), codesObj);
+        console.log('✅ Activation Codes 已儲存');
 
-        // 建立 Promise 陣列
-        const promises = [
-            set(ref(database, 'members'), membersObj),
-            set(ref(database, 'activationCodes'), codesObj)
-        ];
-
-        // 處理 queue：空陣列 → 刪除節點，否則儲存
+        // 3️⃣ 處理 Queue（關鍵修復）
+        const queueRef = ref(database, 'queue');
+        
         if (!queue || queue.length === 0) {
-            promises.push(remove(ref(database, 'queue')));
-            console.log('🗑️ 正在刪除 queue 節點');
+            console.log('🗑️ Queue 為空，執行刪除...');
+            await remove(queueRef);
+            
+            // 驗證刪除
+            const checkSnap = await get(queueRef);
+            if (checkSnap.exists()) {
+                console.error('❌ Queue 刪除失敗！仍然存在');
+            } else {
+                console.log('✅ Queue 節點已成功刪除');
+            }
         } else {
-            const queueObj = {};
-            queue.forEach((q, index) => {
-                queueObj[index] = q;
-            });
-            promises.push(set(ref(database, 'queue'), queueObj));
-            console.log('✏️ 正在儲存 queue 節點');
+            console.log('💾 儲存 Queue 資料 (' + queue.length + ' 筆)...');
+            await set(queueRef, queue);
+            console.log('✅ Queue 已儲存');
         }
 
-        // 處理 gameSession：null → 刪除節點，否則儲存
+        // 4️⃣ 處理 GameSession
+        const sessionRef = ref(database, 'gameSession');
+        
         if (gameSession === null || gameSession === undefined) {
-            promises.push(remove(ref(database, 'gameSession')));
-            console.log('🗑️ 正在刪除 gameSession 節點');
+            console.log('🗑️ GameSession 為空，執行刪除...');
+            await remove(sessionRef);
+            
+            // 驗證刪除
+            const checkSnap = await get(sessionRef);
+            if (checkSnap.exists()) {
+                console.error('❌ GameSession 刪除失敗！仍然存在');
+            } else {
+                console.log('✅ GameSession 節點已成功刪除');
+            }
         } else {
-            promises.push(set(ref(database, 'gameSession'), gameSession));
-            console.log('✏️ 正在儲存 gameSession 節點');
+            console.log('💾 儲存 GameSession 資料...');
+            await set(sessionRef, gameSession);
+            console.log('✅ GameSession 已儲存');
         }
 
-        await Promise.all(promises);
-
-        console.log('✅ 資料已成功儲存到 Firebase');
+        console.log('✅✅✅ ========== 所有資料儲存完成 ==========');
+        
     } catch (error) {
-        console.error('❌ 儲存資料錯誤:', error);
-        alert('資料儲存失敗，請稍後再試');
+        console.error('❌ ========== 儲存資料錯誤 ==========');
+        console.error('錯誤訊息:', error.message);
+        console.error('錯誤堆疊:', error.stack);
+        alert('資料儲存失敗：' + error.message);
     }
 }
     // 初始化系統 - 創建預設管理員帳號
@@ -2660,6 +2685,7 @@ window.clearQueue = async function() {
     // 啟動系統
     initialize();
 </script>
+
 
 
 
