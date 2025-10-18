@@ -1797,97 +1797,97 @@ async function saveData(members, activationCodes, queue, gameSession) {
         window.closeForgotPasswordModal();
     }
     
-    // 顯示會員資訊
-    async function showMemberInfo() {
-        const content = document.getElementById('memberContent');
-        
-        if (!currentUser) {
-            content.innerHTML = '<div class="empty-state"><h3>請先登入</h3></div>';
-            document.getElementById('adminPanel').classList.remove('active');
-            return;
-        }
-        
-        const data = await loadData();
-        const updatedUser = data.members.find(m => m.username === currentUser.username);
-        if (updatedUser) {
-            const now = Math.floor(Date.now() / 1000);
-            const elapsed = now - updatedUser.lastUpdateTime;
-            updatedUser.remainingSeconds = Math.max(0, updatedUser.remainingSeconds - elapsed);
-            updatedUser.lastUpdateTime = now;
-            currentUser = updatedUser;
-            await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
-        }
-        
-        const levelText = currentUser.level === 'vip' ? 'VIP會員' : 
-                        currentUser.level === 'premium' ? '高級會員' : '普通會員';
-        const badgeClass = currentUser.level === 'vip' ? 'badge-vip' : 
-                         currentUser.level === 'premium' ? 'badge-premium' : 'badge-normal';
-        
-        const platformText = currentUser.platform === 'tiktok' ? 'TikTok' : 'YouTube';
-        const timeObj = secondsToTime(currentUser.remainingSeconds);
-        const timeClass = getTimeColorClass(currentUser.remainingSeconds);
-        
-        const codeData = data.activationCodes.find(c => c.code === currentUser.activationCode);
-        const codeTimeObj = codeData ? secondsToTime(codeData.seconds) : null;
-        
-        content.innerHTML = `
-            <div class="member-info">
-                <h2>👤 ${currentUser.nickname}</h2>
-                <div class="info-item">
-                    <span>平台</span>
-                    <span>${platformText}</span>
-                </div>
-                <div class="info-item">
-                    <span>會員等級</span>
-                    <span class="badge ${badgeClass}">${levelText}</span>
-                </div>
-                <div class="info-item">
-                    <span>CODM UID</span>
-                    <div class="copy-area">
-                        <span>${currentUser.gameUID}</span>
-                        <button class="btn-copy" onclick="copyToClipboard('${currentUser.gameUID}', this)">📋 複製</button>
-                    </div>
-                </div>
-                <div class="info-item">
-                    <span>兌換碼</span>
-                    <span style="font-family: 'Courier New', monospace; font-weight: bold;">${currentUser.activationCode || 'N/A'}</span>
-                </div>
-                ${codeData ? `
-                <div class="info-item">
-                    <span>兌換碼原始時長</span>
-                    <span>${formatTimeDisplay(codeTimeObj)}</span>
-                </div>
-                ` : ''}
-                <div class="info-item">
-                    <span>加入時間</span>
-                    <span>${new Date(currentUser.joinDate).toLocaleDateString('zh-TW')}</span>
-                </div>
-                <div class="info-item">
-                    <span>剩餘秒數</span>
-                    <span class="countdown-time ${timeClass}" data-username="${member.username}">${(currentUser.remainingSeconds || 0).toLocaleString()} 秒</span>
-                </div>
-                ${currentUser.isAdmin ? `
-                <div class="info-item">
-                    <span>權限</span>
-                    <span class="badge-admin">管理員</span>
-                </div>
-                ` : ''}
-            </div>
-            <div style="text-align: center; padding: 30px;">
-                <h3 style="margin-bottom: 10px;">會員剩餘時間</h3>
-                <div class="time-display ${timeClass}">${formatTimeDisplay(timeObj)}</div>
-                ${currentUser.remainingSeconds <= 0 ? '<p style="color: #e74c3c; margin-top: 10px;">您的會員已過期</p>' : ''}
-            </div>
-
-            <div class="settings-section">
-                <h4>⚙️ 帳號設定</h4>
-                <button class="btn btn-small" onclick="openChangePasswordModal()">🔒 更改密碼</button>
-                ${currentUser.isAdmin ? `
-                <button class="btn btn-small" onclick="showAdminPanel()" style="margin-left: 10px;">👑 顯示管理員面板</button>
-                ` : ''}
-            </div>
-        `;
+// 顯示會員資訊
+async function showMemberInfo() {
+    const content = document.getElementById('memberContent');
+    
+    if (!currentUser) {
+        content.innerHTML = '<div class="empty-state"><h3>請先登入</h3></div>';
+        document.getElementById('adminPanel').classList.remove('active');
+        return;
     }
+    
+    const data = await loadData();
+    const updatedUser = data.members.find(m => m.username === currentUser.username);
+    if (updatedUser) {
+        const now = Math.floor(Date.now() / 1000);
+        const elapsed = now - updatedUser.lastUpdateTime;
+        updatedUser.remainingSeconds = Math.max(0, updatedUser.remainingSeconds - elapsed);
+        updatedUser.lastUpdateTime = now;
+        currentUser = updatedUser;
+        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+    }
+    
+    const levelText = currentUser.level === 'vip' ? 'VIP會員' : 
+                    currentUser.level === 'premium' ? '高級會員' : '普通會員';
+    const badgeClass = currentUser.level === 'vip' ? 'badge-vip' : 
+                     currentUser.level === 'premium' ? 'badge-premium' : 'badge-normal';
+    
+    const platformText = currentUser.platform === 'tiktok' ? 'TikTok' : 'YouTube';
+    const timeObj = secondsToTime(currentUser.remainingSeconds);
+    const timeClass = getTimeColorClass(currentUser.remainingSeconds);
+    
+    const codeData = data.activationCodes.find(c => c.code === currentUser.activationCode);
+    const codeTimeObj = codeData ? secondsToTime(codeData.seconds) : null;
+    
+    content.innerHTML = `
+        <div class="member-info">
+            <h2>👤 ${currentUser.nickname}</h2>
+            <div class="info-item">
+                <span>平台</span>
+                <span>${platformText}</span>
+            </div>
+            <div class="info-item">
+                <span>會員等級</span>
+                <span class="badge ${badgeClass}">${levelText}</span>
+            </div>
+            <div class="info-item">
+                <span>CODM UID</span>
+                <div class="copy-area">
+                    <span>${currentUser.gameUID}</span>
+                    <button class="btn-copy" onclick="copyToClipboard('${currentUser.gameUID}', this)">📋 複製</button>
+                </div>
+            </div>
+            <div class="info-item">
+                <span>兌換碼</span>
+                <span style="font-family: 'Courier New', monospace; font-weight: bold;">${currentUser.activationCode || 'N/A'}</span>
+            </div>
+            ${codeData ? `
+            <div class="info-item">
+                <span>兌換碼原始時長</span>
+                <span>${formatTimeDisplay(codeTimeObj)}</span>
+            </div>
+            ` : ''}
+            <div class="info-item">
+                <span>加入時間</span>
+                <span>${new Date(currentUser.joinDate).toLocaleDateString('zh-TW')}</span>
+            </div>
+            <div class="info-item">
+                <span>剩餘秒數</span>
+                <span class="countdown-time ${timeClass}" data-username="${currentUser.username}">${(currentUser.remainingSeconds || 0).toLocaleString()} 秒</span>
+            </div>
+            ${currentUser.isAdmin ? `
+            <div class="info-item">
+                <span>權限</span>
+                <span class="badge-admin">管理員</span>
+            </div>
+            ` : ''}
+        </div>
+        <div style="text-align: center; padding: 30px;">
+            <h3 style="margin-bottom: 10px;">會員剩餘時間</h3>
+            <div class="time-display ${timeClass}">${formatTimeDisplay(timeObj)}</div>
+            ${currentUser.remainingSeconds <= 0 ? '<p style="color: #e74c3c; margin-top: 10px;">您的會員已過期</p>' : ''}
+        </div>
+
+        <div class="settings-section">
+            <h4>⚙️ 帳號設定</h4>
+            <button class="btn btn-small" onclick="openChangePasswordModal()">🔒 更改密碼</button>
+            ${currentUser.isAdmin ? `
+            <button class="btn btn-small" onclick="showAdminPanel()" style="margin-left: 10px;">👑 顯示管理員面板</button>
+            ` : ''}
+        </div>
+    `;
+}
     
     // 強制顯示管理員面板（修復按鈕無反應問題）
 window.forceShowAdminPanel = async function() {
@@ -2673,6 +2673,7 @@ window.clearQueue = async function() {
     // 啟動系統
     initialize();
 </script>
+
 
 
 
