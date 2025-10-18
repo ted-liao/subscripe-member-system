@@ -539,6 +539,18 @@
         .level-platinum { background: linear-gradient(135deg, #e5e4e2 0%, #b8b8b8 100%); color: #333; }
         .level-diamond { background: linear-gradient(135deg, #b9f2ff 0%, #00d4ff 100%); color: #333; }
         
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .status-unused { background: #f2c94c; color: #333; }
+        .status-using { background: #38ef7d; color: white; }
+        .status-expired { background: #95a5a6; color: white; }
+        
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 1.8em;
@@ -771,6 +783,7 @@
                                             <th>時長</th>
                                             <th>生成時間</th>
                                             <th>狀態</th>
+                                            <th>使用者</th>
                                             <th>操作</th>
                                         </tr>
                                     </thead>
@@ -978,7 +991,7 @@
         // Firebase 設定
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getDatabase, ref, set, get, push, remove, onValue, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
         const firebaseConfig = {
           apiKey: "AIzaSyCQEXz8OIzbb9dDxnz52tymNnYofGDEczQ",
@@ -1030,7 +1043,7 @@
                 const codes = [];
                 if (codesSnapshot.exists()) {
                     codesSnapshot.forEach(child => {
-                        codes.push(child.val());
+                        codes.push({ id: child.key, ...child.val() });
                     });
                 }
 
@@ -1107,6 +1120,7 @@
         // 儲存兌換碼
         async function saveActivationCode(code) {
             try {
+                // 使用兌換碼字串作為 key
                 await set(ref(database, 'activationCodes/' + code.code), code);
             } catch (error) {
                 console.error('儲存兌換碼錯誤:', error);
@@ -1151,7 +1165,6 @@
                 const adminExists = data.members.some(m => m.username === 'admin');
                 
                 if (!adminExists) {
-                    // 創建 Firebase Auth 帳號
                     const email = 'admin@codm.system';
                     const password = 'admin';
                     
@@ -1197,7 +1210,6 @@
         
         onAuthStateChanged(auth, async (user) => {
             if (user) {
-                // 用戶已登入，載入用戶資料
                 try {
                     const userSnapshot = await get(ref(database, 'members/' + user.uid));
                     if (userSnapshot.exists()) {
@@ -1211,7 +1223,6 @@
                     console.error('載入用戶資料錯誤:', error);
                 }
             } else {
-                // 用戶已登出
                 currentUser = null;
                 updateUserSection();
             }
@@ -1331,7 +1342,7 @@
                 return;
             }
 
-            currentUser = member; // 更新 currentUser
+            currentUser = member;
             
             const timeObj = secondsToTime(member.remainingSeconds);
             const timeColorClass = getTimeColorClass(member.remainingSeconds);
@@ -1419,6 +1430,24 @@
                 const timeObj = secondsToTime(code.seconds);
                 const levelClass = `level-${code.level}`;
                 
+                // 判斷狀態
+                let statusClass = 'status-unused';
+                let statusText = '未使用';
+                let usedByText = '-';
+                
+                if (code.used) {
+                    // 檢查是否已過期
+                    const usedMember = data.members.find(m => m.username === code.usedBy);
+                    if (usedMember && usedMember.remainingSeconds <= 0) {
+                        statusClass = 'status-expired';
+                        statusText = '已到期';
+                    } else {
+                        statusClass = 'status-using';
+                        statusText = '使用中';
+                    }
+                    usedByText = code.usedBy;
+                }
+                
                 const row = codesTableBody.insertRow();
                 row.innerHTML = `
                     <td>
@@ -1428,7 +1457,8 @@
                     <td><span class="level-badge ${levelClass}">${getLevelName(code.level)}</span></td>
                     <td>${formatTimeDisplay(timeObj)}</td>
                     <td>${new Date(code.createdDate).toLocaleString('zh-TW')}</td>
-                    <td>${code.used ? '<span style="color: red;">已使用</span>' : '<span style="color: green;">未使用</span>'}</td>
+                    <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+                    <td>${usedByText}</td>
                     <td>
                         ${!code.used ? `<button class="btn btn-danger" style="padding: 8px 15px;" onclick="deleteCode('${code.code}')">刪除</button>` : ''}
                     </td>
@@ -1564,9 +1594,12 @@
                 code.usedDate = new Date().toISOString();
                 await saveActivationCode(code);
 
-                alert('註冊成功！請登入');
+                alert('註冊成功！');
                 closeRegisterModal();
-                openLoginModal();
+                // 自動登入並跳轉到會員頁面
+                currentUser = newMember;
+                updateUserSection();
+                showPage('member');
 
             } catch (error) {
                 console.error('註冊錯誤:', error);
@@ -1594,9 +1627,11 @@
                 const email = `${username}@codm.system`;
                 await signInWithEmailAndPassword(auth, email, password);
                 
-                alert('登入成功！');
                 closeLoginModal();
-                showPage('member');
+                // 等待 onAuthStateChanged 觸發後再跳轉
+                setTimeout(() => {
+                    showPage('member');
+                }, 500);
                 
             } catch (error) {
                 console.error('登入錯誤:', error);
@@ -1648,12 +1683,13 @@
             }
 
             try {
+                const user = auth.currentUser;
+                const credential = EmailAuthProvider.credential(user.email, currentPassword);
+                
                 // 重新驗證
-                const email = `${currentUser.username}@codm.system`;
-                await signInWithEmailAndPassword(auth, email, currentPassword);
+                await reauthenticateWithCredential(user, credential);
                 
                 // 更新密碼
-                const user = auth.currentUser;
                 await updatePassword(user, newPassword);
 
                 alert('密碼更改成功！');
@@ -1665,9 +1701,8 @@
                     alert('目前密碼錯誤');
                 } else if (error.code === 'auth/weak-password') {
                     alert('新密碼強度不足');
-                } else if (error.code === 'auth/requires-recent-login') {
-                    alert('為了安全，請重新登入後再更改密碼');
-                    window.logout();
+                } else if (error.code === 'auth/invalid-credential') {
+                    alert('目前密碼錯誤');
                 } else {
                     alert('更改密碼失敗：' + error.message);
                 }
@@ -1736,8 +1771,7 @@
                 return;
             }
             
-            // 注意：這裡無法直接重設密碼，需要管理員權限
-            alert('重設密碼功能需要管理員協助。請聯繫系統管理員。\n\n提示：您可以使用「註冊新帳號」的方式重新開始。');
+            alert('重設密碼功能需要管理員協助。\n請聯繫系統管理員重設密碼。');
             closeForgotPasswordModal();
         }
 
@@ -1758,10 +1792,8 @@
                     return;
                 }
                 
-                // 刪除資料庫中的會員資料
                 await deleteMemberFromDB(member.uid);
                 
-                // 從排隊中移除
                 const newQueue = data.queue.filter(q => q.username !== username);
                 await saveQueue(newQueue);
                 
@@ -1842,7 +1874,6 @@
                 
                 await saveMember(member);
                 
-                // 更新排隊中的資料
                 const queue = data.queue;
                 queue.forEach(q => {
                     if (q.username === member.username) {
@@ -2260,7 +2291,6 @@
             editingMember = null;
         }
 
-        // 點擊 modal 外部關閉
         window.onclick = function(event) {
             if (event.target.classList.contains('modal')) {
                 event.target.style.display = 'none';
@@ -2361,7 +2391,6 @@
                     await saveAllMembers(membersToUpdate);
                 }
                 
-                // 更新頁面顯示
                 document.querySelectorAll('.countdown-time').forEach(element => {
                     const username = element.getAttribute('data-username');
                     if (username) {
@@ -2401,7 +2430,7 @@
                 if (currentPage === 'queue') {
                     refreshQueueOnly();
                 }
-            }, 5000); // 每5秒更新一次
+            }, 5000);
         }
 
         function stopAutoRefresh() {
