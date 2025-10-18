@@ -1990,7 +1990,7 @@ window.forceShowAdminPanel = async function() {
     }
     
     // 顯示管理員面板
-    async function showAdminPanel() {
+    window.showAdminPanel = async function() {
         console.log('📊 showAdminPanel 被調用');
         
         if (!isAdmin()) {
@@ -2596,5 +2596,6 @@ window.forceShowAdminPanel = async function() {
     // 啟動系統
     initialize();
 </script>
+
 
 
