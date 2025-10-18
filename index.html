@@ -859,15 +859,22 @@
         import { getDatabase, ref, set, get, update, remove, onValue, push, query, orderByChild } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
 
         // 請在此處替換為您的 Firebase 配置
+        <!-- Firebase SDK -->
+    <script type="module">
+        // Import Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getAuth } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getDatabase } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        // 您的 Firebase 配置
         const firebaseConfig = {
-              apiKey: "AIzaSyCQEXz8OIzbb9dDxnz52tymNnYofGDEczQ",
-              authDomain: "subscription-member-system.firebaseapp.com",
-              databaseURL: "https://subscription-member-system-default-rtdb.asia-southeast1.firebasedatabase.app",
-              projectId: "subscription-member-system",
-              storageBucket: "subscription-member-system.firebasestorage.app",
-              messagingSenderId: "970681171187",
-              appId: "1:970681171187:web:f3f86b743e27667a994b86"
-            };
+            apiKey: "AIzaSyCQEXz8OIzbb9dDxnz52tymNnYofGDEczQ",
+            authDomain: "subscription-member-system.firebaseapp.com",
+            databaseURL: "https://subscription-member-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "subscription-member-system",
+            storageBucket: "subscription-member-system.firebasestorage.app",
+            messagingSenderId: "970681171187",
+            appId: "1:970681171187:web:f3f86b743e27667a994b86"
         };
 
         // 初始化 Firebase
@@ -875,6 +882,11 @@
         const auth = getAuth(app);
         const database = getDatabase(app);
 
+        // 將 Firebase 實例掛載到 window 供其他腳本使用
+        window.firebaseApp = app;
+        window.firebaseAuth = auth;
+        window.firebaseDatabase = database;
+    </script>
         // 全局變量
         window.auth = auth;
         window.database = database;
@@ -2571,4 +2583,5 @@
     </script>
 </body>
 </html>
+
 
