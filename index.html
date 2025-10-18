@@ -912,7 +912,30 @@
 
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+                // ==================== 🔥 加入匿名登入 ====================
+let isAuthReady = false;
+
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        console.log('✅ 用戶已登入:', user.uid);
+        isAuthReady = true;
+        
+        // 登入完成後才初始化
+        if (!window.appInitialized) {
+            window.appInitialized = true;
+            initialize();
+        }
+    } else {
+        console.log('⏳ 嘗試匿名登入...');
+        firebase.auth().signInAnonymously()
+            .catch((error) => {
+                console.error('❌ 登入失敗:', error);
+                alert('系統初始化失敗，請重新整理頁面');
+            });
+    }
+});
         // ==================== 建立管理員帳號（僅限首次執行） ====================
+
 window.initializeAdmin = async function() {
     try {
         console.log('🔄 開始建立管理員帳號...');
@@ -2852,10 +2875,12 @@ console.log('=====================================');
         }
 
         // ==================== 啟動系統 ====================
-        initialize();
+        //initialize();
+        console.log('⏳ 等待 Firebase 認證...');
     </script>
 </body>
 </html>
+
 
 
 
