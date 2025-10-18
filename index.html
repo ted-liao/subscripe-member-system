@@ -946,36 +946,47 @@ flex-wrap: wrap;
     }
     
     // 儲存資料到 Firebase
-    async function saveData(members, activationCodes, queue, gameSession) {
-        try {
-            const membersObj = {};
-            members.forEach(m => {
-                membersObj[m.username] = m;
-            });
+    // 儲存資料到 Firebase
+async function saveData(members, activationCodes, queue, gameSession) {
+    try {
+        const membersObj = {};
+        members.forEach(m => {
+            membersObj[m.username] = m;
+        });
 
-            const codesObj = {};
-            activationCodes.forEach(c => {
-                codesObj[c.code] = c;
-            });
+        const codesObj = {};
+        activationCodes.forEach(c => {
+            codesObj[c.code] = c;
+        });
 
-            const queueObj = {};
-            queue.forEach((q, index) => {
-                queueObj[index] = q;
-            });
+        const queueObj = {};
+        queue.forEach((q, index) => {
+            queueObj[index] = q;
+        });
 
-            await Promise.all([
-                set(ref(database, 'members'), membersObj),
-                set(ref(database, 'activationCodes'), codesObj),
-                set(ref(database, 'queue'), queueObj),
-                set(ref(database, 'gameSession'), gameSession)
-            ]);
+        // 處理 queue：如果是空陣列，則刪除節點
+        const queuePromise = queue.length === 0 
+            ? remove(ref(database, 'queue'))
+            : set(ref(database, 'queue'), queueObj);
 
-            console.log('✅ 資料已成功儲存到 Firebase');
-        } catch (error) {
-            console.error('❌ 儲存資料錯誤:', error);
-            alert('資料儲存失敗，請稍後再試');
-        }
+        // 處理 gameSession：如果是 null，則刪除節點
+        const sessionPromise = gameSession === null
+            ? remove(ref(database, 'gameSession'))
+            : set(ref(database, 'gameSession'), gameSession);
+
+        await Promise.all([
+            set(ref(database, 'members'), membersObj),
+            set(ref(database, 'activationCodes'), codesObj),
+            queuePromise,
+            sessionPromise
+        ]);
+
+        console.log('✅ 資料已成功儲存到 Firebase');
+    } catch (error) {
+        console.error('❌ 儲存資料錯誤:', error);
+        alert('資料儲存失敗，請稍後再試');
     }
+}
 
     // 初始化系統 - 創建預設管理員帳號
     async function initializeDefaultAdmin() {
@@ -2596,6 +2607,7 @@ window.forceShowAdminPanel = async function() {
     // 啟動系統
     initialize();
 </script>
+
 
 
 
