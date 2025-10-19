@@ -916,25 +916,10 @@
                 // ==================== 🔥 加入匿名登入 ====================
 let isAuthReady = false;
 
-firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-        console.log('✅ 用戶已登入:', user.uid);
-        isAuthReady = true;
-        
-        // 登入完成後才初始化
-        if (!window.appInitialized) {
-            window.appInitialized = true;
-            initialize();
-        }
-    } else {
-        console.log('⏳ 嘗試匿名登入...');
-        firebase.auth().signInAnonymously()
-            .catch((error) => {
-                console.error('❌ 登入失敗:', error);
-                alert('系統初始化失敗，請重新整理頁面');
-            });
-    }
-});
+if (!window.appInitialized) {
+    window.appInitialized = true;
+    initialize();
+}
         // ==================== 建立管理員帳號（僅限首次執行） ====================
 
 window.initializeAdmin = async function() {
@@ -2881,6 +2866,7 @@ console.log('=====================================');
     </script>
 </body>
 </html>
+
 
 
 
