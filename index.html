@@ -2865,38 +2865,83 @@
         }
         
         // ==================== 系統初始化 ====================
-async function initialize() {
-    updateLoadingProgress('系統初始化中...');
-    
-    try {
-        // 初始化預設管理員（僅首次）
-        await initializeDefaultAdmin();
-        
-        updateUserSection();
-        startGlobalCountdown();
-        initDailyBackup();
-        
-        updateLoadingProgress('載入完成！');
-        
-        // 隱藏初始 loading
-        setTimeout(() => {
-            const loading = document.getElementById('initialLoading');
-            loading.classList.add('hide');
-            setTimeout(() => loading.style.display = 'none', 300);
-        }, 200);
-    } catch (error) {
-        console.error('系統初始化失敗:', error);
-        alert('系統初始化失敗，請重新整理頁面');
-        document.getElementById('loadingProgress').textContent = '初始化失敗';
-    }
-}
+        async function initialize() {
+            updateLoadingProgress('系統初始化中...');
+            
+            try {
+                // 初始化預設管理員（僅首次）
+                await initializeDefaultAdmin();
+                
+                updateUserSection();
+                startGlobalCountdown();
+                initDailyBackup();
+                
+                updateLoadingProgress('載入完成！');
+                
+                // 隱藏初始 loading
+                setTimeout(() => {
+                    const loading = document.getElementById('initialLoading');
+                    loading.classList.add('hide');
+                    setTimeout(() => loading.style.display = 'none', 300);
+                }, 200);
+            } catch (error) {
+                console.error('系統初始化失敗:', error);
+                alert('系統初始化失敗，請重新整理頁面');
+                document.getElementById('loadingProgress').textContent = '初始化失敗';
+            }
+        }
+
+        // ==================== 手動建立管理員（開發用） ====================
+        window.createAdminAccount = async function() {
+            if (!confirm('確定要建立管理員帳號嗎？\n\n帳號: admin\n密碼: Admin@123456')) {
+                return;
+            }
+            
+            showLoading();
+            try {
+                const adminRef = database.ref('members/admin');
+                const snapshot = await adminRef.once('value');
+                
+                if (snapshot.exists()) {
+                    alert('❌ 管理員帳號已存在！');
+                    hideLoading();
+                    return;
+                }
+                
+                const passwordHash = await hashPassword('Admin@123456');
+                const now = Math.floor(Date.now() / 1000);
+                
+                await adminRef.set({
+                    username: 'admin',
+                    passwordHash: passwordHash,
+                    platform: 'youtube',
+                    nickname: '系統管理員',
+                    gameUID: 'ADMIN000000',
+                    level: 'vip',
+                    securityQuestion: 'game',
+                    securityAnswer: 'ghost',
+                    joinDate: new Date().toISOString(),
+                    remainingSeconds: 999999999,
+                    lastUpdateTime: now,
+                    activationCode: 'ADMIN0',
+                    isAdmin: true
+                });
+                
+                alert('✅ 管理員建立成功！\n\n帳號: admin\n密碼: Admin@123456\n\n請重新整理頁面後登入');
+            } catch (error) {
+                console.error('建立失敗:', error);
+                alert('❌ 建立失敗：' + error.message);
+            } finally {
+                hideLoading();
+            }
+        };
 
         // ==================== 系統日誌 ====================
-console.log('=====================================');
-console.log('🎮 CODM 會員管理系統');
-console.log('📌 系統已就緒');
-console.log('📌 如需手動建立管理員，請執行: createAdminAccount()');
-console.log('=====================================');
+        console.log('=====================================');
+        console.log('🎮 CODM 會員管理系統');
+        console.log('📌 系統已就緒');
+        console.log('📌 如需手動建立管理員，請執行: createAdminAccount()');
+        console.log('=====================================');
     </script>
 </body>
 </html>
