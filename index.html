@@ -659,51 +659,16 @@
                 flex-wrap: wrap;
             }
         }
-        /* ✅ 新增：初始 Loading 畫面 */
-        #initialLoading {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 10000;
-            color: white;
-            transition: opacity 0.3s;
-        }
-        
-        #initialLoading.hide {
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <!-- SheetJS for Excel Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
-    <!-- ✅ 初始 Loading -->
-    <div id="initialLoading">
-        <div style="
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid white;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        "></div>
-        <h2 style="margin-top: 20px;">載入中...</h2>
-        <p id="loadingProgress" style="margin-top: 10px; font-size: 14px;">正在連接伺服器...</p>
-    </div>
-
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-spinner"></div>
@@ -933,73 +898,104 @@
             <div id="editMemberContent"></div>
         </div>
     </div>
-    <!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-        // ==================== 🔥 優化後的初始化（含錯誤處理） ====================
+
+    <script>
+        // ==================== Firebase 初始化 ====================
+        const firebaseConfig = {
+            apiKey: "AIzaSyCQEXz8OIzbb9dDxnz52tymNnYofGDEczQ",
+            authDomain: "subscription-member-system.firebaseapp.com",
+            databaseURL: "https://subscription-member-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "subscription-member-system",
+            storageBucket: "subscription-member-system.firebasestorage.app",
+            messagingSenderId: "970681171187",
+            appId: "1:970681171187:web:f3f86b743e27667a994b86"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+                // ==================== 🔥 加入匿名登入 ====================
+let isAuthReady = false;
+
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        console.log('✅ 用戶已登入:', user.uid);
+        isAuthReady = true;
         
-        window.addEventListener('load', () => {
-            if (typeof firebase !== 'undefined') {
-                initializeApp();
-            } else {
-                alert('Firebase 載入失敗，請重新整理頁面');
-                document.getElementById('loadingProgress').textContent = 'Firebase 載入失敗';
-            }
+        // 登入完成後才初始化
+        if (!window.appInitialized) {
+            window.appInitialized = true;
+            initialize();
+        }
+    } else {
+        console.log('⏳ 嘗試匿名登入...');
+        firebase.auth().signInAnonymously()
+            .catch((error) => {
+                console.error('❌ 登入失敗:', error);
+                alert('系統初始化失敗，請重新整理頁面');
+            });
+    }
+});
+        // ==================== 建立管理員帳號（僅限首次執行） ====================
+
+window.initializeAdmin = async function() {
+    try {
+        console.log('🔄 開始建立管理員帳號...');
+        
+        const adminUsername = 'admin';
+        const adminPassword = 'Admin@123456';
+        
+        // 檢查是否已存在
+        const adminRef = database.ref('members/admin');
+        const snapshot = await adminRef.once('value');
+        
+        if (snapshot.exists()) {
+            alert(`✅ 管理員帳號已存在！
+
+可以直接登入：
+👤 Username: admin
+🔑 Password: Admin@123456`);
+            return;
+        }
+        
+        // 建立管理員
+        const passwordHash = await hashPassword(adminPassword);
+        const now = Math.floor(Date.now() / 1000);
+        
+        await adminRef.set({
+            username: adminUsername,
+            passwordHash: passwordHash,
+            platform: 'youtube',
+            nickname: '系統管理員',
+            gameUID: 'ADMIN000000',
+            level: 'vip',
+            securityQuestion: 'game',
+            securityAnswer: 'ghost',
+            joinDate: new Date().toISOString(),
+            remainingSeconds: 999999999,
+            lastUpdateTime: now,
+            activationCode: 'ADMIN0',
+            isAdmin: true
         });
+        
+        console.log('✅ 管理員建立成功');
+        
+        alert(`✅ 管理員帳號建立成功！
 
-        function updateLoadingProgress(message) {
-            const el = document.getElementById('loadingProgress');
-            if (el) el.textContent = message;
-        }
+👤 Username: admin
+🔑 Password: Admin@123456
 
-        function initializeApp() {
-            updateLoadingProgress('正在初始化 Firebase...');
-            
-            const firebaseConfig = {
-                apiKey: "AIzaSyCQEXz8OIzbb9dDxnz52tymNnYofGDEczQ",
-                authDomain: "subscription-member-system.firebaseapp.com",
-                databaseURL: "https://subscription-member-system-default-rtdb.asia-southeast1.firebasedatabase.app",
-                projectId: "subscription-member-system",
-                storageBucket: "subscription-member-system.firebasestorage.app",
-                messagingSenderId: "970681171187",
-                appId: "1:970681171187:web:f3f86b743e27667a994b86"
-            };
+請使用這些資訊登入`);
+        
+    } catch (error) {
+        console.error('❌ 建立管理員失敗:', error);
+        alert('建立失敗：' + error.message);
+    }
+};
 
-            firebase.initializeApp(firebaseConfig);
-            window.database = firebase.database();
-            
-            updateLoadingProgress('正在登入...');
-            
-            // ✅ 匿名登入（優化版）
-            firebase.auth().signInAnonymously()
-                .then(() => {
-                    console.log('✅ 匿名登入成功');
-                    updateLoadingProgress('系統準備中...');
-                    // 直接開始，不等待 onAuthStateChanged
-                    setTimeout(() => initialize(), 100);
-                })
-                .catch((error) => {
-                    console.error('❌ 登入失敗:', error);
-                    alert('系統初始化失敗，請重新整理頁面\n錯誤：' + error.message);
-                    document.getElementById('loadingProgress').textContent = '登入失敗，請重新整理';
-                });
-        }
-
-        async function initialize() {
-            updateLoadingProgress('載入完成！');
-            
-            updateUserSection();
-            startGlobalCountdown();
-            initDailyBackup();
-            
-            // 隱藏初始 loading
-            setTimeout(() => {
-                const loading = document.getElementById('initialLoading');
-                loading.classList.add('hide');
-                setTimeout(() => loading.style.display = 'none', 300);
-            }, 200);
-        }
+console.log('=====================================');
+console.log('🎮 CODM 會員管理系統已就緒');
+console.log('📌 輸入 initializeAdmin() 建立管理員');
+console.log('=====================================');
         // ==================== 全局變數 ====================
         let currentUser = null;
         let forgotPasswordUser = null;
@@ -2191,86 +2187,294 @@
             document.getElementById(`member-${tabName}`).classList.add('active');
         }
 
-async function showAdminPanel() {
-    if (!isAdmin()) {
-        document.getElementById('adminPanel').classList.remove('active');
-        return;
-    }
+        // ==================== 管理員面板 ====================
+        async function showAdminPanel() {
+            if (!isAdmin()) {
+                document.getElementById('adminPanel').classList.remove('active');
+                return;
+            }
 
-    showLoading();
-    try {
-        const panel = document.getElementById('adminPanel');
-        const data = await loadData();
-        
-        const now = Math.floor(Date.now() / 1000);
-        data.members.forEach(member => {
-            const elapsed = now - member.lastUpdateTime;
-            member.remainingSeconds = Math.max(0, member.remainingSeconds - elapsed);
-            member.lastUpdateTime = now;
-        });
-        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
-        
-        const unusedCodes = data.activationCodes.filter(c => !c.used);
-        const usedCodes = data.activationCodes.filter(c => c.used);
-        
-        const activeMembers = data.members.filter(m => m.remainingSeconds > 0);
-        const expiredMembers = data.members.filter(m => m.remainingSeconds <= 0);
-        
-        const lastBackupSnapshot = await database.ref('lastBackupTime').once('value');
-        const lastBackup = lastBackupSnapshot.val();
-        const backupText = lastBackup ? new Date(lastBackup).toLocaleString('zh-TW') : '尚未備份';
-        
-        panel.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                <h3>⚙️ 管理員面板</h3>
-                <div>
-                    <span style="color: #666; font-size: 14px; margin-right: 15px;">
-                        <span class="auto-refresh-indicator"></span> 自動刷新中
-                    </span>
-                </div>
-            </div>
-            
-            <div class="backup-info">
-                <strong>📊 備份資訊</strong>
-                <div style="margin-top: 10px; font-size: 14px;">
-                    <div>最後備份時間: ${backupText}</div>
-                    <div style="margin-top: 5px; color: #666;">系統將在每天 23:59:59 自動備份會員資料</div>
-                </div>
-                <button class="btn btn-small" onclick="exportToExcel()" style="margin-top: 10px;">立即手動備份</button>
-            </div>
-            
-            <h4 style="margin-bottom: 15px; margin-top: 30px;">兌換碼管理</h4>
-            <div style="background: #f9f9f9; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                <div class="input-group">
-                    <label>會員等級</label>
-                    <select id="newCodeLevel">
-                        <option value="normal">普通會員 (30天)</option>
-                        <option value="premium">高級會員 (60天)</option>
-                        <option value="vip">VIP會員 (90天)</option>
-                    </select>
-                </div>
-                <div class="input-group">
-                    <label>有效時長（年月日時分秒）</label>
-                    <div class="input-row">
-                        <input type="number" id="codeYears" placeholder="年" min="0" value="0">
-                        <input type="number" id="codeMonths" placeholder="月" min="0" value="0">
-                        <input type="number" id="codeDays" placeholder="天" min="0" value="30">
-                        <input type="number" id="codeHours" placeholder="時" min="0" value="0">
-                        <input type="number" id="codeMinutes" placeholder="分" min="0" value="0">
-                        <input type="number" id="codeSeconds" placeholder="秒" min="0" value="0">
+            showLoading();
+            try {
+                const panel = document.getElementById('adminPanel');
+                const data = await loadData();
+                
+                const now = Math.floor(Date.now() / 1000);
+                data.members.forEach(member => {
+                    const elapsed = now - member.lastUpdateTime;
+                    member.remainingSeconds = Math.max(0, member.remainingSeconds - elapsed);
+                    member.lastUpdateTime = now;
+                });
+                await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+                
+                const unusedCodes = data.activationCodes.filter(c => !c.used);
+                const usedCodes = data.activationCodes.filter(c => c.used);
+                
+                const activeMembers = data.members.filter(m => m.remainingSeconds > 0);
+                const expiredMembers = data.members.filter(m => m.remainingSeconds <= 0);
+                
+                const lastBackupSnapshot = await database.ref('lastBackupTime').once('value');
+                const lastBackup = lastBackupSnapshot.val();
+                const backupText = lastBackup ? new Date(lastBackup).toLocaleString('zh-TW') : '尚未備份';
+                
+                panel.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+                        <h3>⚙️ 管理員面板</h3>
+                        <div>
+                            <span style="color: #666; font-size: 14px; margin-right: 15px;">
+                                <span class="auto-refresh-indicator"></span> 自動刷新中
+                            </span>
+                        </div>
                     </div>
-                </div>
-                <button class="btn" onclick="generateCode()">生成兌換碼</button>
-            </div>
-        `;
-        
-        panel.classList.add('active');
-    } catch (error) {
-        console.error('顯示管理員面板失敗:', error);
-    } finally {
-        hideLoading();
-    }
-}
+                    
+                    <div class="backup-info">
+                        <strong>📊 備份資訊</strong>
+                        <div style="margin-top: 10px; font-size: 14px;">
+                            <div>最後備份時間: ${backupText}</div>
+                            <div style="margin-top: 5px; color: #666;">系統將在每天 23:59:59 自動備份會員資料</div>
+                        </div>
+                        <button class="btn btn-small" onclick="exportToExcel()" style="margin-top: 10px;">立即手動備份</button>
+                    </div>
+                    
+                    <h4 style="margin-bottom: 15px; margin-top: 30px;">兌換碼管理</h4>
+                    <div style="background: #f9f9f9; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                        <div class="input-group">
+                            <label>會員等級</label>
+                            <select id="newCodeLevel">
+                                <option value="normal">普通會員 (30天)</option>
+                                <option value="premium">高級會員 (60天)</option>
+                                <option value="vip">VIP會員 (90天)</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>有效時長（年月日時分秒）</label>
+                            <div class="input-row">
+                                <input type="number" id="codeYears" placeholder="年" min="0" value="0">
+                                <input type="number" id="codeMonths" placeholder="月" min="0" value="0">
+                                <input type="number" id="codeDays" placeholder="天" min="0" value="30">
+                                <input type="number" id="codeHours" placeholder="時" min="0" value="0">
+                                <input type="number" id="codeMinutes" placeholder="分" min="0" value="0">
+                                <input type="number" id="codeSeconds" placeholder="秒" min="0" value="0">
+                            </div>
+                        </div>
+                        <button class="btn" onclick="generateCode()">生成兌換碼</button>
+                    </div>
+                    
+                    <h4 style="margin-bottom: 15px;">兌換碼列表 (${data.activationCodes.length}個)</h4>
+                    
+                    <div class="sub-tabs">
+                        <button class="sub-tab code-sub-tab active" onclick="showCodeSubTab('unused')">未使用 (${unusedCodes.length})</button>
+                        <button class="sub-tab code-sub-tab" onclick="showCodeSubTab('used')">已使用 (${usedCodes.length})</button>
+                    </div>
+                    
+                    <div id="code-unused" class="sub-page code-sub-page active">
+                        ${unusedCodes.length === 0 ? '<div class="empty-state">暫無未使用的兌換碼</div>' : 
+                          unusedCodes.map(code => {
+                            const levelText = code.level === 'vip' ? 'VIP會員' : 
+                                            code.level === 'premium' ? '高級會員' : '普通會員';
+                            const timeObj = secondsToTime(code.seconds);
+                            return `
+                                <div class="code-item">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                        <div style="flex: 1;">
+                                            <div class="code-display" style="margin: 0; padding: 10px;">
+                                                <div class="copy-area" style="justify-content: center;">
+                                                    <div class="code" style="font-size: 1.5em;">${code.code}</div>
+                                                    <button class="btn-copy" onclick="copyToClipboard('${code.code}', this)">📋 複製</button>
+                                                </div>
+                                            </div>
+                                            <div style="font-size: 14px; color: #666; margin-top: 10px;">
+                                                等級: ${levelText} | 
+                                                時長: ${formatTimeDisplay(timeObj)} (${code.seconds.toLocaleString()}秒)
+                                            </div>
+                                        </div>
+                                        <button class="btn btn-danger btn-small" onclick="deleteCode('${code.code}')">刪除</button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    <div id="code-used" class="sub-page code-sub-page">
+                        ${usedCodes.length === 0 ? '<div class="empty-state">暫無已使用的兌換碼</div>' : 
+                          usedCodes.map(code => {
+                            const levelText = code.level === 'vip' ? 'VIP會員' : 
+                                            code.level === 'premium' ? '高級會員' : '普通會員';
+                            const timeObj = secondsToTime(code.seconds);
+                            return `
+                                <div class="code-item used">
+                                    <div>
+                                        <div class="code-display" style="margin: 0; padding: 10px;">
+                                            <div class="copy-area" style="justify-content: center;">
+                                                <div class="code" style="font-size: 1.5em;">${code.code}</div>
+                                                <button class="btn-copy" onclick="copyToClipboard('${code.code}', this)">📋 複製</button>
+                                            </div>
+                                        </div>
+                                        <div style="font-size: 14px; color: #666; margin-top: 10px;">
+                                            等級: ${levelText} | 
+                                            時長: ${formatTimeDisplay(timeObj)} (${code.seconds.toLocaleString()}秒)<br>
+                                            使用者: ${code.usedBy} | 使用時間: ${new Date(code.usedDate).toLocaleString('zh-TW')}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    <h4 style="margin-top: 40px; margin-bottom: 20px;">遊戲場次管理</h4>
+                    ${data.gameSession ? `
+                        <div class="game-session-card">
+                            <h3>目前場次: ${data.gameSession.gameName}</h3>
+                            <div>開放時間: ${new Date(data.gameSession.startTime).toLocaleString('zh-TW')}</div>
+                            <div>名額: ${data.gameSession.slots}位</div>
+                            <div>排隊人數: ${data.queue.length}人</div>
+                            <button class="btn btn-danger" onclick="closeGameSession()" style="margin-top: 15px;">關閉場次</button>
+                        </div>
+                    ` : `
+                        <div style="background: #f9f9f9; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                            <div class="input-group">
+                                <label>遊戲名稱</label>
+                                <input type="text" id="newGameName" placeholder="例如：排位賽、娛樂賽" value="CODM">
+                            </div>
+                            <div class="input-group">
+                                <label>開放時間</label>
+                                <input type="datetime-local" id="newGameTime">
+                            </div>
+                            <div class="input-group">
+                                <label>名額限制</label>
+                                <input type="number" id="newGameSlots" placeholder="例如：5" min="1" value="5">
+                            </div>
+                            <div class="input-group">
+                                <label>場次說明（選填）</label>
+                                <textarea id="newGameDescription" rows="3" placeholder="例如：本場次為排位賽，請準備好遊戲帳號"></textarea>
+                            </div>
+                            <button class="btn" onclick="createGameSession()">開放排隊</button>
+                        </div>
+                    `}
+                    
+                    ${data.queue.length > 0 ? `
+                        <h4 style="margin-top: 30px; margin-bottom: 20px;">排隊名單管理 (${data.queue.length}人)</h4>
+                        ${data.queue.map((q, index) => {
+                            const levelText = q.level === 'vip' ? 'VIP' : 
+                                            q.level === 'premium' ? '高級' : '普通';
+                            const badgeClass = q.level === 'vip' ? 'badge-vip' : 
+                                             q.level === 'premium' ? 'badge-premium' : 'badge-normal';
+                            return `
+                                <div class="queue-item">
+                                    <div>
+                                        <strong>#${index + 1} ${q.nickname}</strong>
+                                        <span class="badge ${badgeClass}" style="margin-left: 10px;">${levelText}</span>
+                                        <div style="font-size: 14px; color: #666; margin-top: 5px;">
+                                            CODM UID: ${q.gameUID} 
+                                            <button class="btn-copy" onclick="copyToClipboard('${q.gameUID}', this)" style="margin-left: 5px;">📋 複製</button>
+                                            | 加入時間: ${new Date(q.joinTime).toLocaleString('zh-TW')}
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-danger btn-small" onclick="removeFromQueue('${q.username}')">移除</button>
+                                </div>
+                            `;
+                        }).join('')}
+                        <div style="text-align: center; margin-top: 20px;">
+                            <button class="btn btn-danger" onclick="clearQueue()">清空排隊名單</button>
+                        </div>
+                    ` : ''}
+                    
+                    <h4 style="margin-top: 40px; margin-bottom: 20px;">所有會員管理 (${data.members.length})</h4>
+                    
+                    <div class="sub-tabs">
+                        <button class="sub-tab member-sub-tab active" onclick="showMemberSubTab('active')">生效中 (${activeMembers.length})</button>
+                        <button class="sub-tab member-sub-tab" onclick="showMemberSubTab('expired')">已到期 (${expiredMembers.length})</button>
+                    </div>
+                    
+                    <div id="member-active" class="sub-page member-sub-page active">
+                        ${activeMembers.length === 0 ? '<div class="empty-state">暫無生效中的會員</div>' : 
+                          activeMembers.map(member => {
+                            const timeObj = secondsToTime(member.remainingSeconds);
+                            const timeClass = getTimeColorClass(member.remainingSeconds);
+                            const levelText = member.level === 'vip' ? 'VIP會員' : 
+                                            member.level === 'premium' ? '高級會員' : '普通會員';
+                            const badgeClass = member.level === 'vip' ? 'badge-vip' : 
+                                             member.level === 'premium' ? 'badge-premium' : 'badge-normal';
+                            const platformText = member.platform === 'tiktok' ? 'TikTok' : 'YouTube';
+                            
+                            const codeData = data.activationCodes.find(c => c.code === member.activationCode);
+                            const codeInfo = codeData ? `兌換碼: ${member.activationCode} (${formatTimeDisplay(secondsToTime(codeData.seconds))})` : `兌換碼: ${member.activationCode}`;
+                            
+                            return `
+                                <div class="member-item">
+                                    <div class="member-header">
+                                        <div>
+                                            <strong>${member.nickname}</strong>
+                                            <span class="badge ${badgeClass}" style="margin-left: 10px;">${levelText}</span>
+                                            ${member.isAdmin ? '<span class="badge-admin" style="margin-left: 10px;">管理員</span>' : ''}
+                                            <div style="font-size: 14px; color: #666; margin-top: 5px;">
+                                                帳號: ${member.username} | 平台: ${platformText} | 
+                                                CODM UID: ${member.gameUID}
+                                                <button class="btn-copy" onclick="copyToClipboard('${member.gameUID}', this)" style="margin-left: 5px;">📋 複製</button>
+                                                <br>
+                                                ${codeInfo}<br>
+                                                剩餘時間: <span class="countdown-time ${timeClass}" data-username="${member.username}">${formatTimeDisplay(timeObj)}</span> (${member.remainingSeconds.toLocaleString()}秒)
+                                            </div>
+                                        </div>
+                                        <div class="admin-actions">
+                                            <button class="btn btn-small" onclick="toggleAdminStatus('${member.username}')">${member.isAdmin ? '取消管理員' : '設為管理員'}</button>
+                                            <button class="btn btn-small" onclick="openEditMember('${member.username}')">編輯</button>
+                                            <button class="btn btn-danger btn-small" onclick="deleteMember('${member.username}')">刪除</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    
+                    <div id="member-expired" class="sub-page member-sub-page">
+                        ${expiredMembers.length === 0 ? '<div class="empty-state">暫無已到期的會員</div>' : 
+                          expiredMembers.map(member => {
+                            const levelText = member.level === 'vip' ? 'VIP會員' : 
+                                            member.level === 'premium' ? '高級會員' : '普通會員';
+                            const badgeClass = member.level === 'vip' ? 'badge-vip' : 
+                                             member.level === 'premium' ? 'badge-premium' : 'badge-normal';
+                            const platformText = member.platform === 'tiktok' ? 'TikTok' : 'YouTube';
+                            
+                            const codeData = data.activationCodes.find(c => c.code === member.activationCode);
+                            const codeInfo = codeData ? `兌換碼: ${member.activationCode} (${formatTimeDisplay(secondsToTime(codeData.seconds))})` : `兌換碼: ${member.activationCode}`;
+                            
+                            return `
+                                <div class="member-item expired">
+                                    <div class="member-header">
+                                        <div>
+                                            <strong>${member.nickname}</strong>
+                                            <span class="badge ${badgeClass}" style="margin-left: 10px;">${levelText}</span>
+                                            ${member.isAdmin ? '<span class="badge-admin" style="margin-left: 10px;">管理員</span>' : ''}
+                                            <span style="margin-left: 10px; color: #999; font-weight: bold;">已到期</span>
+                                            <div style="font-size: 14px; color: #666; margin-top: 5px;">
+                                                帳號: ${member.username} | 平台: ${platformText} | 
+                                                CODM UID: ${member.gameUID}
+                                                <button class="btn-copy" onclick="copyToClipboard('${member.gameUID}', this)" style="margin-left: 5px;">📋 複製</button>
+                                                <br>
+                                                ${codeInfo}
+                                            </div>
+                                        </div>
+                                        <div class="admin-actions">
+                                            <button class="btn btn-small" onclick="toggleAdminStatus('${member.username}')">${member.isAdmin ? '取消管理員' : '設為管理員'}</button>
+                                            <button class="btn btn-small" onclick="openEditMember('${member.username}')">編輯</button>
+                                            <button class="btn btn-danger btn-small" onclick="deleteMember('${member.username}')">刪除</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                `;
+                
+                panel.classList.add('active');
+            } catch (error) {
+                console.error('顯示管理員面板失敗:', error);
+            } finally {
+                hideLoading();
+            }
+        }
+
         // ==================== 生成兌換碼 ====================
         async function generateCode() {
             const level = document.getElementById('newCodeLevel').value;
@@ -2432,89 +2636,81 @@ async function showAdminPanel() {
             }
         }
 
+        // ==================== 開啟編輯會員彈窗 ====================
         async function openEditMember(username) {
-    showLoading();
-    try {
-        const data = await loadData();
-        const member = data.members.find(m => m.username === username);
-        editingMember = member;
-        
-        // ✅ 確保 remainingSeconds 是有效數字
-        const safeSeconds = Math.max(0, parseInt(member.remainingSeconds) || 0);
-        const timeObj = secondsToTime(safeSeconds);
-        
-        // ✅ 確保所有時間值都是有效數字
-        const years = parseInt(timeObj.years) || 0;
-        const months = parseInt(timeObj.months) || 0;
-        const days = parseInt(timeObj.days) || 0;
-        const hours = parseInt(timeObj.hours) || 0;
-        const minutes = parseInt(timeObj.minutes) || 0;
-        const seconds = parseInt(timeObj.seconds) || 0;
-        
-        const content = document.getElementById('editMemberContent');
-        content.innerHTML = `
-            <div class="input-group">
-                <label>會員暱稱</label>
-                <input type="text" id="editNickname" value="${member.nickname}">
-            </div>
-            <div class="input-group">
-                <label>使用者名稱</label>
-                <input type="text" value="${member.username}" disabled style="background: #f0f0f0;">
-            </div>
-            <div class="input-group">
-                <label>平台</label>
-                <select id="editPlatform">
-                    <option value="tiktok" ${member.platform === 'tiktok' ? 'selected' : ''}>TikTok</option>
-                    <option value="youtube" ${member.platform === 'youtube' ? 'selected' : ''}>YouTube</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>CODM UID</label>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="editGameUID" value="${member.gameUID}" style="flex: 1;">
-                    <button class="btn-copy" onclick="copyToClipboard('${member.gameUID}', this)">📋 複製</button>
-                </div>
-            </div>
-            <div class="input-group">
-                <label>會員等級</label>
-                <select id="editLevel">
-                    <option value="normal" ${member.level === 'normal' ? 'selected' : ''}>普通會員</option>
-                    <option value="premium" ${member.level === 'premium' ? 'selected' : ''}>高級會員</option>
-                    <option value="vip" ${member.level === 'vip' ? 'selected' : ''}>VIP會員</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label>剩餘時間（年月日時分秒）</label>
-                <div class="input-row">
-                    <input type="number" id="editYears" placeholder="年" min="0" value="${years}">
-                    <input type="number" id="editMonths" placeholder="月" min="0" value="${months}">
-                    <input type="number" id="editDays" placeholder="天" min="0" value="${days}">
-                    <input type="number" id="editHours" placeholder="時" min="0" value="${hours}">
-                    <input type="number" id="editMinutes" placeholder="分" min="0" value="${minutes}">
-                    <input type="number" id="editSeconds" placeholder="秒" min="0" value="${seconds}">
-                </div>
-            </div>
-            <div class="input-group">
-                <label>快速調整</label>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button class="btn btn-small" onclick="adjustTime(7, 0, 0, 0, 0, 0)">+7天</button>
-                    <button class="btn btn-small" onclick="adjustTime(30, 0, 0, 0, 0, 0)">+30天</button>
-                    <button class="btn btn-small" onclick="adjustTime(60, 0, 0, 0, 0, 0)">+60天</button>
-                    <button class="btn btn-small" onclick="adjustTime(0, 1, 0, 0, 0, 0)">+1時</button>
-                    <button class="btn btn-danger btn-small" onclick="adjustTime(-7, 0, 0, 0, 0, 0)">-7天</button>
-                </div>
-            </div>
-            <button class="btn" onclick="saveMemberEdit()" style="width: 100%;">儲存變更</button>
-        `;
-        
-        document.getElementById('editMemberModal').classList.add('active');
-    } catch (error) {
-        console.error('開啟編輯會員失敗:', error);
-        alert('開啟編輯會員失敗，請稍後再試');
-    } finally {
-        hideLoading();
-    }
-}
+            showLoading();
+            try {
+                const data = await loadData();
+                const member = data.members.find(m => m.username === username);
+                editingMember = member;
+                
+                const timeObj = secondsToTime(member.remainingSeconds);
+                
+                const content = document.getElementById('editMemberContent');
+                content.innerHTML = `
+                    <div class="input-group">
+                        <label>會員暱稱</label>
+                        <input type="text" id="editNickname" value="${member.nickname}">
+                    </div>
+                    <div class="input-group">
+                        <label>使用者名稱</label>
+                        <input type="text" value="${member.username}" disabled style="background: #f0f0f0;">
+                    </div>
+                    <div class="input-group">
+                        <label>平台</label>
+                        <select id="editPlatform">
+                            <option value="tiktok" ${member.platform === 'tiktok' ? 'selected' : ''}>TikTok</option>
+                            <option value="youtube" ${member.platform === 'youtube' ? 'selected' : ''}>YouTube</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>CODM UID</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="editGameUID" value="${member.gameUID}" style="flex: 1;">
+                            <button class="btn-copy" onclick="copyToClipboard('${member.gameUID}', this)">📋 複製</button>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>會員等級</label>
+                        <select id="editLevel">
+                            <option value="normal" ${member.level === 'normal' ? 'selected' : ''}>普通會員</option>
+                            <option value="premium" ${member.level === 'premium' ? 'selected' : ''}>高級會員</option>
+                            <option value="vip" ${member.level === 'vip' ? 'selected' : ''}>VIP會員</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>剩餘時間（年月日時分秒）</label>
+                        <div class="input-row">
+                            <input type="number" id="editYears" placeholder="年" min="0" value="${timeObj.years}">
+                            <input type="number" id="editMonths" placeholder="月" min="0" value="${timeObj.months}">
+                            <input type="number" id="editDays" placeholder="天" min="0" value="${timeObj.days}">
+                            <input type="number" id="editHours" placeholder="時" min="0" value="${timeObj.hours}">
+                            <input type="number" id="editMinutes" placeholder="分" min="0" value="${timeObj.minutes}">
+                            <input type="number" id="editSeconds" placeholder="秒" min="0" value="${timeObj.seconds}">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>快速調整</label>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <button class="btn btn-small" onclick="adjustTime(7, 0, 0, 0, 0, 0)">+7天</button>
+                            <button class="btn btn-small" onclick="adjustTime(30, 0, 0, 0, 0, 0)">+30天</button>
+                            <button class="btn btn-small" onclick="adjustTime(60, 0, 0, 0, 0, 0)">+60天</button>
+                            <button class="btn btn-small" onclick="adjustTime(0, 1, 0, 0, 0, 0)">+1時</button>
+                            <button class="btn btn-danger btn-small" onclick="adjustTime(-7, 0, 0, 0, 0, 0)">-7天</button>
+                        </div>
+                    </div>
+                    <button class="btn" onclick="saveMemberEdit()" style="width: 100%;">儲存變更</button>
+                `;
+                
+                document.getElementById('editMemberModal').classList.add('active');
+            } catch (error) {
+                console.error('開啟編輯會員失敗:', error);
+                alert('開啟編輯會員失敗，請稍後再試');
+            } finally {
+                hideLoading();
+            }
+        }
+
         // ==================== 調整時間 ====================
         function adjustTime(days, hours, minutes, seconds, months, years) {
             const daysInput = document.getElementById('editDays');
@@ -2665,92 +2861,26 @@ async function showAdminPanel() {
         
         // ==================== 系統初始化 ====================
         async function initialize() {
-            updateLoadingProgress('系統初始化中...');
-            
+            showLoading();
             try {
-                // 初始化預設管理員（僅首次）
                 await initializeDefaultAdmin();
-                
                 updateUserSection();
                 startGlobalCountdown();
                 initDailyBackup();
-                
-                updateLoadingProgress('載入完成！');
-                
-                // 隱藏初始 loading
-                setTimeout(() => {
-                    const loading = document.getElementById('initialLoading');
-                    loading.classList.add('hide');
-                    setTimeout(() => loading.style.display = 'none', 300);
-                }, 200);
             } catch (error) {
                 console.error('系統初始化失敗:', error);
                 alert('系統初始化失敗，請重新整理頁面');
-                document.getElementById('loadingProgress').textContent = '初始化失敗';
-            }
-        }
-
-        // ==================== 手動建立管理員（開發用） ====================
-        window.createAdminAccount = async function() {
-            if (!confirm('確定要建立管理員帳號嗎？\n\n帳號: admin\n密碼: Admin@123456')) {
-                return;
-            }
-            
-            showLoading();
-            try {
-                const adminRef = database.ref('members/admin');
-                const snapshot = await adminRef.once('value');
-                
-                if (snapshot.exists()) {
-                    alert('❌ 管理員帳號已存在！');
-                    hideLoading();
-                    return;
-                }
-                
-                const passwordHash = await hashPassword('Admin@123456');
-                const now = Math.floor(Date.now() / 1000);
-                
-                await adminRef.set({
-                    username: 'admin',
-                    passwordHash: passwordHash,
-                    platform: 'youtube',
-                    nickname: '系統管理員',
-                    gameUID: 'ADMIN000000',
-                    level: 'vip',
-                    securityQuestion: 'game',
-                    securityAnswer: 'ghost',
-                    joinDate: new Date().toISOString(),
-                    remainingSeconds: 999999999,
-                    lastUpdateTime: now,
-                    activationCode: 'ADMIN0',
-                    isAdmin: true
-                });
-                
-                alert('✅ 管理員建立成功！\n\n帳號: admin\n密碼: Admin@123456\n\n請重新整理頁面後登入');
-            } catch (error) {
-                console.error('建立失敗:', error);
-                alert('❌ 建立失敗：' + error.message);
             } finally {
                 hideLoading();
             }
-        };
+        }
 
-        // ==================== 系統日誌 ====================
-        console.log('=====================================');
-        console.log('🎮 CODM 會員管理系統');
-        console.log('📌 系統已就緒');
-        console.log('📌 如需手動建立管理員，請執行: createAdminAccount()');
-        console.log('=====================================');
+        // ==================== 啟動系統 ====================
+        //initialize();
+        console.log('⏳ 等待 Firebase 認證...');
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
 
 
 
