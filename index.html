@@ -2640,81 +2640,89 @@
             }
         }
 
-        // ==================== 開啟編輯會員彈窗 ====================
         async function openEditMember(username) {
-            showLoading();
-            try {
-                const data = await loadData();
-                const member = data.members.find(m => m.username === username);
-                editingMember = member;
-                
-                const timeObj = secondsToTime(member.remainingSeconds);
-                
-                const content = document.getElementById('editMemberContent');
-                content.innerHTML = `
-                    <div class="input-group">
-                        <label>會員暱稱</label>
-                        <input type="text" id="editNickname" value="${member.nickname}">
-                    </div>
-                    <div class="input-group">
-                        <label>使用者名稱</label>
-                        <input type="text" value="${member.username}" disabled style="background: #f0f0f0;">
-                    </div>
-                    <div class="input-group">
-                        <label>平台</label>
-                        <select id="editPlatform">
-                            <option value="tiktok" ${member.platform === 'tiktok' ? 'selected' : ''}>TikTok</option>
-                            <option value="youtube" ${member.platform === 'youtube' ? 'selected' : ''}>YouTube</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>CODM UID</label>
-                        <div style="display: flex; gap: 10px;">
-                            <input type="text" id="editGameUID" value="${member.gameUID}" style="flex: 1;">
-                            <button class="btn-copy" onclick="copyToClipboard('${member.gameUID}', this)">📋 複製</button>
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label>會員等級</label>
-                        <select id="editLevel">
-                            <option value="normal" ${member.level === 'normal' ? 'selected' : ''}>普通會員</option>
-                            <option value="premium" ${member.level === 'premium' ? 'selected' : ''}>高級會員</option>
-                            <option value="vip" ${member.level === 'vip' ? 'selected' : ''}>VIP會員</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label>剩餘時間（年月日時分秒）</label>
-                        <div class="input-row">
-                            <input type="number" id="editYears" placeholder="年" min="0" value="${timeObj.years}">
-                            <input type="number" id="editMonths" placeholder="月" min="0" value="${timeObj.months}">
-                            <input type="number" id="editDays" placeholder="天" min="0" value="${timeObj.days}">
-                            <input type="number" id="editHours" placeholder="時" min="0" value="${timeObj.hours}">
-                            <input type="number" id="editMinutes" placeholder="分" min="0" value="${timeObj.minutes}">
-                            <input type="number" id="editSeconds" placeholder="秒" min="0" value="${timeObj.seconds}">
-                        </div>
-                    </div>
-                    <div class="input-group">
-                        <label>快速調整</label>
-                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <button class="btn btn-small" onclick="adjustTime(7, 0, 0, 0, 0, 0)">+7天</button>
-                            <button class="btn btn-small" onclick="adjustTime(30, 0, 0, 0, 0, 0)">+30天</button>
-                            <button class="btn btn-small" onclick="adjustTime(60, 0, 0, 0, 0, 0)">+60天</button>
-                            <button class="btn btn-small" onclick="adjustTime(0, 1, 0, 0, 0, 0)">+1時</button>
-                            <button class="btn btn-danger btn-small" onclick="adjustTime(-7, 0, 0, 0, 0, 0)">-7天</button>
-                        </div>
-                    </div>
-                    <button class="btn" onclick="saveMemberEdit()" style="width: 100%;">儲存變更</button>
-                `;
-                
-                document.getElementById('editMemberModal').classList.add('active');
-            } catch (error) {
-                console.error('開啟編輯會員失敗:', error);
-                alert('開啟編輯會員失敗，請稍後再試');
-            } finally {
-                hideLoading();
-            }
-        }
-
+    showLoading();
+    try {
+        const data = await loadData();
+        const member = data.members.find(m => m.username === username);
+        editingMember = member;
+        
+        // ✅ 確保 remainingSeconds 是有效數字
+        const safeSeconds = Math.max(0, parseInt(member.remainingSeconds) || 0);
+        const timeObj = secondsToTime(safeSeconds);
+        
+        // ✅ 確保所有時間值都是有效數字
+        const years = parseInt(timeObj.years) || 0;
+        const months = parseInt(timeObj.months) || 0;
+        const days = parseInt(timeObj.days) || 0;
+        const hours = parseInt(timeObj.hours) || 0;
+        const minutes = parseInt(timeObj.minutes) || 0;
+        const seconds = parseInt(timeObj.seconds) || 0;
+        
+        const content = document.getElementById('editMemberContent');
+        content.innerHTML = `
+            <div class="input-group">
+                <label>會員暱稱</label>
+                <input type="text" id="editNickname" value="${member.nickname}">
+            </div>
+            <div class="input-group">
+                <label>使用者名稱</label>
+                <input type="text" value="${member.username}" disabled style="background: #f0f0f0;">
+            </div>
+            <div class="input-group">
+                <label>平台</label>
+                <select id="editPlatform">
+                    <option value="tiktok" ${member.platform === 'tiktok' ? 'selected' : ''}>TikTok</option>
+                    <option value="youtube" ${member.platform === 'youtube' ? 'selected' : ''}>YouTube</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>CODM UID</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="editGameUID" value="${member.gameUID}" style="flex: 1;">
+                    <button class="btn-copy" onclick="copyToClipboard('${member.gameUID}', this)">📋 複製</button>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>會員等級</label>
+                <select id="editLevel">
+                    <option value="normal" ${member.level === 'normal' ? 'selected' : ''}>普通會員</option>
+                    <option value="premium" ${member.level === 'premium' ? 'selected' : ''}>高級會員</option>
+                    <option value="vip" ${member.level === 'vip' ? 'selected' : ''}>VIP會員</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>剩餘時間（年月日時分秒）</label>
+                <div class="input-row">
+                    <input type="number" id="editYears" placeholder="年" min="0" value="${years}">
+                    <input type="number" id="editMonths" placeholder="月" min="0" value="${months}">
+                    <input type="number" id="editDays" placeholder="天" min="0" value="${days}">
+                    <input type="number" id="editHours" placeholder="時" min="0" value="${hours}">
+                    <input type="number" id="editMinutes" placeholder="分" min="0" value="${minutes}">
+                    <input type="number" id="editSeconds" placeholder="秒" min="0" value="${seconds}">
+                </div>
+            </div>
+            <div class="input-group">
+                <label>快速調整</label>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn btn-small" onclick="adjustTime(7, 0, 0, 0, 0, 0)">+7天</button>
+                    <button class="btn btn-small" onclick="adjustTime(30, 0, 0, 0, 0, 0)">+30天</button>
+                    <button class="btn btn-small" onclick="adjustTime(60, 0, 0, 0, 0, 0)">+60天</button>
+                    <button class="btn btn-small" onclick="adjustTime(0, 1, 0, 0, 0, 0)">+1時</button>
+                    <button class="btn btn-danger btn-small" onclick="adjustTime(-7, 0, 0, 0, 0, 0)">-7天</button>
+                </div>
+            </div>
+            <button class="btn" onclick="saveMemberEdit()" style="width: 100%;">儲存變更</button>
+        `;
+        
+        document.getElementById('editMemberModal').classList.add('active');
+    } catch (error) {
+        console.error('開啟編輯會員失敗:', error);
+        alert('開啟編輯會員失敗，請稍後再試');
+    } finally {
+        hideLoading();
+    }
+}
         // ==================== 調整時間 ====================
         function adjustTime(days, hours, minutes, seconds, months, years) {
             const daysInput = document.getElementById('editDays');
@@ -2944,6 +2952,7 @@
     </script>
 </body>
 </html>
+
 
 
 
