@@ -659,16 +659,51 @@
                 flex-wrap: wrap;
             }
         }
+        /* ✅ 新增：初始 Loading 畫面 */
+        #initialLoading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            color: white;
+            transition: opacity 0.3s;
+        }
+        
+        #initialLoading.hide {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <!-- SheetJS for Excel Export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
+    <!-- ✅ 初始 Loading -->
+    <div id="initialLoading">
+        <div style="
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        "></div>
+        <h2 style="margin-top: 20px;">載入中...</h2>
+        <p id="loadingProgress" style="margin-top: 10px; font-size: 14px;">正在連接伺服器...</p>
+    </div>
+
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-spinner"></div>
@@ -898,89 +933,74 @@
             <div id="editMemberContent"></div>
         </div>
     </div>
-
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script>
-        // ==================== Firebase 初始化 ====================
-        const firebaseConfig = {
-            apiKey: "AIzaSyCQEXz8OIzbb9dDxnz52tymNnYofGDEczQ",
-            authDomain: "subscription-member-system.firebaseapp.com",
-            databaseURL: "https://subscription-member-system-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "subscription-member-system",
-            storageBucket: "subscription-member-system.firebasestorage.app",
-            messagingSenderId: "970681171187",
-            appId: "1:970681171187:web:f3f86b743e27667a994b86"
-        };
-
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-                // ==================== 🔥 加入匿名登入 ====================
-let isAuthReady = false;
-
-if (!window.appInitialized) {
-    window.appInitialized = true;
-    initialize();
-}
-        // ==================== 建立管理員帳號（僅限首次執行） ====================
-
-window.initializeAdmin = async function() {
-    try {
-        console.log('🔄 開始建立管理員帳號...');
+        // ==================== 🔥 優化後的初始化（含錯誤處理） ====================
         
-        const adminUsername = 'admin';
-        const adminPassword = 'Admin@123456';
-        
-        // 檢查是否已存在
-        const adminRef = database.ref('members/admin');
-        const snapshot = await adminRef.once('value');
-        
-        if (snapshot.exists()) {
-            alert(`✅ 管理員帳號已存在！
-
-可以直接登入：
-👤 Username: admin
-🔑 Password: Admin@123456`);
-            return;
-        }
-        
-        // 建立管理員
-        const passwordHash = await hashPassword(adminPassword);
-        const now = Math.floor(Date.now() / 1000);
-        
-        await adminRef.set({
-            username: adminUsername,
-            passwordHash: passwordHash,
-            platform: 'youtube',
-            nickname: '系統管理員',
-            gameUID: 'ADMIN000000',
-            level: 'vip',
-            securityQuestion: 'game',
-            securityAnswer: 'ghost',
-            joinDate: new Date().toISOString(),
-            remainingSeconds: 999999999,
-            lastUpdateTime: now,
-            activationCode: 'ADMIN0',
-            isAdmin: true
+        window.addEventListener('load', () => {
+            if (typeof firebase !== 'undefined') {
+                initializeApp();
+            } else {
+                alert('Firebase 載入失敗，請重新整理頁面');
+                document.getElementById('loadingProgress').textContent = 'Firebase 載入失敗';
+            }
         });
-        
-        console.log('✅ 管理員建立成功');
-        
-        alert(`✅ 管理員帳號建立成功！
 
-👤 Username: admin
-🔑 Password: Admin@123456
+        function updateLoadingProgress(message) {
+            const el = document.getElementById('loadingProgress');
+            if (el) el.textContent = message;
+        }
 
-請使用這些資訊登入`);
-        
-    } catch (error) {
-        console.error('❌ 建立管理員失敗:', error);
-        alert('建立失敗：' + error.message);
-    }
-};
+        function initializeApp() {
+            updateLoadingProgress('正在初始化 Firebase...');
+            
+            const firebaseConfig = {
+                apiKey: "AIzaSyCQEXz8OIzbb9dDxnz52tymNnYofGDEczQ",
+                authDomain: "subscription-member-system.firebaseapp.com",
+                databaseURL: "https://subscription-member-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+                projectId: "subscription-member-system",
+                storageBucket: "subscription-member-system.firebasestorage.app",
+                messagingSenderId: "970681171187",
+                appId: "1:970681171187:web:f3f86b743e27667a994b86"
+            };
 
-console.log('=====================================');
-console.log('🎮 CODM 會員管理系統已就緒');
-console.log('📌 輸入 initializeAdmin() 建立管理員');
-console.log('=====================================');
+            firebase.initializeApp(firebaseConfig);
+            window.database = firebase.database();
+            
+            updateLoadingProgress('正在登入...');
+            
+            // ✅ 匿名登入（優化版）
+            firebase.auth().signInAnonymously()
+                .then(() => {
+                    console.log('✅ 匿名登入成功');
+                    updateLoadingProgress('系統準備中...');
+                    // 直接開始，不等待 onAuthStateChanged
+                    setTimeout(() => initialize(), 100);
+                })
+                .catch((error) => {
+                    console.error('❌ 登入失敗:', error);
+                    alert('系統初始化失敗，請重新整理頁面\n錯誤：' + error.message);
+                    document.getElementById('loadingProgress').textContent = '登入失敗，請重新整理';
+                });
+        }
+
+        async function initialize() {
+            updateLoadingProgress('載入完成！');
+            
+            updateUserSection();
+            startGlobalCountdown();
+            initDailyBackup();
+            
+            // 隱藏初始 loading
+            setTimeout(() => {
+                const loading = document.getElementById('initialLoading');
+                loading.classList.add('hide');
+                setTimeout(() => loading.style.display = 'none', 300);
+            }, 200);
+        }
         // ==================== 全局變數 ====================
         let currentUser = null;
         let forgotPasswordUser = null;
@@ -2845,27 +2865,42 @@ console.log('=====================================');
         }
         
         // ==================== 系統初始化 ====================
-        async function initialize() {
-            showLoading();
-            try {
-                await initializeDefaultAdmin();
-                updateUserSection();
-                startGlobalCountdown();
-                initDailyBackup();
-            } catch (error) {
-                console.error('系統初始化失敗:', error);
-                alert('系統初始化失敗，請重新整理頁面');
-            } finally {
-                hideLoading();
-            }
-        }
+async function initialize() {
+    updateLoadingProgress('系統初始化中...');
+    
+    try {
+        // 初始化預設管理員（僅首次）
+        await initializeDefaultAdmin();
+        
+        updateUserSection();
+        startGlobalCountdown();
+        initDailyBackup();
+        
+        updateLoadingProgress('載入完成！');
+        
+        // 隱藏初始 loading
+        setTimeout(() => {
+            const loading = document.getElementById('initialLoading');
+            loading.classList.add('hide');
+            setTimeout(() => loading.style.display = 'none', 300);
+        }, 200);
+    } catch (error) {
+        console.error('系統初始化失敗:', error);
+        alert('系統初始化失敗，請重新整理頁面');
+        document.getElementById('loadingProgress').textContent = '初始化失敗';
+    }
+}
 
-        // ==================== 啟動系統 ====================
-        //initialize();
-        console.log('⏳ 等待 Firebase 認證...');
+        // ==================== 系統日誌 ====================
+console.log('=====================================');
+console.log('🎮 CODM 會員管理系統');
+console.log('📌 系統已就緒');
+console.log('📌 如需手動建立管理員，請執行: createAdminAccount()');
+console.log('=====================================');
     </script>
 </body>
 </html>
+
 
 
 
