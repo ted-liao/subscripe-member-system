@@ -1077,7 +1077,7 @@ const codesData = codesSnapshot.val() || {};
 const activationCodes = Object.values(codesData);
 
 const queueData = queueSnapshot.val() || {};
-const queue = Object.values(queueData);
+const queue = Object.values(queueData).sort((a, b) => new Date(a.joinTime) - new Date(b.joinTime));
 
 return {
 members,
@@ -1397,7 +1397,8 @@ clearInterval(autoRefreshInterval);
 
 autoRefreshInterval = setInterval(async () => {
 const hasOpenModal = document.querySelector('.modal.active');
-if (hasOpenModal) {
+  const isLoading = document.getElementById('loadingOverlay').classList.contains('active');
+if (hasOpenModal || isLoading) {
 return;
 }
 
@@ -2881,6 +2882,7 @@ console.log('⏳ 等待 Firebase 認證...');
 </script>
 </body>
 </html>
+
 
 
 
