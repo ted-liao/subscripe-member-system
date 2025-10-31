@@ -4373,50 +4373,38 @@ async function initialize() {
 
         updateUserSection(); // 現在會顯示正確的登入狀態
         startGlobalCountdown();
-        document.getElementById('loginPassword').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault(); // 防止預設 Enter 行為
-                login();
+        // ==================== ⭐️ START: REVISED Enter 鍵監聽 ====================
+        
+        // 建立一個輔助函數來綁定 Enter 鍵
+        function setupEnterListener(inputId, callback) {
+            const element = document.getElementById(inputId);
+            if (element) {
+                // 改用 'keyup' 事件
+                element.addEventListener('keyup', function(event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        callback();
+                    }
+                });
             }
-        });
+        }
 
-        // 註冊彈窗 (監聽最後一個欄位)
-        document.getElementById('regSecurityAnswer').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                register();
-            }
-        });
+        // 登入彈窗 (使用 'keyup' 並監聽兩個欄位)
+        setupEnterListener('loginUsername', login);
+        setupEnterListener('loginPassword', login);
 
-        // 更改密碼彈窗 (監聽最後一個欄位)
-        document.getElementById('changeConfirmPassword').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                changePassword();
-            }
-        });
+        // 註冊彈窗
+        setupEnterListener('regSecurityAnswer', register);
 
-        // 忘記密碼 - 步驟1
-        document.getElementById('forgotUsername').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                checkSecurityQuestion();
-            }
-        });
-        // 忘記密碼 - 步驟2
-        document.getElementById('securityAnswer').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                verifySecurityAnswer();
-            }
-        });
-        // 忘記密碼 - 步驟3
-        document.getElementById('confirmNewPassword').addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                resetPassword();
-            }
-        });
+        // 更改密碼彈窗
+        setupEnterListener('changeConfirmPassword', changePassword);
+
+        // 忘記密碼
+        setupEnterListener('forgotUsername', checkSecurityQuestion);
+        setupEnterListener('securityAnswer', verifySecurityAnswer);
+        setupEnterListener('confirmNewPassword', resetPassword);
+        
+        // ==================== ⭐️ END: REVISED Enter 鍵監聽 ====================
         // 每日備份由 admin.html 處理
     } catch (error) {
         console.error('系統初始化失敗:', error);
@@ -4500,6 +4488,7 @@ console.log('⏳ 等待 Firebase 認證...');
 </body>
 
 </html>
+
 
 
 
