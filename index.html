@@ -3361,175 +3361,86 @@ async function register() {
 
 
 // ==================== 登入 ====================
-
 // **** MODIFIED: 加入 sessionStorage ****
-
 async function login() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value.trim();
 
-    const username = document.getElementById('loginUsername').value.trim();
+    if (!username || !password) {
+        alert('請輸入使用者名稱和密碼');
+        return;
+    }
 
-    const password = document.getElementById('loginPassword').value.trim();
+    showLoading();
+    try {
+        const data = await loadData();
+        const passwordHash = await hashPassword(password);
+        const member = data.members.find(m => m.username === username && m.passwordHash === passwordHash);
 
+        if (!member) {
+            alert('使用者名稱或密碼錯誤');
+            hideLoading();
+            return;
+        }
 
+        const now = Math.floor(Date.now() / 1000);
+        const elapsed = now - member.lastUpdateTime;
+        member.remainingSeconds = Math.max(0, member.remainingSeconds - elapsed);
+        member.lastUpdateTime = now;
 
-    if (!username || !password) {
+        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
 
-        alert('請輸入使用者名稱和密碼');
+        currentUser = member;
+        
+        // +++ FIX 3: 儲存所有登入者狀態 (不只 admin) +++
+        sessionStorage.setItem('currentUser', member.username);
 
-        return;
+        alert(`登入成功！${member.isAdmin ? '\n您擁有管理員權限' : ''}`);
+        closeLoginModal();
+        updateUserSection();
 
-    }
-
-
-
-    showLoading();
-
-    try {
-
-        const data = await loadData();
-
-        const passwordHash = await hashPassword(password);
-
-        const member = data.members.find(m => m.username === username && m.passwordHash === passwordHash);
-
-
-
-        if (!member) {
-
-            alert('使用者名稱或密碼錯誤');
-
-            hideLoading();
-
-            return;
-
-        }
-
-
-
-        const now = Math.floor(Date.now() / 1000);
-
-        const elapsed = now - member.lastUpdateTime;
-
-        member.remainingSeconds = Math.max(0, member.remainingSeconds - elapsed);
-
-        member.lastUpdateTime = now;
-
-
-
-        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
-
-
-
-        currentUser = member;
-
-        
-
-        // **** MODIFIED: 儲存登入狀態 ****
-
-        if (member.isAdmin) {
-
-            sessionStorage.setItem('adminUser', member.username);
-
-        }
-
-
-
-        alert(`登入成功！${member.isAdmin ? '\n您擁有管理員權限' : ''}`);
-
-        closeLoginModal();
-
-        updateUserSection();
-
-
-
-        // ** MODIFIED: 移除 showAdminPanel() **
-
-        if (currentPage === 'member' && isAdmin()) {
-
-            showMemberInfo();
-
-            // showAdminPanel();
-
-        }
-
-    } catch (error) {
-
-        console.error('登入失敗:', error);
-
-        alert('登入失敗，請稍後再試');
-
-    } finally {
-
-        hideLoading();
-
-    }
-
+        if (currentPage === 'member' && isAdmin()) {
+            showMemberInfo();
+        }
+    } catch (error) {
+        console.error('登入失敗:', error);
+        alert('登入失敗，請稍後再試');
+    } finally {
+        hideLoading();
+    }
 }
 
 
 
 // ==================== 登出 ====================
-
 // **** MODIFIED: 加入 sessionStorage ****
-
 async function logout() {
+    // +++ FIX 3: 統一使用 'currentUser' +++
+    sessionStorage.removeItem('currentUser');
 
-    // **** MODIFIED: 移除 sessionStorage ****
+    if (currentUser) {
+        showLoading();
+        try {
+            const data = await loadData();
+            const member = data.members.find(m => m.username === currentUser.username);
+            if (member) {
+                const now = Math.floor(Date.now() / 1000);
+                const elapsed = now - member.lastUpdateTime;
+                member.remainingSeconds = Math.max(0, member.remainingSeconds - elapsed);
+                member.lastUpdateTime = now;
+                await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+            }
+        } catch (error) {
+            console.error('登出時儲存失敗:', error);
+        } finally {
+            hideLoading();
+        }
+    }
 
-    sessionStorage.removeItem('adminUser');
-
-
-
-    if (currentUser) {
-
-        showLoading();
-
-        try {
-
-            const data = await loadData();
-
-            const member = data.members.find(m => m.username === currentUser.username);
-
-            if (member) {
-
-                const now = Math.floor(Date.now() / 1000);
-
-                const elapsed = now - member.lastUpdateTime;
-
-                member.remainingSeconds = Math.max(0, member.remainingSeconds - elapsed);
-
-                member.lastUpdateTime = now;
-
-                await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
-
-            }
-
-        } catch (error) {
-
-            console.error('登出時儲存失敗:', error);
-
-        } finally {
-
-            hideLoading();
-
-        }
-
-    }
-
-
-
-    currentUser = null;
-
-    // ** MODIFIED: 移除 admin panel 相關邏輯 **
-
-    // document.getElementById('adminPanel').classList.remove('active');
-
-    updateUserSection();
-
-    alert('已登出');
-
-    showPage('home');
-
+    currentUser = null;
+    updateUserSection();
+    alert('已登出');
+    showPage('home');
 }
 
 
@@ -4437,38 +4348,37 @@ async function toggleAdminStatus(username) {
 
 
 // ==================== 系統初始化 ====================
-
 async function initialize() {
+    showLoading();
+    try {
+        await initializeDefaultAdmin();
 
-    showLoading();
+        // +++ FIX 3: 檢查 Session 登入狀態 +++
+        const loggedInUsername = sessionStorage.getItem('currentUser');
+        if (loggedInUsername) {
+            const data = await loadData();
+            const member = data.members.find(m => m.username === loggedInUsername);
+            if (member) {
+                // 驗證成功，設置為當前用戶
+                currentUser = member;
+                console.log(`Session 驗證成功: ${currentUser.username}`);
+            } else {
+                // 找不到用戶，清除 session
+                sessionStorage.removeItem('currentUser');
+            }
+        }
+        // +++ END FIX +++
 
-    try {
-
-        await initializeDefaultAdmin();
-
-        updateUserSection();
-
-        startGlobalCountdown();
-
-        // ** MODIFIED: 每日備份由 admin.html 處理 **
-
-        // initDailyBackup();
-
-    } catch (error) {
-
-        console.error('系統初始化失敗:', error);
-
-        alert('系統初始化失敗，請重新整理頁面');
-
-    } finally {
-
-        hideLoading();
-
-    }
-
+        updateUserSection(); // 現在會顯示正確的登入狀態
+        startGlobalCountdown();
+        // 每日備份由 admin.html 處理
+    } catch (error) {
+        console.error('系統初始化失敗:', error);
+        alert('系統初始化失敗，請重新整理頁面');
+    } finally {
+        hideLoading();
+    }
 }
-
-
 
 // ==================== 啟動系統 ====================
 
@@ -4481,3 +4391,4 @@ console.log('⏳ 等待 Firebase 認證...');
 </body>
 
 </html>
+
