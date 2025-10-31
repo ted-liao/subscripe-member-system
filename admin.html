@@ -731,18 +731,14 @@ body {
                     <input type="text" id="sessionGameName" placeholder="CODM 會員場">
                 </div>
                 <div class="input-group">
-                    <label>預計開始時間 <span class="optional">(留空則為立即)</span></label>
-                    <input type="datetime-local" id="sessionStartTime">
-                </div>
-                <div class="input-group">
                     <label>名額</label>
                     <input type="number" id="sessionSlots" value="10">
                 </div>
                 <div class="input-group">
                     <label>描述 <span class="optional">(選填)</span></label>
-                    <input type="text" id="sessionDescription" placeholder="地圖:..." onkeydown="if(event.key==='Enter') createGameSession()">
+                    <input type="text" id="sessionDescription" placeholder="地圖:...">
                 </div>
-                <button class="btn" onclick="createGameSession()">🚀 開啟/預約場次</button>
+                <button class="btn" onclick="createGameSession()">🚀 開啟場次</button>
                 <button class="btn btn-danger" onclick="closeGameSession()">❌ 關閉場次</button>
             </div>
 
@@ -757,7 +753,8 @@ body {
             </div>
         </div>
 
-        <div class="card" id="code-management-card"> <h2>🔑 兌換碼管理</h2>
+        <div class="card">
+            <h2>🔑 兌換碼管理</h2>
             <div class="sub-tabs">
                 <button class="sub-tab active" onclick="showCodeSubTab('generate')">產生新碼</button>
                 <button class="sub-tab" onclick="showCodeSubTab('unused')">未使用 (<span id="unusedCodeCount">0</span>)</button>
@@ -780,7 +777,7 @@ body {
                     </div>
                     <div class="input-group">
                         <label>數量</label>
-                        <input type="number" id="codeAmount" value="1" onkeydown="if(event.key==='Enter') generateCode()">
+                        <input type="number" id="codeAmount" value="1">
                     </div>
                 </div>
                 <button class="btn" onclick="generateCode()">產生兌換碼</button>
@@ -796,7 +793,8 @@ body {
             </div>
         </div>
 
-        <div class="card" id="member-management-card"> <h2>🧑‍🤝‍🧑 會員管理</h2>
+        <div class="card">
+            <h2>🧑‍🤝‍🧑 會員管理</h2>
             <div class="sub-tabs">
                 <button class="sub-tab active" onclick="showMemberSubTab('active')">生效中 (<span id="activeMemberCount">0</span>)</button>
                 <button class="sub-tab" onclick="showMemberSubTab('expired')">已到期 (<span id="expiredMemberCount">0</span>)</button>
@@ -832,7 +830,7 @@ body {
         </div>
         <div class="input-group">
             <label>密碼</label>
-            <input type="password" id="loginPassword" placeholder="請輸入密碼" onkeydown="if(event.key==='Enter') login()">
+            <input type="password" id="loginPassword" placeholder="請輸入密碼">
         </div>
         <button class="btn" onclick="login()" style="width: 100%; margin-bottom: 10px;">登入</button>
     </div>
@@ -860,7 +858,7 @@ body {
         </div>
         <div class="input-group">
             <label>確認新密碼</label>
-            <input type="password" id="changeConfirmPassword" placeholder="請再次輸入新密碼" onkeydown="if(event.key==='Enter') changePassword()">
+            <input type="password" id="changeConfirmPassword" placeholder="請再次輸入新密碼">
         </div>
         <button class="btn" onclick="changePassword()" style="width: 100%;">確認更改</button>
     </div>
@@ -930,9 +928,6 @@ const REFRESH_INTERVAL = 5000; // 管理員頁面 5 秒刷新一次
 
 let currentCodeSubTab = 'generate';
 let currentMemberSubTab = 'active';
-
-// REQ 2: 新增全域變數，用於追蹤是否為內部導航
-let isNavigatingInternally = false;
 
 // ==================== 輔助工具 (來自 index.html) ====================
 
@@ -1140,7 +1135,7 @@ async function login() {
 
         // 登入成功，儲存狀態並初始化儀表板
         currentUser = member;
-        sessionStorage.setItem('currentUser', member.username); 
+        sessionStorage.setItem('adminUser', member.username);
 
         alert('管理員登入成功！');
         closeLoginModal();
@@ -1156,7 +1151,7 @@ async function login() {
 }
 
 async function logout() {
-    sessionStorage.removeItem('currentUser');
+    sessionStorage.removeItem('adminUser');
     currentUser = null;
     
     // 隱藏儀表板並顯示登入畫面
@@ -1173,26 +1168,24 @@ function updateUserSection() {
     const userSection = document.getElementById('userSection');
 
     if (currentUser && currentUser.isAdmin) {
-        // REQ 2: 新增 onclick 屬性
         userSection.innerHTML = `
         <div class="user-info">
             <div class="avatar">${currentUser.nickname.charAt(0)}</div>
             <span class="name">${currentUser.nickname}</span>
             <span class="badge-admin">管理員</span>
         </div>
-        <a href="index.html" class="btn btn-small" onclick="isNavigatingInternally=true;">🏠 返回前台</a>
+        <a href="index.html" class="btn btn-small">🏠 返回前台</a>
         <button class="btn btn-danger btn-small" onclick="logout()">登出</button>
         `;
     } else {
-        // REQ 3 & REQ 2: 登出狀態下也顯示 "返回前台" 按鈕
         userSection.innerHTML = `
-        <a href="index.html" class="btn btn-small" onclick="isNavigatingInternally=true;">🏠 返回前台</a>
         <button class="btn btn-small" onclick="openLoginModal()">登入</button>
         `;
     }
 }
 
 // ==================== 倒數計時器 ====================
+// (管理員頁面也需要全域倒數，以確保資料庫中秒數準確)
 function startGlobalCountdown() {
     if (countdownInterval) clearInterval(countdownInterval);
 
@@ -1285,12 +1278,13 @@ function stopAutoRefresh() {
 async function initializeAdminPage() {
     showLoading();
     try {
-        const loggedInUsername = sessionStorage.getItem('currentUser');
+        // 檢查 sessionStorage 中是否有管理員登入紀錄
+        const adminUsername = sessionStorage.getItem('adminUser');
 
-        if (!loggedInUsername) {
+        if (!adminUsername) {
             // 沒有登入紀錄，顯示登入彈窗
             console.log('未登入，要求管理員登入');
-            updateUserSection(); // REQ 3: 現在會顯示 "返回前台" 和 "登入"
+            updateUserSection(); // 顯示登入按鈕
             openLoginModal();
             hideLoading();
             return;
@@ -1298,20 +1292,20 @@ async function initializeAdminPage() {
 
         // 有登入紀錄，驗證此人是否仍是管理員
         const data = await loadData();
-        const member = data.members.find(m => m.username === loggedInUsername);
+        const member = data.members.find(m => m.username === adminUsername);
 
         if (!member || !member.isAdmin) {
             // 紀錄的使用者已不存在或被移除管理員權限
             console.log('Session 驗證失敗，要求重新登入');
-            sessionStorage.removeItem('currentUser');
-            updateUserSection(); // REQ 3: 現在會顯示 "返回前台" 和 "登入"
+            sessionStorage.removeItem('adminUser');
+            updateUserSection();
             openLoginModal();
             hideLoading();
             return;
         }
 
         // 驗證成功
-        console.log(`管理員 ${loggedInUsername} 驗證成功`);
+        console.log(`管理員 ${adminUsername} 驗證成功`);
         currentUser = member;
         
         await initializeAdminDashboard();
@@ -1366,12 +1360,11 @@ async function refreshAdminDashboard() {
 function renderGameSession(gameSession) {
     const container = document.getElementById('currentGameSession');
     if (gameSession) {
-        // REQ 1: 顯示正確的開始時間
         container.innerHTML = `
         <div class="game-session-card">
             <h2>🎮 ${gameSession.gameName} (開放中)</h2>
             <div class="game-session-info">名額: ${gameSession.slots}位</div>
-            <div class="game-session-info">開始時間: ${new Date(gameSession.startTime).toLocaleString('zh-TW')}</div>
+            <div class="game-session-info">開放時間: ${new Date(gameSession.startTime).toLocaleString('zh-TW')}</div>
             ${gameSession.description ? `<div style="margin-top: 10px; font-size: 0.9em;">${gameSession.description}</div>` : ''}
         </div>
         `;
@@ -1529,27 +1522,20 @@ async function createGameSession() {
     const gameName = document.getElementById('sessionGameName').value.trim() || 'CODM 會員場';
     const slots = parseInt(document.getElementById('sessionSlots').value.trim()) || 10;
     const description = document.getElementById('sessionDescription').value.trim();
-    // REQ 1: 讀取時間
-    const startTimeInput = document.getElementById('sessionStartTime').value;
-    const startTime = startTimeInput ? new Date(startTimeInput).toISOString() : new Date().toISOString();
 
     const newSession = {
         gameName,
         slots,
         description,
-        startTime: startTime // 使用修正後的時間
+        startTime: new Date().toISOString()
     };
 
-    // REQ 1: 更新確認訊息
-    const startTimeLocale = new Date(startTime).toLocaleString('zh-TW');
-    if (!confirm(`確定要開啟/預約場次嗎？\n名稱: ${gameName}\n時間: ${startTimeLocale}`)) return;
+    if (!confirm(`確定要開啟場次嗎？\n名稱: ${gameName}\n名額: ${slots}`)) return;
 
     showLoading();
     try {
         await database.ref('gameSession').set(newSession);
-        alert('遊戲場次已開啟/預約！');
-        // 清空時間輸入框
-        document.getElementById('sessionStartTime').value = '';
+        alert('遊戲場次已開啟！會員現在可以排隊了');
         await refreshAdminDashboard();
     } catch (error) {
         console.error("開啟場次失敗:", error);
@@ -1711,8 +1697,6 @@ async function openEditMember(username) {
         const timeClass = getTimeColorClass(member.remainingSeconds);
         
         const content = document.getElementById('editMemberContent');
-        
-        // REQ 1: 為輸入框加上 onkeydown
         content.innerHTML = `
         <h3>正在編輯: ${member.nickname} (@${member.username})</h3>
         <p>剩餘時間: <span id="editMemberCountdown" class="countdown-time ${timeClass}">${formatTimeDisplay(timeObj)}</span></p>
@@ -1736,11 +1720,11 @@ async function openEditMember(username) {
         <h4>修改會員資料</h4>
         <div class="input-group">
             <label>暱稱</label>
-            <input type="text" id="editNickname" value="${member.nickname}" onkeydown="if(event.key==='Enter') saveMemberEdit()">
+            <input type="text" id="editNickname" value="${member.nickname}">
         </div>
         <div class="input-group">
             <label>CODM UID</label>
-            <input type="text" id="editGameUID" value="${member.gameUID}" onkeydown="if(event.key==='Enter') saveMemberEdit()">
+            <input type="text" id="editGameUID" value="${member.gameUID}">
         </div>
         <div class="input-group">
             <label>會員等級</label>
@@ -1896,6 +1880,9 @@ async function deleteMember(username) {
             data.queue.splice(queueIndex, 1);
         }
         
+        // 3. (可選) 找到並重置該會員使用過的兌換碼？
+        // 暫不實作，刪除會員即可
+        
         await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
         
         alert(`會員 ${username} 已被永久刪除`);
@@ -1954,34 +1941,27 @@ async function changePassword() {
 }
 
 // ==================== 子分頁切換 ====================
-// REQ 2: 修復分頁切換邏輯
 function showCodeSubTab(tabName) {
     currentCodeSubTab = tabName;
-    
-    const codeCard = document.getElementById('code-management-card');
-    
-    codeCard.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
-    codeCard.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('#generate, #unused, #used').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sub-tabs button').forEach(t => t.classList.remove('active'));
     
     document.getElementById(tabName).classList.add('active');
-    codeCard.querySelector(`.sub-tabs button[onclick="showCodeSubTab('${tabName}')"]`).classList.add('active');
+    document.querySelector(`.sub-tabs button[onclick="showCodeSubTab('${tabName}')"]`).classList.add('active');
     
+    // 切換分頁時立即刷新該列表的內容
     refreshAdminDashboard();
 }
 
 function showMemberSubTab(tabName) {
     currentMemberSubTab = tabName;
+    document.querySelectorAll('#activeMembers, #expiredMembers').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sub-tabs button').forEach(t => t.classList.remove('active'));
     
-    const memberCard = document.getElementById('member-management-card');
+    document.getElementById(tabName).classList.add('active');
+    document.querySelector(`.sub-tabs button[onclick="showMemberSubTab('${tabName}')"]`).classList.add('active');
     
-    memberCard.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
-    memberCard.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
-
-    const elementId = tabName === 'active' ? 'activeMembers' : 'expiredMembers';
-    
-    document.getElementById(elementId).classList.add('active');
-    memberCard.querySelector(`.sub-tabs button[onclick="showMemberSubTab('${tabName}')"]`).classList.add('active');
-    
+    // 切換分頁時立即刷新該列表的內容
     refreshAdminDashboard();
 }
 
@@ -2075,17 +2055,6 @@ async function exportToExcel(isAuto = false) {
         if (!isAuto) hideLoading();
     }
 }
-
-// REQ 2: 新增 'beforeunload' 監聽器
-window.addEventListener('beforeunload', (event) => {
-    if (isNavigatingInternally) {
-        isNavigatingInternally = false; // 重置
-        return; // 不顯示提示
-    }
-    // 顯示提示
-    event.preventDefault();
-    event.returnValue = ''; // 跨瀏覽器兼容性
-});
 </script>
 </body>
 </html>
