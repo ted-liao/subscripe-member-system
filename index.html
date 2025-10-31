@@ -4379,7 +4379,70 @@ async function initialize() {
         hideLoading();
     }
 }
+async function validateSessionUser(username, retries = 3, delay = 500) {
+    if (!username) return null;
 
+    for (let i = 0; i < retries; i++) {
+        try {
+            console.log(`[Session] 嘗試第 ${i + 1} 次驗證: ${username}`);
+            const data = await loadData();
+            if (data.members && data.members.length > 0) {
+                const member = data.members.find(m => m.username === username);
+                if (member) {
+                    console.log('[Session] 驗證成功');
+                    return member; // 成功找到，返回用戶資料
+                }
+            }
+            // 載入成功，但找不到用戶 (例如用戶被刪除)
+            if (i === retries - 1) {
+                console.log('[Session] 找不到用戶，驗證失敗');
+                return null; // 試了3次都找不到，返回 null
+            }
+        } catch (error) {
+            console.error(`[Session] 驗證時載入失敗:`, error);
+        }
+        // 等待一段時間再重試
+        await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+    }
+    console.log('[Session] 重試次數用盡，驗證失敗');
+    return null; // 重試失敗
+}
+
+
+async function initialize() {
+    showLoading();
+    try {
+        await initializeDefaultAdmin();
+
+        // +++ 這是修改後的新邏輯 +++
+        const loggedInUsername = sessionStorage.getItem('currentUser');
+        
+        if (loggedInUsername) {
+            // 使用新的驗證函數
+            const member = await validateSessionUser(loggedInUsername);
+
+            if (member) {
+                // 驗證成功，設置為當前用戶
+                currentUser = member;
+                console.log(`Session 驗證成功: ${currentUser.username}`);
+            } else {
+                // 驗證失敗 (真的找不到或載入失敗)，才清除 session
+                console.log('Session 驗證失敗，清除儲存的登入狀態');
+                sessionStorage.removeItem('currentUser');
+            }
+        }
+        // +++ END +++
+
+        updateUserSection(); // 根據驗證結果更新 UI
+        startGlobalCountdown();
+        
+    } catch (error) {
+        console.error('系統初始化失敗:', error);
+        alert('系統初始化失敗，請重新整理頁面');
+    } finally {
+        hideLoading();
+    }
+}
 // ==================== 啟動系統 ====================
 
 //initialize();
@@ -4391,4 +4454,5 @@ console.log('⏳ 等待 Firebase 認證...');
 </body>
 
 </html>
+
 
