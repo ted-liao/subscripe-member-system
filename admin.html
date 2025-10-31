@@ -1185,8 +1185,9 @@ function updateUserSection() {
         `;
     } else {
         userSection.innerHTML = `
-        <button class="btn btn-small" onclick="openLoginModal()">登入</button>
-        `;
+    <a href="index.html" class="btn btn-small" style="background: #f0f0f0; color: #333;">🏠 返回前台</a>
+    <button class="btn btn-small" onclick="openLoginModal()">登入</button>
+    `;
     }
 }
 
@@ -1315,6 +1316,38 @@ async function initializeAdminPage() {
         
         await initializeAdminDashboard();
         updateUserSection();
+        // ==================== ⭐️ START: 加入 Enter 鍵監聽 ====================
+        // 登入彈窗
+        document.getElementById('loginPassword').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                login();
+            }
+        });
+
+        // 更改密碼彈窗 (監聽最後一個欄位)
+        document.getElementById('changeConfirmPassword').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                changePassword();
+            }
+        });
+
+        // 遊戲場次 (監聽最後一個欄位)
+        document.getElementById('sessionDescription').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                createGameSession();
+            }
+        });
+
+        // 產生兌換碼 (監聽最後一個欄位)
+        document.getElementById('codeAmount').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                generateCode();
+            }
+        });
 
     } catch (error) {
         console.error('管理頁面初始化失敗:', error);
@@ -1769,6 +1802,23 @@ async function openEditMember(username) {
         `;
         
         openEditMemberModal();
+        // ==================== ⭐️ START: 加入 Enter 鍵監聽 (動態) ====================
+        // 監聽 "調整時間" 的最後一個欄位
+        document.getElementById('editHours').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                adjustTime(true); // 預設 Enter 為 "增加時間"
+            }
+        });
+
+        // 監聽 "修改資料" 的最後一個欄位 (管理員權限 checkbox)
+        document.getElementById('editIsAdmin').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                saveMemberEdit(); // 儲存所有變更
+            }
+        });
+        // ==================== ⭐️ END: 加入 Enter 鍵監聽 (動態) ====================
         
     } catch (error) {
         console.error("開啟編輯失敗:", error);
@@ -2089,3 +2139,4 @@ async function exportToExcel(isAuto = false) {
 </script>
 </body>
 </html>
+
