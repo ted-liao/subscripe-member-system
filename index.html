@@ -121,7 +121,22 @@ body {
 .tab:hover {
     transform: translateY(-2px);
 }
+/* --- 在這裡加入以下新規則 --- */
+a.tab {
+    text-decoration: none;
+    color: #333; /* 匹配按鈕文字顏色 */
+}
+a.tab.active {
+    color: white; /* 匹配啟用按鈕的文字顏色 */
+}
+a.tab:hover {
+    color: #333; /* 確保懸停時文字顏色不變 */
+}
+/* --- 新規則結束 --- */
 
+.page {
+    display: none;
+}
 .page {
     display: none;
 }
@@ -223,6 +238,15 @@ body {
 .btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+a.btn {
+    text-decoration: none; /* 移除 a 標籤按鈕的底線 */
+    color: white; /* 確保文字是白色的 */
+}
+/* ▲▲▲ 加入結束 ▲▲▲ */
+
+.btn-danger {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
 .btn-danger {
@@ -690,17 +714,21 @@ body {
     </div>
 
     <div class="card">
-        <div class="tabs">
+        <div class="tabs">
             <button class="tab active" onclick="showPage('home')">首頁</button>
             <button class="tab" onclick="showPage('queue')">排隊系統</button>
             <button class="tab" onclick="showPage('member')">我的會員</button>
+        </div>
+
+        <div id="home" class="page active">
+    <h2 style="margin-bottom: 20px;">歡迎來到 廖嘉泰の會員系統</h2>
+
+    <div style="padding: 20px; background: #f9f9f9; border-radius: 10px;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin-bottom: 0;">會員方案</h3>
+            <a href="member.html" class="btn">💎 查看完整方案 & 名單</a>
         </div>
-
-        <div id="home" class="page active">
-            <h2 style="margin-bottom: 20px;">歡迎來到 廖嘉泰の會員系統</h2>
-
-            <div style="padding: 20px; background: #f9f9f9; border-radius: 10px;">
-                <h3 style="margin-bottom: 15px;">會員方案</h3>
                 
                 <!-- 黃金會員 -->
                 <div style="margin-bottom: 30px;">
