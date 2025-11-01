@@ -5,11 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>管理後台 - 廖嘉泰の會員管理系統</title>
 <style>
-/* =====================================================
-(1/3) STYLE (CSS)
-與 index.html 完全相同的 CSS，確保風格一致
-=====================================================
-*/
 * {
     margin: 0;
     padding: 0;
@@ -306,19 +301,19 @@ body {
     font-weight: bold;
 }
 
-.badge-vip {
-    background: gold;
+.badge-gold {
+    background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
     color: #333;
 }
 
-.badge-premium {
-    background: silver;
-    color: #333;
+.badge-diamond {
+    background: linear-gradient(135deg, #B9F2FF 0%, #00B4DB 100%);
+    color: #fff;
 }
 
-.badge-normal {
-    background: #95a5a6;
-    color: white;
+.badge-legend {
+    background: linear-gradient(135deg, #FF6B6B 0%, #C44569 100%);
+    color: #fff;
 }
 
 .queue-card {
@@ -366,17 +361,15 @@ body {
     border-left: 4px solid #667eea;
 }
 
-/* 更改 .member-item.expired 的樣式 */
 .member-item.expired {
     background: #f1f1f1;
     border-left-color: #999;
 }
-/* 更改 .member-item.active 的樣式 */
+
 .member-item.active {
     background: #e8f5e9;
     border-left-color: #28a745;
 }
-
 
 .code-item {
     background: #fff3cd;
@@ -625,7 +618,6 @@ body {
     animation: spin 1s linear infinite;
 }
 
-/* ADMIN.HTML 專用樣式 */
 .admin-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -639,7 +631,6 @@ body {
     padding-bottom: 10px;
 }
 
-/* 列表的最大高度和滾動條 */
 .list-container {
     max-height: 400px;
     overflow-y: auto;
@@ -712,11 +703,11 @@ body {
     <div class="top-bar">
         <div class="header">
             <h1>⚙️ 管理後台</h1>
-            <p> 📢 廖嘉泰の會員管理系統</p>
+            <p>📢 廖嘉泰の會員管理系統</p>
         </div>
 
         <div class="user-section" id="userSection">
-            </div>
+        </div>
     </div>
 
     <div id="adminDashboard" style="display: none;">
@@ -725,7 +716,7 @@ body {
             <div class="card">
                 <h2>🎮 遊戲場次控制</h2>
                 <div id="currentGameSession">
-                    </div>
+                </div>
                 <div class="input-group">
                     <label>場次名稱 (例如: 會員場)</label>
                     <input type="text" id="sessionGameName" placeholder="CODM 會員場">
@@ -753,7 +744,7 @@ body {
                     <button class="btn btn-danger btn-small" onclick="clearQueue()">清空名單</button>
                 </div>
                 <div class="list-container" id="adminQueueList">
-                    </div>
+                </div>
             </div>
         </div>
 
@@ -770,9 +761,9 @@ body {
                     <div class="input-group">
                         <label>會員等級</label>
                         <select id="codeLevel">
-                            <option value="normal">普通 (60元)</option>
-                            <option value="premium">高級 (110元)</option>
-                            <option value="vip">VIP (160元)</option>
+                            <option value="gold">💛 黃金會員</option>
+                            <option value="diamond">💎 鑽石會員</option>
+                            <option value="legend">🔥 傳說會員</option>
                         </select>
                     </div>
                     <div class="input-group">
@@ -815,7 +806,7 @@ body {
         <div class="card">
             <h2>📈 系統備份</h2>
             <div class="backup-info" id="backupInfo">
-                </div>
+            </div>
             <button class="btn btn-success" onclick="exportToExcel()">🗂️ 立即導出 Excel 備份</button>
         </div>
 
@@ -841,10 +832,10 @@ body {
 </div>
 
 <div id="registerModal" class="modal">
-    </div>
+</div>
 
 <div id="forgotPasswordModal" class="modal">
-    </div>
+</div>
 
 <div id="changePasswordModal" class="modal">
     <div class="modal-content">
@@ -878,14 +869,8 @@ body {
     </div>
 </div>
 
-
 <script>
-// =====================================================
-// (3/3) JAVASCRIPT
-// 包含所有 admin.html 需要的 Firebase 連接、輔助工具、和管理員功能
-// =====================================================
-
-// ==================== Firebase 初始化 ====================
+// Firebase 初始化
 const firebaseConfig = {
     apiKey: "AIzaSyCQEXz8OIzbb9dDxnz52tymNnYofGDEczQ",
     authDomain: "subscription-member-system.firebaseapp.com",
@@ -899,7 +884,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// ==================== 匿名登入 (確保資料庫連線) ====================
 let isAuthReady = false;
 
 firebase.auth().onAuthStateChanged((user) => {
@@ -909,7 +893,6 @@ firebase.auth().onAuthStateChanged((user) => {
 
         if (!window.appInitialized) {
             window.appInitialized = true;
-            // ⭐️ 啟動管理員初始化程序
             initializeAdminPage();
         }
     } else {
@@ -922,18 +905,15 @@ firebase.auth().onAuthStateChanged((user) => {
     }
 });
 
-// ==================== 全局變數 ====================
 let currentUser = null;
 let editingMember = null;
 let countdownInterval = null;
 let dailyBackupInterval = null;
 let autoRefreshInterval = null;
-const REFRESH_INTERVAL = 5000; // 管理員頁面 5 秒刷新一次
+const REFRESH_INTERVAL = 5000;
 
 let currentCodeSubTab = 'generate';
 let currentMemberSubTab = 'active';
-
-// ==================== 輔助工具 (來自 index.html) ====================
 
 function showLoading() {
     document.getElementById('loadingOverlay').classList.add('active');
@@ -1042,8 +1022,8 @@ function formatTimeDisplay(timeObj) {
 
 function getTimeColorClass(seconds) {
     if (seconds <= 0) return 'danger';
-    if (seconds <= 259200) return 'danger'; // 3天
-    if (seconds <= 604800) return 'warning'; // 7天
+    if (seconds <= 259200) return 'danger';
+    if (seconds <= 604800) return 'warning';
     return '';
 }
 
@@ -1078,7 +1058,6 @@ const securityQuestions = {
     'game': '你最喜歡的CODM角色是什麼？'
 };
 
-// ==================== 彈窗控制 ====================
 function openLoginModal() {
     document.getElementById('loginModalTitle').textContent = '管理員登入';
     document.getElementById('loginModal').classList.add('active');
@@ -1108,7 +1087,6 @@ function closeEditMemberModal() {
     editingMember = null;
 }
 
-// ==================== 登入/登出 (管理員專用) ====================
 async function login() {
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
@@ -1130,21 +1108,18 @@ async function login() {
             return;
         }
 
-        // ⭐️ 核心檢查：是否為管理員
         if (!member.isAdmin) {
             alert('權限不足。此頁面僅限管理員登入。');
             hideLoading();
             return;
         }
 
-        // 登入成功，儲存狀態並初始化儀表板
         currentUser = member;
-        // +++ FIX 3: 統一使用 'currentUser' +++
-        sessionStorage.setItem('currentUser', member.username); 
+        sessionStorage.setItem('currentUser', member.username);
 
         alert('管理員登入成功！');
         closeLoginModal();
-        await initializeAdminDashboard(); // 載入儀表板
+        await initializeAdminDashboard();
         updateUserSection();
         
     } catch (error) {
@@ -1156,13 +1131,11 @@ async function login() {
 }
 
 async function logout() {
-    // +++ FIX 3: 統一使用 'currentUser' +++
     sessionStorage.removeItem('currentUser');
     currentUser = null;
     
-    // 隱藏儀表板並顯示登入畫面
     document.getElementById('adminDashboard').style.display = 'none';
-    updateUserSection(); // 更新頂部為登入按鈕
+    updateUserSection();
     openLoginModal();
     
     stopAutoRefresh();
@@ -1185,13 +1158,12 @@ function updateUserSection() {
         `;
     } else {
         userSection.innerHTML = `
-    <a href="index.html" class="btn btn-small" style="background: #f0f0f0; color: #333;">🏠 返回前台</a>
-    <button class="btn btn-small" onclick="openLoginModal()">登入</button>
-    `;
+        <a href="index.html" class="btn btn-small" style="background: #f0f0f0; color: #333;">🏠 返回前台</a>
+        <button class="btn btn-small" onclick="openLoginModal()">登入</button>
+        `;
     }
 }
 
-// ==================== 倒數計時器 ====================
 function startGlobalCountdown() {
     if (countdownInterval) clearInterval(countdownInterval);
 
@@ -1202,7 +1174,6 @@ function startGlobalCountdown() {
 
 async function updateAllCountdowns() {
     try {
-        // 這段邏輯與 index.html 相同，確保後台持續更新秒數
         const data = await loadData();
         const now = Math.floor(Date.now() / 1000);
         let needSave = false;
@@ -1216,7 +1187,6 @@ async function updateAllCountdowns() {
                 member.lastUpdateTime = now;
                 needSave = true;
 
-                // 檢查是否有會員剛過期
                 const newExpired = member.remainingSeconds <= 0;
                 if (!oldExpired && newExpired) {
                     needRefreshAdmin = true;
@@ -1228,12 +1198,10 @@ async function updateAllCountdowns() {
             await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
         }
         
-        // 如果有會員剛過期，且管理員在會員分頁，則刷新
         if (needRefreshAdmin && (currentMemberSubTab === 'active' || currentMemberSubTab === 'expired')) {
-             await refreshAdminDashboard();
+            await refreshAdminDashboard();
         }
 
-        // 更新編輯彈窗中的倒數（如果開啟）
         const modalCountdown = document.getElementById('editMemberCountdown');
         if (modalCountdown && editingMember) {
             const member = data.members.find(m => m.username === editingMember.username);
@@ -1256,12 +1224,10 @@ function stopCountdown() {
     }
 }
 
-// ==================== 自動刷新 (管理員專用) ====================
 function startAutoRefresh() {
     if (autoRefreshInterval) clearInterval(autoRefreshInterval);
 
     autoRefreshInterval = setInterval(async () => {
-        // 如果有彈窗開啟，則不刷新，避免干擾操作
         const hasOpenModal = document.querySelector('.modal.active');
         const isLoading = document.getElementById('loadingOverlay').classList.contains('active');
         if (hasOpenModal || isLoading) {
@@ -1280,28 +1246,23 @@ function stopAutoRefresh() {
     }
 }
 
-// ==================== 系統初始化 (管理員專用) ====================
 async function initializeAdminPage() {
     showLoading();
     try {
-        // +++ FIX 3: 統一使用 'currentUser' +++
         const loggedInUsername = sessionStorage.getItem('currentUser');
 
         if (!loggedInUsername) {
-            // 沒有登入紀錄，顯示登入彈窗
             console.log('未登入，要求管理員登入');
-            updateUserSection(); // 顯示登入按鈕
+            updateUserSection();
             openLoginModal();
             hideLoading();
             return;
         }
 
-        // 有登入紀錄，驗證此人是否仍是管理員
         const data = await loadData();
         const member = data.members.find(m => m.username === loggedInUsername);
 
         if (!member || !member.isAdmin) {
-            // 紀錄的使用者已不存在或被移除管理員權限
             console.log('Session 驗證失敗，要求重新登入');
             sessionStorage.removeItem('currentUser');
             updateUserSection();
@@ -1310,19 +1271,15 @@ async function initializeAdminPage() {
             return;
         }
 
-        // 驗證成功
         console.log(`管理員 ${loggedInUsername} 驗證成功`);
         currentUser = member;
         
         await initializeAdminDashboard();
         updateUserSection();
-        // ==================== ⭐️ START: REVISED Enter 鍵監聽 ====================
-        
-        // 建立一個輔助函數來綁定 Enter 鍵
+
         function setupEnterListener(inputId, callback) {
             const element = document.getElementById(inputId);
             if (element) {
-                // 改用 'keyup' 事件
                 element.addEventListener('keyup', function(event) {
                     if (event.key === 'Enter') {
                         event.preventDefault();
@@ -1332,20 +1289,11 @@ async function initializeAdminPage() {
             }
         }
 
-        // 登入彈窗 (使用 'keyup' 並監聽兩個欄位)
         setupEnterListener('loginUsername', login);
         setupEnterListener('loginPassword', login);
-
-        // 更改密碼彈窗
         setupEnterListener('changeConfirmPassword', changePassword);
-
-        // 遊戲場次
         setupEnterListener('sessionDescription', createGameSession);
-
-        // 產生兌換碼
         setupEnterListener('codeAmount', generateCode);
-        
-        // ==================== ⭐️ END: REVISED Enter 鍵監聽 ====================
 
     } catch (error) {
         console.error('管理頁面初始化失敗:', error);
@@ -1356,36 +1304,23 @@ async function initializeAdminPage() {
 }
 
 async function initializeAdminDashboard() {
-    // 顯示儀表板
     document.getElementById('adminDashboard').style.display = 'block';
     
-    // 載入所有資料並渲染
     await refreshAdminDashboard();
     
-    // 啟動背景任務
     startGlobalCountdown();
     startAutoRefresh();
     initDailyBackup();
 }
 
-// ==================== 儀表板刷新 (核心功能) ====================
 async function refreshAdminDashboard() {
     try {
         const data = await loadData();
         
-        // 1. 刷新遊戲場次
         renderGameSession(data.gameSession);
-        
-        // 2. 刷新排隊名單
         renderQueueList(data.queue);
-        
-        // 3. 刷新兌換碼 (根據當前分頁)
         renderCodeLists(data.activationCodes);
-        
-        // 4. 刷新會員列表 (根據當前分頁)
         renderMemberLists(data.members);
-        
-        // 5. 刷新備份資訊
         renderBackupInfo(data.lastBackupTime);
 
     } catch (error) {
@@ -1424,8 +1359,8 @@ function renderQueueList(queue) {
     }
     
     container.innerHTML = queue.map((q, index) => {
-        const levelText = q.level === 'vip' ? 'VIP' : (q.level === 'premium' ? '高級' : '普通');
-        const badgeClass = q.level === 'vip' ? 'badge-vip' : (q.level === 'premium' ? 'badge-premium' : 'badge-normal');
+        const levelText = q.level === 'legend' ? '傳說' : (q.level === 'diamond' ? '鑽石' : '黃金');
+        const badgeClass = q.level === 'legend' ? 'badge-legend' : (q.level === 'diamond' ? 'badge-diamond' : 'badge-gold');
         
         return `
         <div class="queue-item">
@@ -1447,13 +1382,12 @@ function renderCodeLists(activationCodes) {
     document.getElementById('unusedCodeCount').textContent = unused.length;
     document.getElementById('usedCodeCount').textContent = used.length;
 
-    // 根據當前分頁渲染
     if (currentCodeSubTab === 'unused') {
         const unusedContainer = document.getElementById('unusedCodeList');
         unusedContainer.innerHTML = unused.length === 0 ? '<div class="empty-state">沒有未使用的兌換碼</div>' :
             unused.map(c => {
-                const levelText = c.level === 'vip' ? 'VIP' : (c.level === 'premium' ? '高級' : '普通');
-                const badgeClass = c.level === 'vip' ? 'badge-vip' : (c.level === 'premium' ? 'badge-premium' : 'badge-normal');
+                const levelText = c.level === 'legend' ? '傳說' : (c.level === 'diamond' ? '鑽石' : '黃金');
+                const badgeClass = c.level === 'legend' ? 'badge-legend' : (c.level === 'diamond' ? 'badge-diamond' : 'badge-gold');
                 const timeObj = secondsToTime(c.seconds);
                 return `
                 <div class="code-item">
@@ -1475,9 +1409,9 @@ function renderCodeLists(activationCodes) {
     if (currentCodeSubTab === 'used') {
         const usedContainer = document.getElementById('usedCodeList');
         usedContainer.innerHTML = used.length === 0 ? '<div class="empty-state">沒有已使用的兌換碼</div>' :
-            used.slice().reverse().map(c => { // 反轉陣列，讓最新的在最上面
-                const levelText = c.level === 'vip' ? 'VIP' : (c.level === 'premium' ? '高級' : '普通');
-                const badgeClass = c.level === 'vip' ? 'badge-vip' : (c.level === 'premium' ? 'badge-premium' : 'badge-normal');
+            used.slice().reverse().map(c => {
+                const levelText = c.level === 'legend' ? '傳說' : (c.level === 'diamond' ? '鑽石' : '黃金');
+                const badgeClass = c.level === 'legend' ? 'badge-legend' : (c.level === 'diamond' ? 'badge-diamond' : 'badge-gold');
                 return `
                 <div class="code-item used">
                     <strong style="font-family: 'Courier New', monospace; font-size: 1.2em;">${c.code}</strong>
@@ -1492,7 +1426,6 @@ function renderCodeLists(activationCodes) {
 }
 
 function renderMemberLists(members) {
-    // 移除管理員帳號，不在列表顯示
     const allMembers = members.filter(m => m.username !== 'admin');
     
     const active = allMembers.filter(m => m.remainingSeconds > 0);
@@ -1502,8 +1435,8 @@ function renderMemberLists(members) {
     document.getElementById('expiredMemberCount').textContent = expired.length;
 
     const renderMemberItem = (m) => {
-        const levelText = m.level === 'vip' ? 'VIP' : (m.level === 'premium' ? '高級' : '普通');
-        const badgeClass = m.level === 'vip' ? 'badge-vip' : (m.level === 'premium' ? 'badge-premium' : 'badge-normal');
+        const levelText = m.level === 'legend' ? '傳說' : (m.level === 'diamond' ? '鑽石' : '黃金');
+        const badgeClass = m.level === 'legend' ? 'badge-legend' : (m.level === 'diamond' ? 'badge-diamond' : 'badge-gold');
         const timeObj = secondsToTime(m.remainingSeconds);
         const timeClass = getTimeColorClass(m.remainingSeconds);
         const platformText = m.platform === 'tiktok' ? 'TikTok' : 'YouTube';
@@ -1551,26 +1484,20 @@ function renderBackupInfo(lastBackupTime) {
     }
 }
 
-// ==================== 管理員功能 (實作) ====================
-
-// --- 遊戲場次 / 排隊 ---
 async function createGameSession() {
     const gameName = document.getElementById('sessionGameName').value.trim() || 'CODM 會員場';
     const slots = parseInt(document.getElementById('sessionSlots').value.trim()) || 10;
     const description = document.getElementById('sessionDescription').value.trim();
-    // +++ FIX 1: 讀取時間 +++
     const startTimeInput = document.getElementById('sessionStartTime').value;
     const startTime = startTimeInput ? new Date(startTimeInput).toISOString() : new Date().toISOString();
-    // +++ END FIX +++
 
     const newSession = {
         gameName,
         slots,
         description,
-        startTime: startTime // 使用修正後的時間
+        startTime: startTime
     };
 
-    // +++ FIX 1: 更新確認訊息 +++
     const startTimeLocale = new Date(startTime).toLocaleString('zh-TW');
     if (!confirm(`確定要開啟/預約場次嗎？\n名稱: ${gameName}\n時間: ${startTimeLocale}`)) return;
 
@@ -1578,7 +1505,6 @@ async function createGameSession() {
     try {
         await database.ref('gameSession').set(newSession);
         alert('遊戲場次已開啟/預約！');
-        // 清空時間輸入框
         document.getElementById('sessionStartTime').value = '';
         await refreshAdminDashboard();
     } catch (error) {
@@ -1637,7 +1563,6 @@ async function clearQueue() {
     }
 }
 
-// --- 兌換碼 ---
 async function generateCode() {
     const level = document.getElementById('codeLevel').value;
     const days = parseInt(document.getElementById('codeDays').value) || 0;
@@ -1665,7 +1590,6 @@ async function generateCode() {
         
         for (let i = 0; i < amount; i++) {
             let newCode;
-            // 確保兌換碼不重複
             do {
                 newCode = generateActivationCode();
             } while (data.activationCodes.find(c => c.code === newCode));
@@ -1685,9 +1609,8 @@ async function generateCode() {
 
         await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
         
-        // 顯示產生的碼
         newCodes.forEach(c => {
-            const levelText = c.level === 'vip' ? 'VIP' : (c.level === 'premium' ? '高級' : '普通');
+            const levelText = c.level === 'legend' ? '傳說' : (c.level === 'diamond' ? '鑽石' : '黃金');
             generatedList.innerHTML += `
             <div class="code-item">
                 <strong style="font-family: 'Courier New', monospace; font-size: 1.2em;">${c.code}</strong>
@@ -1698,7 +1621,7 @@ async function generateCode() {
         });
         
         alert(`成功產生 ${amount} 組兌換碼！`);
-        await refreshAdminDashboard(); // 刷新列表
+        await refreshAdminDashboard();
     } catch (error) {
         console.error("產生兌換碼失敗:", error);
         alert('產生失敗');
@@ -1723,7 +1646,6 @@ async function deleteCode(code) {
     }
 }
 
-// --- 會員管理 ---
 async function openEditMember(username) {
     showLoading();
     try {
@@ -1735,7 +1657,7 @@ async function openEditMember(username) {
             return;
         }
         
-        editingMember = member; // 設置全局變數
+        editingMember = member;
         
         const timeObj = secondsToTime(member.remainingSeconds);
         const timeClass = getTimeColorClass(member.remainingSeconds);
@@ -1773,9 +1695,9 @@ async function openEditMember(username) {
         <div class="input-group">
             <label>會員等級</label>
             <select id="editLevel">
-                <option value="normal" ${member.level === 'normal' ? 'selected' : ''}>普通</option>
-                <option value="premium" ${member.level === 'premium' ? 'selected' : ''}>高級</option>
-                <option value="vip" ${member.level === 'vip' ? 'selected' : ''}>VIP</option>
+                <option value="gold" ${member.level === 'gold' ? 'selected' : ''}>💛 黃金</option>
+                <option value="diamond" ${member.level === 'diamond' ? 'selected' : ''}>💎 鑽石</option>
+                <option value="legend" ${member.level === 'legend' ? 'selected' : ''}>🔥 傳說</option>
             </select>
         </div>
         <div class="input-group">
@@ -1800,24 +1722,20 @@ async function openEditMember(username) {
         `;
         
         openEditMemberModal();
-        // ==================== ⭐️ START: REVISED Enter 鍵監聽 (動態) ====================
-        
-        // 監聽 "調整時間" 的最後一個欄位
+
         document.getElementById('editHours').addEventListener('keyup', function(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                adjustTime(true); // 預設 Enter 為 "增加時間"
+                adjustTime(true);
             }
         });
 
-        // 監聽 "修改資料" 的最後一個欄位 (管理員權限 checkbox)
         document.getElementById('editIsAdmin').addEventListener('keyup', function(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                saveMemberEdit(); // 儲存所有變更
+                saveMemberEdit();
             }
         });
-        // ==================== ⭐️ END: REVISED Enter 鍵監聽 (動態) ====================
     } catch (error) {
         console.error("開啟編輯失敗:", error);
     } finally {
@@ -1853,25 +1771,22 @@ async function adjustTime(isAdding) {
         } else {
             member.remainingSeconds = Math.max(0, member.remainingSeconds - secondsToAdd);
         }
-        // 更新秒數時，也要更新 lastUpdateTime
         member.lastUpdateTime = Math.floor(Date.now() / 1000);
         
         await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
         
-        // 刷新彈窗內的顯示
         const timeObj = secondsToTime(member.remainingSeconds);
         const timeClass = getTimeColorClass(member.remainingSeconds);
         document.getElementById('editMemberCountdown').textContent = formatTimeDisplay(timeObj);
         document.getElementById('editMemberCountdown').className = 'countdown-time ' + timeClass;
         
-        // 清空輸入框
         document.getElementById('editYears').value = '';
         document.getElementById('editMonths').value = '';
         document.getElementById('editDays').value = '';
         document.getElementById('editHours').value = '';
 
         alert(`已${actionText}時間！`);
-        await refreshAdminDashboard(); // 刷新主列表
+        await refreshAdminDashboard();
     } catch (error) {
         console.error("調整時間失敗:", error);
     } finally {
@@ -1929,13 +1844,11 @@ async function deleteMember(username) {
     try {
         const data = await loadData();
         
-        // 1. 從會員列表刪除
         const memberIndex = data.members.findIndex(m => m.username === username);
         if (memberIndex > -1) {
             data.members.splice(memberIndex, 1);
         }
         
-        // 2. 從排隊列表刪除
         const queueIndex = data.queue.findIndex(q => q.username === username);
         if (queueIndex > -1) {
             data.queue.splice(queueIndex, 1);
@@ -1953,7 +1866,6 @@ async function deleteMember(username) {
     }
 }
 
-// --- 更改密碼 (管理員自己的) ---
 async function changePassword() {
     const currentPassword = document.getElementById('currentPassword').value.trim();
     const newPassword = document.getElementById('changeNewPassword').value.trim();
@@ -1998,55 +1910,37 @@ async function changePassword() {
     }
 }
 
-// ==================== 子分頁切換 ====================
-// +++ FIX 2: 重寫分頁切換邏輯 +++
 function showCodeSubTab(tabName) {
     currentCodeSubTab = tabName;
     
-    // 找到 "兌換碼管理" 這張卡片
     const codeCard = document.querySelector('#generate').closest('.card');
     
-    // 隱藏這張卡片中所有的 sub-page
     codeCard.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
-    // 取消選取這張卡片中所有的 sub-tab
     codeCard.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
     
-    // 顯示目標 page
     document.getElementById(tabName).classList.add('active');
-    // 點亮目標 tab
     codeCard.querySelector(`.sub-tabs button[onclick="showCodeSubTab('${tabName}')"]`).classList.add('active');
     
-    // 立即刷新資料
     refreshAdminDashboard();
 }
 
 function showMemberSubTab(tabName) {
     currentMemberSubTab = tabName;
     
-    // 找到 "會員管理" 這張卡片
     const memberCard = document.querySelector('#activeMembers').closest('.card');
 
-    // 隱藏這張卡片中所有的 sub-page
     memberCard.querySelectorAll('.sub-page').forEach(p => p.classList.remove('active'));
-    // 取消選取這張卡片中所有的 sub-tab
     memberCard.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
 
-    // 映射 tabName 到 Element ID
     const elementId = tabName === 'active' ? 'activeMembers' : 'expiredMembers';
     
-    // 顯示目標 page
     document.getElementById(elementId).classList.add('active');
-    // 點亮目標 tab
     memberCard.querySelector(`.sub-tabs button[onclick="showMemberSubTab('${tabName}')"]`).classList.add('active');
     
-    // 立即刷新資料
     refreshAdminDashboard();
 }
-// +++ END FIX 2 +++
 
-// ==================== 備份功能 ====================
 function initDailyBackup() {
-    // 每日 23:59 執行備份
     function getTimeUntilMidnight() {
         const now = new Date();
         const midnight = new Date();
@@ -2056,7 +1950,7 @@ function initDailyBackup() {
 
     function performBackup() {
         console.log('執行每日自動備份...');
-        exportToExcel(true); // 傳入 true 表示是自動備份
+        exportToExcel(true);
     }
 
     const timeUntilMidnight = getTimeUntilMidnight();
@@ -2082,7 +1976,7 @@ async function exportToExcel(isAuto = false) {
 
         const memberData = data.members.map(member => {
             const timeObj = secondsToTime(member.remainingSeconds);
-            const levelText = member.level === 'vip' ? 'VIP會員' : (member.level === 'premium' ? '高級會員' : '普通會員');
+            const levelText = member.level === 'legend' ? '傳說會員' : (member.level === 'diamond' ? '鑽石會員' : '黃金會員');
             const platformText = member.platform === 'tiktok' ? 'TikTok' : 'YouTube';
             const statusText = member.remainingSeconds > 0 ? '生效中' : '已到期';
 
@@ -2100,7 +1994,7 @@ async function exportToExcel(isAuto = false) {
         XLSX.utils.book_append_sheet(wb, ws1, "會員資料");
 
         const codeData = data.activationCodes.map(code => {
-            const levelText = code.level === 'vip' ? 'VIP會員' : (code.level === 'premium' ? '高級會員' : '普通會員');
+            const levelText = code.level === 'legend' ? '傳說會員' : (code.level === 'diamond' ? '鑽石會員' : '黃金會員');
             const timeObj = secondsToTime(code.seconds);
 
             return {
@@ -2125,7 +2019,7 @@ async function exportToExcel(isAuto = false) {
             alert('Excel 備份已完成！\n檔案名稱：' + fileName);
         }
         
-        renderBackupInfo(new Date().toISOString()); // 立即更新畫面
+        renderBackupInfo(new Date().toISOString());
 
     } catch (error) {
         console.error('備份失敗:', error);
@@ -2137,4 +2031,3 @@ async function exportToExcel(isAuto = false) {
 </script>
 </body>
 </html>
-
