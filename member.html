@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>會員方案 - 廖嘉泰の會員管理系統</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    height: 100%;
+}
+
+body {
+    font-family: 'Microsoft JhengHei', 'PingFang TC', Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    padding: 20px;
+    margin: 0;
+}
+
+.container {
+    max-width: 1400px; 
+    margin: 0 auto;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.header {
+    color: white;
+}
+
+.header h1 {
+    font-size: 2.5em;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    margin-bottom: 5px;
+}
+
+.header p {
+    font-size: 1.1em;
+}
+
+.user-section {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.card {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    margin-bottom: 20px;
+}
+
+.btn {
+    padding: 12px 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+.tier-grid {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 25px;
+}
+
+.tier-group {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1;
+    min-width: 0;
+}
+
+.member-tier-card {
+    width: 100%;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    border: 3px solid transparent;
+    transition: all 0.3s ease;
+    /* 確保卡片有足夠高度 */
+    min-height: 400px; 
+    display: flex;
+    flex-direction: column;
+}
+
+.member-tier-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+}
+
+.member-tier-card h2 {
+    font-size: 2.2em;
+    margin-bottom: 15px;
+}
+
+.member-tier-card p, .member-tier-card li {
+    font-size: 1.1em;
+    color: #555;
+    line-height: 1.6;
+    /* 讓說明文字佔據可用空間 */
+    flex-grow: 1; 
+}
+
+.member-list-box {
+    width: 100%;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.member-list-box h4 {
+    font-size: 1.2em;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+.member-list-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    min-height: 30px; /* 列表最小高度 */
+}
+
+.member-badge {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.95em;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+
+/* --- ▼▼▼ 新增：價格區塊樣式 ▼▼▼ --- */
+.price-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px dashed rgba(255, 255, 255, 0.3); /* 預設分隔線 */
+}
+.price-grid {
+    display: grid;
+    /* 調整 minmax 讓 3 個項目能並排 */
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
+    gap: 10px;
+}
+.price-box {
+    padding: 15px 10px;
+    border-radius: 10px;
+    text-align: center;
+    background-color: rgba(255, 255, 255, 0.2);
+}
+.price-box .price {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: white; /* 預設價格顏色 */
+    margin-bottom: 5px;
+}
+.price-box .duration {
+    font-size: 0.9em;
+    color: #f0f0f0; /* 預設時長顏色 */
+}
+/* --- ▲▲▲ 樣式結束 ▲▲▲ --- */
+
+
+/* 傳說 */
+.tier-legend {
+    background: linear-gradient(135deg, #FF6B6B 10%, #C44569 100%);
+    color: white;
+    border-color: #FF6B6B;
+}
+.tier-legend h2 {
+    color: white;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    font-size: 2.5em;
+}
+.tier-legend p, .tier-legend li {
+    color: #f0f0f0;
+}
+.tier-legend .price-section { border-top-color: rgba(255, 255, 255, 0.5); }
+/* 傳說列表方框 */
+.tier-legend-list {
+    background: linear-gradient(135deg, #FF6B6B 10%, #C44569 100%);
+    color: white;
+}
+.tier-legend-list h4 {
+    color: white;
+    border-bottom: 2px dashed rgba(255, 255, 255, 0.5);
+}
+.tier-legend-list .member-badge {
+    background-color: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+
+/* --- ▼▼▼ 修改 1：調整鑽石級卡片文字顏色 ▼▼▼ --- */
+.tier-diamond {
+    background: linear-gradient(135deg, #B9F2FF 10%, #00B4DB 100%);
+    color: #005670; /* 卡片預設文字改為深色 */
+    border-color: #B9F2FF;
+}
+.tier-diamond h2 {
+    color: #005670; /* 標題改為深色 */
+    text-shadow: none; /* 移除白色文字的陰影 */
+    font-size: 2.2em;
+}
+.tier-diamond p, .tier-diamond li {
+    color: #005670; /* 說明文字改為深色 */
+}
+/* 鑽石價格區塊 */
+.tier-diamond .price-section { border-top-color: rgba(0, 86, 112, 0.3); } 
+.tier-diamond .price-box { background-color: rgba(255, 255, 255, 0.4); }
+.tier-diamond .price-box .price { color: #005670; } /* 價格改為深色 */
+.tier-diamond .price-box .duration { color: #005670; } /* 時長改為深色 */
+
+/* 鑽石列表方框 (維持不變) */
+.tier-diamond-list {
+    background: linear-gradient(135deg, #B9F2FF 10%, #00B4DB 100%);
+    color: #005670; 
+}
+.tier-diamond-list h4 {
+    color: #005670; 
+    border-bottom: 2px dashed rgba(0, 86, 112, 0.3);
+}
+.tier-diamond-list .member-badge {
+    background-color: rgba(255, 255, 255, 0.4);
+    color: #005670;
+}
+/* --- ▲▲▲ 修改結束 ▲▲▲ --- */
+
+
+/* 黃金 */
+.tier-gold {
+    background: linear-gradient(135deg, #FFD700 10%, #FFA500 100%);
+    color: #333;
+    border-color: #FFD700;
+}
+.tier-gold h2 {
+    color: #a0522d;
+    font-size: 1.9em;
+}
+.tier-gold p, .tier-gold li {
+    color: #555;
+}
+/* 黃金價格區塊 */
+.tier-gold .price-section { border-top-color: rgba(160, 82, 45, 0.3); }
+.tier-gold .price-box { background-color: rgba(255, 255, 255, 0.4); }
+.tier-gold .price-box .price { color: #a0522d; }
+.tier-gold .price-box .duration { color: #555; }
+/* 黃金列表方框 */
+.tier-gold-list {
+    background: linear-gradient(135deg, #FFD700 10%, #FFA500 100%);
+    color: #333;
+}
+.tier-gold-list h4 {
+    color: #a0522d;
+    border-bottom: 2px dashed rgba(160, 82, 45, 0.3);
+}
+.tier-gold-list .member-badge {
+    background-color: rgba(255, 255, 255, 0.4);
+    color: #333;
+}
+
+
+/* 載入中 spinner */
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+@media (max-width: 1024px) {
+    .tier-grid {
+        flex-direction: column; 
+        align-items: center; 
+    }
+    .tier-group {
+        width: 100%;
+        max-width: 700px;
+    }
+    .member-tier-card {
+        min-height: auto; /* 在手機上取消最小高度 */
+    }
+}
+
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 1.8em;
+    }
+    .card {
+        padding: 20px;
+    }
+    .top-bar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .member-tier-card {
+        padding: 20px;
+    }
+}
+</style>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+</head>
+<body>
+
+<div class="container">
+    <div class="top-bar">
+        <div class="header">
+            <h1>💎 會員方案總覽</h1>
+            <p>查看所有可用的會員等級</p>
+        </div>
+
+        <div class="user-section">
+            <a href="index.html" class="btn btn-small">🏠 返回首頁</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="tier-grid">
+
+            <div class="tier-group">
+                <div class="member-tier-card tier-legend">
+                    <h2>🔥 傳說會員</h2>
+                    <p>
+                        尊爵不凡的頂級會員，享受所有專屬權益。
+                        <ul style="padding-left: 20px; margin-top: 10px;">
+                            <li><b>一次連續5把</b></li>
+                            <li><b>5次/月 插隊額度</b></li>
+                            <li><b>偶爾專屬同樂場</b></li>
+                        </ul>
+                    </p>
+                    
+                    <div class="price-section">
+                        <div class="price-grid">
+                            <div class="price-box">
+                                <div class="price">NT$200</div>
+                                <div class="duration">1個月 (30天)</div>
+                            </div>
+                            <div class="price-box">
+                                <div class="price">NT$580</div>
+                                <div class="duration">3個月 (90天)</div>
+                            </div>
+                            <div class="price-box">
+                                <div class="price">NT$950</div>
+                                <div class="duration">5個月 (150天)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="member-list-box tier-legend-list">
+                    <h4>🔥 傳說會員名單</h4>
+                    <div class="member-list-container" id="legend-members">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tier-group">
+                <div class="member-tier-card tier-diamond">
+                    <h2>💎 鑽石會員</h2>
+                    <p>
+                        進階會員方案，解鎖更多獨特福利。
+                        <ul style="padding-left: 20px; margin-top: 10px;">
+                            <li><b>一次連續3把</b></li>
+                            <li><b>2次/月 插隊額度</b></li>
+                        </ul>
+                    </p>
+
+                    <div class="price-section">
+                        <div class="price-grid">
+                            <div class="price-box">
+                                <div class="price">NT$100</div>
+                                <div class="duration">1個月 (30天)</div>
+                            </div>
+                            <div class="price-box">
+                                <div class="price">NT$280</div>
+                                <div class="duration">3個月 (90天)</div>
+                            </div>
+                            <div class="price-box">
+                                <div class="price">NT$450</div>
+                                <div class="duration">5個月 (150天)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="member-list-box tier-diamond-list">
+                    <h4>💎 鑽石會員名單</h4>
+                    <div class="member-list-container" id="diamond-members">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tier-group">
+                <div class="member-tier-card tier-gold">
+                    <h2>💛 黃金會員</h2>
+                    <p>
+                        標準會員方案，開始您的會員之旅。
+                        <ul style="padding-left: 20px; margin-top: 10px;">
+                            <li><b>一次連續3把</b></li>
+                        </ul>
+                    </p>
+
+                    <div class="price-section">
+                        <div class="price-grid">
+                            <div class="price-box">
+                                <div class="price">NT$60</div>
+                                <div class="duration">1個月 (30天)</div>
+                            </div>
+                            <div class="price-box">
+                                <div class="price">NT$160</div>
+                                <div class="duration">3個月 (90天)</div>
+                            </div>
+                            <div class="price-box">
+                                <div class="price">NT$250</div>
+                                <div class="duration">5個月 (150天)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="member-list-box tier-gold-list">
+                    <h4>💛 黃金會員名單</h4>
+                    <div class="member-list-container" id="gold-members">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+// Firebase 初始化
+const firebaseConfig = {
+    apiKey: "AIzaSyCQEXz8OIzbb9dDxnz52tymNnYofGDEczQ",
+    authDomain: "subscription-member-system.firebaseapp.com",
+    databaseURL: "https://subscription-member-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "subscription-member-system",
+    storageBucket: "subscription-member-system.firebasestorage.app",
+    messagingSenderId: "970681171187",
+    appId: "1:970681171187:web:f3f86b743e27667a994b86"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
+// 匿名登入
+firebase.auth().signInAnonymously().catch((error) => {
+    console.error("Firebase 匿名登入失敗:", error);
+});
+
+// 監聽認證狀態
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        console.log("Firebase 認證成功，正在載入會員名單...");
+        loadMemberLists();
+    } else {
+        console.log("Firebase 尚未認證...");
+    }
+});
+
+// 載入會員名單
+async function loadMemberLists() {
+    try {
+        const membersSnapshot = await database.ref('members').once('value');
+        const membersData = membersSnapshot.val() || {};
+        
+        const allMembers = Object.values(membersData);
+
+        const now = Math.floor(Date.now() / 1000);
+        
+        const legendMembers = allMembers
+            .filter(m => m.level === 'legend' && (m.remainingSeconds - (now - m.lastUpdateTime)) > 0 && !m.isAdmin)
+            .map(m => m.nickname);
+
+        const diamondMembers = allMembers
+            .filter(m => m.level === 'diamond' && (m.remainingSeconds - (now - m.lastUpdateTime)) > 0 && !m.isAdmin)
+            .map(m => m.nickname);
+            
+        const goldMembers = allMembers
+            .filter(m => m.level === 'gold' && (m.remainingSeconds - (now - m.lastUpdateTime)) > 0 && !m.isAdmin)
+            .map(m => m.nickname);
+
+        renderList('legend-members', legendMembers);
+        renderList('diamond-members', diamondMembers);
+        renderList('gold-members', goldMembers);
+
+    } catch (error) {
+        console.error("載入會員名單失敗:", error);
+        document.getElementById('legend-members').innerHTML = "<p style='color:red;'>載入失敗</T>";
+        document.getElementById('diamond-members').innerHTML = "<p style='color:red;'>載入失敗</T>";
+        document.getElementById('gold-members').innerHTML = "<p style='color:red;'>載入失敗</T>";
+    }
+}
+
+// 顯示列表
+function renderList(elementId, members) {
+    const container = document.getElementById(elementId);
+    
+    if (!members || members.length === 0) {
+        container.innerHTML = "<span class='member-badge' style='opacity: 0.7;'>目前尚無會員</span>";
+        return;
+    }
+    
+    container.innerHTML = ""; 
+    
+    members.forEach(nickname => {
+        const badge = document.createElement('span');
+        badge.className = 'member-badge';
+        badge.textContent = nickname;
+        container.appendChild(badge);
+    });
+}
+
+</script>
+
+</body>
+</html>
