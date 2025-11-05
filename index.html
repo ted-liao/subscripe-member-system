@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+💎 💎<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title data-lang-key="page_title">廖嘉泰の會員管理系統</title>
+<title>廖嘉泰の會員管理系統</title>
 <style>
 * {
     margin: 0;
@@ -51,39 +51,6 @@ body {
     gap: 10px;
     align-items: center;
 }
-
-/* ▼▼▼ 1. 新增的 CSS 樣式 ▼▼▼ */
-.lang-switcher {
-    display: flex;
-    align-items: center;
-    margin-right: 15px; /* 和登入按鈕隔開 */
-}
-.btn-lang {
-    background: none;
-    border: none;
-    color: white;
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: bold;
-    opacity: 0.7;
-    transition: opacity 0.3s;
-    padding: 5px;
-}
-.btn-lang:hover {
-    opacity: 1;
-}
-/* 當前啟用語言的樣式 */
-.btn-lang.active {
-    opacity: 1;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-}
-a.btn {
-    text-decoration: none; /* 移除 a 標籤按鈕的底線 */
-    color: white; /* 確保文字是白色的 */
-}
-/* ▲▲▲ CSS 結束 ▲▲▲ */
-
 
 .user-info {
     background: white;
@@ -154,18 +121,22 @@ a.btn {
 .tab:hover {
     transform: translateY(-2px);
 }
-
+/* --- 在這裡加入以下新規則 --- */
 a.tab {
     text-decoration: none;
-    color: #333;
+    color: #333; /* 匹配按鈕文字顏色 */
 }
 a.tab.active {
-    color: white;
+    color: white; /* 匹配啟用按鈕的文字顏色 */
 }
 a.tab:hover {
-    color: #333;
+    color: #333; /* 確保懸停時文字顏色不變 */
 }
+/* --- 新規則結束 --- */
 
+.page {
+    display: none;
+}
 .page {
     display: none;
 }
@@ -267,6 +238,15 @@ a.tab:hover {
 .btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+a.btn {
+    text-decoration: none; /* 移除 a 標籤按鈕的底線 */
+    color: white; /* 確保文字是白色的 */
+}
+/* ▲▲▲ 加入結束 ▲▲▲ */
+
+.btn-danger {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
 .btn-danger {
@@ -696,8 +676,7 @@ a.tab:hover {
 
     .user-section {
         width: 100%;
-        /* 讓語言切換器也換行 */
-        flex-wrap: wrap; 
+        flex-direction: column;
     }
 
     .user-info {
@@ -724,99 +703,97 @@ a.tab:hover {
 <div class="container">
     <div class="top-bar">
         <div class="header">
-            <h1 data-lang-key="app_title">🎮 廖嘉泰の會員管理系統</h1>
-            <p data-lang-key="app_subtitle">📢 GAME LIVE 主播專屬平台</p>
+            <h1>🎮 廖嘉泰の會員管理系統</h1>
+            <p>📢 GAME LIVE 主播專屬平台</p>
         </div>
 
         <div class="user-section" id="userSection">
-            <div class="lang-switcher">
-                <button class="btn-lang" onclick="setLanguage('en')">English</button>
-                <span style="color: white; margin: 0 5px;">|</span>
-                <button class="btn-lang active" onclick="setLanguage('zh')">中文</button>
-            </div>
-            <button class="btn btn-small" onclick="openLoginModal()" data-lang-key="login">登入</button>
-            <button class="btn btn-success btn-small" onclick="openRegisterModal()" data-lang-key="register">註冊</button>
+            <button class="btn btn-small" onclick="openLoginModal()">登入</button>
+            <button class="btn btn-success btn-small" onclick="openRegisterModal()">註冊</button>
         </div>
     </div>
 
     <div class="card">
-        <div class="tabs">
-            <button class="tab active" onclick="showPage('home')" data-lang-key="tab_home">首頁</button>
-            <a href="member.html" class="tab" data-lang-key="tab_plans">💎 查看方案</a>
-            <button class="tab" onclick="showPage('queue')" data-lang-key="tab_queue">排隊系統</button>
-            <button class="tab" onclick="showPage('member')" data-lang-key="tab_member">我的會員</button>
+        <div class="tabs">
+            <button class="tab active" onclick="showPage('home')">首頁</button>
+            <button class="tab" onclick="showPage('queue')">排隊系統</button>
+            <button class="tab" onclick="showPage('member')">我的會員</button>
+        </div>
+
+        <div id="home" class="page active">
+    <h2 style="margin-bottom: 20px;">歡迎來到 廖嘉泰の會員系統</h2>
+
+    <div style="padding: 20px; background: #f9f9f9; border-radius: 10px;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <h3 style="margin-bottom: 0;">會員方案</h3>
+            <a href="member.html" class="btn">💎 查看完整方案 & 名單</a>
         </div>
-
-        <div id="home" class="page active">
-            <h2 style="margin-bottom: 20px;" data-lang-key="home_welcome">歡迎來到 廖嘉泰の會員系統</h2>
-
-            <div style="padding: 20px; background: #f9f9f9; border-radius: 10px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-                    <h3 style="margin-bottom: 0;" data-lang-key="home_plans_title">會員方案</h3>
-                    <a href="member.html" class="btn" data-lang-key="home_plans_button">💎 查看完整方案 & 名單</a>
-                </div>
-
+                
+                <!-- 黃金會員 -->
                 <div style="margin-bottom: 30px;">
                     <h4 style="color: #FFA500; margin-bottom: 10px;">💛 黃金會員</h4>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                         <div style="background: white; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #FFD700;">
                             <div style="font-size: 1.5em; font-weight: bold; color: #667eea; margin: 10px 0;">NT$60</div>
-                            <div style="color: #666;" data-lang-key="duration_1">1個月 (30天)</div>
+                            <div style="color: #666;">1個月 (30天)</div>
                         </div>
                         <div style="background: white; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #FFD700;">
                             <div style="font-size: 1.5em; font-weight: bold; color: #667eea; margin: 10px 0;">NT$160</div>
-                            <div style="color: #666;" data-lang-key="duration_2">3個月 (90天)</div>
+                            <div style="color: #666;">3個月 (90天)</div>
                         </div>
                         <div style="background: white; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #FFD700;">
                             <div style="font-size: 1.5em; font-weight: bold; color: #667eea; margin: 10px 0;">NT$250</div>
-                            <div style="color: #666;" data-lang-key="duration_3">5個月 (150天)</div>
+                            <div style="color: #666;">5個月 (150天)</div>
                         </div>
                     </div>
                 </div>
 
+                <!-- 鑽石會員 -->
                 <div style="margin-bottom: 30px;">
                     <h4 style="color: #00B4DB; margin-bottom: 10px;">💎 鑽石會員</h4>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                         <div style="background: white; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #B9F2FF;">
                             <div style="font-size: 1.5em; font-weight: bold; color: #667eea; margin: 10px 0;">NT$100</div>
-                            <div style="color: #666;" data-lang-key="duration_1">1個月 (30天)</div>
+                            <div style="color: #666;">1個月 (30天)</div>
                         </div>
                         <div style="background: white; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #B9F2FF;">
                             <div style="font-size: 1.5em; font-weight: bold; color: #667eea; margin: 10px 0;">NT$280</div>
-                            <div style="color: #666;" data-lang-key="duration_2">3個月 (90天)</div>
+                            <div style="color: #666;">3個月 (90天)</div>
                         </div>
                         <div style="background: white; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #B9F2FF;">
                             <div style="font-size: 1.5em; font-weight: bold; color: #667eea; margin: 10px 0;">NT$450</div>
-                            <div style="color: #666;" data-lang-key="duration_3">5個月 (150天)</div>
+                            <div style="color: #666;">5個月 (150天)</div>
                         </div>
                     </div>
                 </div>
 
+                <!-- 傳說會員 -->
                 <div style="margin-bottom: 30px;">
                     <h4 style="color: #C44569; margin-bottom: 10px;">🔥 傳說會員</h4>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                         <div style="background: white; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #FF6B6B;">
                             <div style="font-size: 1.5em; font-weight: bold; color: #667eea; margin: 10px 0;">NT$200</div>
-                            <div style="color: #666;" data-lang-key="duration_1">1個月 (30天)</div>
+                            <div style="color: #666;">1個月 (30天)</div>
                         </div>
                         <div style="background: white; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #FF6B6B;">
                             <div style="font-size: 1.5em; font-weight: bold; color: #667eea; margin: 10px 0;">NT$580</div>
-                            <div style="color: #666;" data-lang-key="duration_2">3個月 (90天)</div>
+                            <div style="color: #666;">3個月 (90天)</div>
                         </div>
                         <div style="background: white; padding: 20px; border-radius: 10px; text-align: center; border: 2px solid #FF6B6B;">
                             <div style="font-size: 1.5em; font-weight: bold; color: #667eea; margin: 10px 0;">NT$950</div>
-                            <div style="color: #666;" data-lang-key="duration_3">5個月 (150天)</div>
+                            <div style="color: #666;">5個月 (150天)</div>
                         </div>
                     </div>
                 </div>
 
                 <div style="margin-top: 30px; padding: 20px; background: white; border-radius: 10px;">
-                    <h3 style="margin-bottom: 15px;" data-lang-key="home_how_to_title">📝 如何註冊</h3>
-                    <ol style="line-height: 2; padding-left: 20px;">
-                        <li data-lang-key="home_step_1">向主播購買會員方案，獲得 <strong>6位兌換碼</strong></li>
-                        <li data-lang-key="home_step_2">點擊右上角「註冊」按鈕</li>
-                        <li data-lang-key="home_step_3">輸入兌換碼和您的資料</li>
-                        <li data-lang-key="home_step_4">完成註冊,開始享受會員權益!</li>
+                    <h3 style="margin-bottom: 15px;">📝 如何註冊</h3>
+                    <ol style="line-height: 2;">
+                        <li>向主播購買會員方案，獲得 <strong>6位兌換碼</strong></li>
+                        <li>點擊右上角「註冊」按鈕</li>
+                        <li>輸入兌換碼和您的資料</li>
+                        <li>完成註冊,開始享受會員權益!</li>
                     </ol>
                 </div>
             </div>
@@ -835,20 +812,20 @@ a.tab:hover {
 <div id="loginModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2 data-lang-key="login_title">會員登入</h2>
+            <h2>會員登入</h2>
             <button class="modal-close" onclick="closeLoginModal()">×</button>
         </div>
         <div class="input-group">
-            <label data-lang-key="username">使用者名稱</label>
-            <input type="text" id="loginUsername" data-lang-key="username_placeholder" placeholder="請輸入使用者名稱">
+            <label>使用者名稱</label>
+            <input type="text" id="loginUsername" placeholder="請輸入使用者名稱">
         </div>
         <div class="input-group">
-            <label data-lang-key="password">密碼</label>
-            <input type="password" id="loginPassword" data-lang-key="password_placeholder" placeholder="請輸入密碼">
+            <label>密碼</label>
+            <input type="password" id="loginPassword" placeholder="請輸入密碼">
         </div>
-        <button class="btn" onclick="login()" style="width: 100%; margin-bottom: 10px;" data-lang-key="login">登入</button>
+        <button class="btn" onclick="login()" style="width: 100%; margin-bottom: 10px;">登入</button>
         <div class="text-link">
-            <button class="btn-link" onclick="openForgotPasswordModal()" data-lang-key="forgot_password">忘記密碼？</button>
+            <button class="btn-link" onclick="openForgotPasswordModal()">忘記密碼？</button>
         </div>
     </div>
 </div>
@@ -856,96 +833,96 @@ a.tab:hover {
 <div id="registerModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2 data-lang-key="register_title">註冊會員</h2>
+            <h2>註冊會員</h2>
             <button class="modal-close" onclick="closeRegisterModal()">×</button>
         </div>
         <div class="input-group">
-            <label data-lang-key="redeem_code">兌換碼</label>
-            <input type="text" id="regActivationCode" data-lang-key="redeem_code_placeholder" placeholder="請輸入6位兌換碼" maxlength="6" style="text-transform: uppercase; letter-spacing: 2px;">
-            <small style="color: #666; font-size: 12px;" data-lang-key="redeem_code_note">向主播購買會員後獲得的兌換碼</small>
+            <label>兌換碼</label>
+            <input type="text" id="regActivationCode" placeholder="請輸入6位兌換碼" maxlength="6" style="text-transform: uppercase; letter-spacing: 2px;">
+            <small style="color: #666; font-size: 12px;">向主播購買會員後獲得的兌換碼</small>
         </div>
         <div class="input-group">
-            <label data-lang-key="username">使用者名稱</label>
-            <input type="text" id="regUsername" data-lang-key="username_reg_placeholder" placeholder="請輸入使用者名稱（用於登入）">
+            <label>使用者名稱</label>
+            <input type="text" id="regUsername" placeholder="請輸入使用者名稱（用於登入）">
         </div>
         <div class="input-group">
-            <label data-lang-key="password">密碼</label>
-            <input type="password" id="regPassword" data-lang-key="password_reg_placeholder" placeholder="請輸入密碼（至少6個字元）">
+            <label>密碼</label>
+            <input type="password" id="regPassword" placeholder="請輸入密碼（至少6個字元）">
         </div>
         <div class="input-group">
-            <label data-lang-key="confirm_password">確認密碼</label>
-            <input type="password" id="regConfirmPassword" data-lang-key="confirm_password_placeholder" placeholder="請再次輸入密碼">
+            <label>確認密碼</label>
+            <input type="password" id="regConfirmPassword" placeholder="請再次輸入密碼">
         </div>
         <div class="input-group">
-            <label data-lang-key="platform_select">平台選擇</label>
+            <label>平台選擇</label>
             <select id="regPlatform">
                 <option value="tiktok">TikTok</option>
                 <option value="youtube">YouTube</option>
             </select>
         </div>
         <div class="input-group">
-            <label>TikTok/YouTube<span data-lang-key="nickname">暱稱</span> <span class="optional" data-lang-key="optional">(選填)</span></label>
-            <input type="text" id="regNickname" data-lang-key="nickname_placeholder" placeholder="請輸入你的TikTok或YouTube暱稱">
-            <small style="color: #666; font-size: 12px;" data-lang-key="nickname_note">如果不填寫，將使用使用者名稱作為暱稱</small>
+            <label>TikTok/YouTube暱稱 <span class="optional">(選填)</span></label>
+            <input type="text" id="regNickname" placeholder="請輸入你的TikTok或YouTube暱稱">
+            <small style="color: #666; font-size: 12px;">如果不填寫，將使用使用者名稱作為暱稱</small>
         </div>
         <div class="input-group">
             <label>CODM UID</label>
-            <input type="text" id="regGameUID" data-lang-key="game_uid_placeholder" placeholder="請輸入 Call of Duty Mobile UID">
-            <small style="color: #666; font-size: 12px;" data-lang-key="game_uid_note">可在遊戲內個人資料查看</small>
+            <input type="text" id="regGameUID" placeholder="請輸入 Call of Duty Mobile UID">
+            <small style="color: #666; font-size: 12px;">可在遊戲內個人資料查看</small>
         </div>
         <div class="input-group">
-            <label data-lang-key="sec_q">安全問題（用於找回密碼）</label>
+            <label>安全問題（用於找回密碼）</label>
             <select id="regSecurityQuestion">
-                <option value="" data-lang-key="sec_q_select">請選擇安全問題</option>
-                <option value="pet" data-lang-key="sec_q_pet">你的第一隻寵物叫什麼名字？</option>
-                <option value="school" data-lang-key="sec_q_school">你的小學校名是什麼？</option>
-                <option value="city" data-lang-key="sec_q_city">你出生的城市是哪裡？</option>
-                <option value="food" data-lang-key="sec_q_food">你最喜歡的食物是什麼？</option>
-                <option value="game" data-lang-key="sec_q_game">你最喜歡的CODM角色是什麼？</option>
+                <option value="">請選擇安全問題</option>
+                <option value="pet">你的第一隻寵物叫什麼名字？</option>
+                <option value="school">你的小學校名是什麼？</option>
+                <option value="city">你出生的城市是哪裡？</option>
+                <option value="food">你最喜歡的食物是什麼？</option>
+                <option value="game">你最喜歡的CODM角色是什麼？</option>
             </select>
         </div>
         <div class="input-group">
-            <label data-lang-key="sec_a">安全答案</label>
-            <input type="text" id="regSecurityAnswer" data-lang-key="sec_a_placeholder" placeholder="請輸入答案（請記住此答案）">
+            <label>安全答案</label>
+            <input type="text" id="regSecurityAnswer" placeholder="請輸入答案（請記住此答案）">
         </div>
-        <button class="btn" onclick="register()" style="width: 100%;" data-lang-key="register">註冊</button>
+        <button class="btn" onclick="register()" style="width: 100%;">註冊</button>
     </div>
 </div>
 
 <div id="forgotPasswordModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2 data-lang-key="forgot_password_title">找回密碼</h2>
+            <h2>找回密碼</h2>
             <button class="modal-close" onclick="closeForgotPasswordModal()">×</button>
         </div>
         <div class="input-group">
-            <label data-lang-key="username">使用者名稱</label>
-            <input type="text" id="forgotUsername" data-lang-key="username_placeholder" placeholder="請輸入使用者名稱">
+            <label>使用者名稱</label>
+            <input type="text" id="forgotUsername" placeholder="請輸入使用者名稱">
         </div>
-        <button class="btn" onclick="checkSecurityQuestion()" style="width: 100%; margin-bottom: 20px;" data-lang-key="next_step">下一步</button>
+        <button class="btn" onclick="checkSecurityQuestion()" style="width: 100%; margin-bottom: 20px;">下一步</button>
 
         <div id="securityQuestionSection" style="display: none;">
             <div class="input-group">
-                <label data-lang-key="sec_q_display">安全問題</label>
+                <label>安全問題</label>
                 <input type="text" id="displaySecurityQuestion" disabled style="background: #f0f0f0;">
             </div>
             <div class="input-group">
-                <label data-lang-key="sec_a">安全答案</label>
-                <input type="text" id="securityAnswer" data-lang-key="sec_a_verify_placeholder" placeholder="請輸入答案">
+                <label>安全答案</label>
+                <input type="text" id="securityAnswer" placeholder="請輸入答案">
             </div>
-            <button class="btn" onclick="verifySecurityAnswer()" style="width: 100%;" data-lang-key="verify_answer">驗證答案</button>
+            <button class="btn" onclick="verifySecurityAnswer()" style="width: 100%;">驗證答案</button>
         </div>
 
         <div id="resetPasswordSection" style="display: none;">
             <div class="input-group">
-                <label data-lang-key="new_password">新密碼</label>
-                <input type="password" id="newPassword" data-lang-key="password_reg_placeholder" placeholder="請輸入新密碼（至少6個字元）">
+                <label>新密碼</label>
+                <input type="password" id="newPassword" placeholder="請輸入新密碼（至少6個字元）">
             </div>
             <div class="input-group">
-                <label data-lang-key="confirm_new_password">確認新密碼</label>
-                <input type="password" id="confirmNewPassword" data-lang-key="confirm_password_placeholder" placeholder="請再次輸入新密碼">
+                <label>確認新密碼</label>
+                <input type="password" id="confirmNewPassword" placeholder="請再次輸入新密碼">
             </div>
-            <button class="btn" onclick="resetPassword()" style="width: 100%;" data-lang-key="reset_password">重設密碼</button>
+            <button class="btn" onclick="resetPassword()" style="width: 100%;">重設密碼</button>
         </div>
     </div>
 </div>
@@ -953,38 +930,37 @@ a.tab:hover {
 <div id="changePasswordModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2 data-lang-key="change_password_title">更改密碼</h2>
+            <h2>更改密碼</h2>
             <button class="modal-close" onclick="closeChangePasswordModal()">×</button>
         </div>
         <div class="input-group">
-            <label data-lang-key="current_password">目前密碼</label>
-            <input type="password" id="currentPassword" data-lang-key="current_password_placeholder" placeholder="請輸入目前密碼">
+            <label>目前密碼</label>
+            <input type="password" id="currentPassword" placeholder="請輸入目前密碼">
         </div>
         <div class="input-group">
-            <label data-lang-key="new_password">新密碼</label>
-            <input type="password" id="changeNewPassword" data-lang-key="password_reg_placeholder" placeholder="請輸入新密碼（至少6個字元）">
+            <label>新密碼</label>
+            <input type="password" id="changeNewPassword" placeholder="請輸入新密碼（至少6個字元）">
         </div>
         <div class="input-group">
-            <label data-lang-key="confirm_new_password">確認新密碼</label>
-            <input type="password" id="changeConfirmPassword" data-lang-key="confirm_password_placeholder" placeholder="請再次輸入新密碼">
+            <label>確認新密碼</label>
+            <input type="password" id="changeConfirmPassword" placeholder="請再次輸入新密碼">
         </div>
-        <button class="btn" onclick="changePassword()" style="width: 100%;" data-lang-key="confirm_change">確認更改</button>
+        <button class="btn" onclick="changePassword()" style="width: 100%;">確認更改</button>
     </div>
 </div>
 
 <div id="editMemberModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2 data-lang-key="edit_member_title">編輯會員</h2>
+            <h2>編輯會員</h2>
             <button class="modal-close" onclick="closeEditMemberModal()">×</button>
         </div>
         <div id="editMemberContent"></div>
     </div>
 </div>
 
-
 <script>
-// Firebase 初始化 (從 <head> 移到這裡，統一管理)
+// Firebase 初始化
 const firebaseConfig = {
     apiKey: "AIzaSyCQEXz8OIzbb9dDxnz52tymNnYofGDEczQ",
     authDomain: "subscription-member-system.firebaseapp.com",
@@ -1195,22 +1171,12 @@ function isAdmin() {
     return currentUser.isAdmin === true;
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 const securityQuestions = {
-    'zh': {
-        'pet': '你的第一隻寵物叫什麼名字？',
-        'school': '你的小學校名是什麼？',
-        'city': '你出生的城市是哪裡？',
-        'food': '你最喜歡的食物是什麼？',
-        'game': '你最喜歡的CODM角色是什麼？'
-    },
-    'en': {
-        'pet': "What is your first pet's name?",
-        'school': "What is your elementary school's name?",
-        'city': 'In what city were you born?',
-        'food': 'What is your favorite food?',
-        'game': 'What is your favorite CODM character?'
-    }
+    'pet': '你的第一隻寵物叫什麼名字？',
+    'school': '你的小學校名是什麼？',
+    'city': '你出生的城市是哪裡？',
+    'food': '你最喜歡的食物是什麼？',
+    'game': '你最喜歡的CODM角色是什麼？'
 };
 
 function secondsToTime(seconds) {
@@ -1243,18 +1209,15 @@ function timeToSeconds(years, months, days, hours, minutes, seconds) {
         seconds;
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function formatTimeDisplay(timeObj) {
-    const lang = getCurrentLang();
-    const trans = translations[lang];
     const parts = [];
-    if (timeObj.years > 0) parts.push(`${timeObj.years}${trans.time_year}`);
-    if (timeObj.months > 0) parts.push(`${timeObj.months}${trans.time_month}`);
-    if (timeObj.days > 0) parts.push(`${timeObj.days}${trans.time_day}`);
-    if (timeObj.hours > 0) parts.push(`${timeObj.hours}${trans.time_hour}`);
-    if (timeObj.minutes > 0) parts.push(`${timeObj.minutes}${trans.time_minute}`);
-    if (timeObj.seconds > 0) parts.push(`${timeObj.seconds}${trans.time_second}`);
-    return parts.join(' ') || `0${trans.time_second}`;
+    if (timeObj.years > 0) parts.push(`${timeObj.years}年`);
+    if (timeObj.months > 0) parts.push(`${timeObj.months}月`);
+    if (timeObj.days > 0) parts.push(`${timeObj.days}天`);
+    if (timeObj.hours > 0) parts.push(`${timeObj.hours}時`);
+    if (timeObj.minutes > 0) parts.push(`${timeObj.minutes}分`);
+    if (timeObj.seconds > 0) parts.push(`${timeObj.seconds}秒`);
+    return parts.join(' ') || '0秒';
 }
 
 function getTimeColorClass(seconds) {
@@ -1273,21 +1236,17 @@ function generateActivationCode() {
     return code;
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function copyToClipboard(text, button) {
-    const lang = getCurrentLang();
-    const trans = translations[lang];
-
     navigator.clipboard.writeText(text).then(() => {
         const originalText = button.innerHTML;
-        button.innerHTML = trans.copy_ok || '✓ Copied';
+        button.innerHTML = '✓ 已複製';
         button.style.background = '#28a745';
         setTimeout(() => {
             button.innerHTML = originalText;
             button.style.background = '#667eea';
         }, 2000);
     }).catch(() => {
-        alert(trans.copy_fail || 'Copy failed, please copy manually');
+        alert('複製失敗，請手動複製');
     });
 }
 
@@ -1311,20 +1270,16 @@ function initDailyBackup() {
     }, timeUntilMidnight);
 }
 
-// ▼▼▼ 已修改，支援多語言 (僅 alert) ▼▼▼
 async function exportToExcel() {
     showLoading();
-    const lang = getCurrentLang();
-    const trans = translations[lang];
     try {
         const data = await loadData();
 
         if (data.members.length === 0) {
-            alert(trans.alert_no_backup_data);
+            alert('目前沒有會員資料可導出');
             return;
         }
 
-        // ... (Excel 導出邏輯不變，因為 Excel 檔案本身就是中文) ...
         const memberData = data.members.map(member => {
             const timeObj = secondsToTime(member.remainingSeconds);
             const levelText = member.level === 'legend' ? '傳說會員' :
@@ -1380,7 +1335,7 @@ async function exportToExcel() {
 
     } catch (error) {
         console.error('備份失敗:', error);
-        alert(trans.alert_backup_fail);
+        alert('備份失敗，請稍後再試');
     } finally {
         hideLoading();
     }
@@ -1422,7 +1377,7 @@ async function updateAllCountdowns() {
                 const member = data.members.find(m => m.username === username);
                 if (member) {
                     const timeObj = secondsToTime(member.remainingSeconds);
-                    element.textContent = formatTimeDisplay(timeObj); // 會自動使用當前語言
+                    element.textContent = formatTimeDisplay(timeObj);
                     element.className = 'countdown-time ' + getTimeColorClass(member.remainingSeconds);
                 }
             }
@@ -1435,7 +1390,7 @@ async function updateAllCountdowns() {
                 const timeDisplay = document.querySelector('.time-display');
                 if (timeDisplay) {
                     const timeObj = secondsToTime(member.remainingSeconds);
-                    timeDisplay.textContent = formatTimeDisplay(timeObj); // 會自動使用當前語言
+                    timeDisplay.textContent = formatTimeDisplay(timeObj);
                     timeDisplay.className = 'time-display ' + getTimeColorClass(member.remainingSeconds);
                 }
             }
@@ -1470,12 +1425,9 @@ function startAutoRefresh() {
     }, REFRESH_INTERVAL);
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function refreshQueueOnly() {
     try {
         const data = await loadData();
-        const lang = getCurrentLang();
-        const trans = translations[lang];
 
         if (!currentUser || !data.gameSession) {
             return;
@@ -1490,25 +1442,25 @@ async function refreshQueueOnly() {
             if (queueCardElement) {
                 if (myPosition > 0) {
                     queueCardElement.innerHTML = `
-<h3>${trans.queue_your_position_title}</h3>
+<h3>你目前的排隊順位</h3>
 <div class="queue-position">#${myPosition}</div>
-<div style="color: #666;">${trans.queue_position_prefix} ${myPosition - 1} ${trans.queue_position_suffix}</div>
-<button class="btn btn-danger" onclick="leaveQueue()">${trans.queue_leave}</button>
+<div style="color: #666;">前面還有 ${myPosition - 1} 人</div>
+<button class="btn btn-danger" onclick="leaveQueue()">離開排隊</button>
 `;
                 } else {
                     queueCardElement.innerHTML = `
-<h3>${trans.queue_join_title}</h3>
-<button class="btn" onclick="joinQueue()" style="margin-top: 20px; font-size: 1.2em; padding: 15px 40px;">${trans.queue_join_button}</button>
+<h3>立即加入排隊</h3>
+<button class="btn" onclick="joinQueue()" style="margin-top: 20px; font-size: 1.2em; padding: 15px 40px;">🚀 一鍵排隊</button>
 `;
                 }
             }
 
             queueStatusElement.innerHTML = `
-<h3 style="margin-bottom: 15px;">${trans.queue_status_title} (${data.queue.length}${trans.queue_status_people}</h3>
-${data.queue.length === 0 ? `<div class="empty-state" style="padding: 20px;">${trans.queue_empty}</div>` :
+<h3 style="margin-bottom: 15px;">目前排隊狀況 (${data.queue.length}人)</h3>
+${data.queue.length === 0 ? '<div class="empty-state" style="padding: 20px;">目前沒有人排隊</div>' :
 data.queue.slice(0, 10).map((q, index) => {
-    const levelText = q.level === 'legend' ? trans.level_legend_simple :
-        q.level === 'diamond' ? trans.level_diamond_simple : trans.level_gold_simple;
+    const levelText = q.level === 'legend' ? '傳說' :
+        q.level === 'diamond' ? '鑽石' : '黃金';
     const badgeClass = q.level === 'legend' ? 'badge-legend' :
         q.level === 'diamond' ? 'badge-diamond' : 'badge-gold';
     const isCurrent = q.username === currentUser.username;
@@ -1525,7 +1477,7 @@ data.queue.slice(0, 10).map((q, index) => {
 </div>
 `;
 }).join('')}
-${data.queue.length > 10 ? `<div style="text-align: center; color: #666; margin-top: 10px;">${trans.queue_more_people_prefix} ${data.queue.length - 10} ${trans.queue_more_people_suffix}</div>` : ''}
+${data.queue.length > 10 ? `<div style="text-align: center; color: #666; margin-top: 10px;">還有 ${data.queue.length - 10} 人...</div>` : ''}
 `;
         }
     } catch (error) {
@@ -1540,18 +1492,12 @@ function stopAutoRefresh() {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function updateUserSection() {
     const userSection = document.getElementById('userSection');
-    const lang = getCurrentLang();
-    const trans = translations[lang];
-
-    // 找到語言切換器
-    const langSwitcher = userSection.querySelector('.lang-switcher');
 
     if (currentUser) {
-        const levelText = currentUser.level === 'legend' ? trans.level_legend_simple :
-            currentUser.level === 'diamond' ? trans.level_diamond_simple : trans.level_gold_simple;
+        const levelText = currentUser.level === 'legend' ? '傳說' :
+            currentUser.level === 'diamond' ? '鑽石' : '黃金';
         const levelClass = currentUser.level === 'legend' ? 'badge-legend' :
             currentUser.level === 'diamond' ? 'badge-diamond' : 'badge-gold';
 
@@ -1560,24 +1506,16 @@ function updateUserSection() {
             <div class="avatar">${currentUser.nickname.charAt(0)}</div>
             <span class="name">${currentUser.nickname}</span>
             <span class="badge ${levelClass}">${levelText}</span>
-            ${currentUser.isAdmin ? `<span class="badge-admin">${trans.member_admin}</span>` : ''}
+            ${currentUser.isAdmin ? '<span class="badge-admin">管理員</span>' : ''}
         </div>
-        ${currentUser.isAdmin ? `<a href="admin.html" class="btn btn-small" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);" data-lang-key="admin_panel">${trans.admin_panel}</a>` : ''}
-        <button class="btn btn-danger btn-small" onclick="logout()" data-lang-key="logout">${trans.logout}</button>
+        ${currentUser.isAdmin ? '<a href="admin.html" class="btn btn-small" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">⚙️ 管理後台</a>' : ''}
+        <button class="btn btn-danger btn-small" onclick="logout()">登出</button>
         `;
-        // 把語言切換器加回來
-        if (langSwitcher) {
-            userSection.prepend(langSwitcher);
-        }
     } else {
         userSection.innerHTML = `
-        <button class="btn btn-small" onclick="openLoginModal()" data-lang-key="login">${trans.login}</button>
-        <button class="btn btn-success btn-small" onclick="openRegisterModal()" data-lang-key="register">${trans.register}</button>
+        <button class="btn btn-small" onclick="openLoginModal()">登入</button>
+        <button class="btn btn-success btn-small" onclick="openRegisterModal()">註冊</button>
         `;
-        // 把語言切換器加回來
-        if (langSwitcher) {
-            userSection.prepend(langSwitcher);
-        }
     }
 }
 
@@ -1588,14 +1526,10 @@ function showPage(pageName) {
     document.getElementById(pageName).classList.add('active');
 
     const tabs = document.querySelectorAll('.tab');
-    tabs.forEach((tab) => {
-        // 檢查 onclick 屬性或 href 屬性
-        const onclickAttr = tab.getAttribute('onclick');
-        const hrefAttr = tab.getAttribute('href');
-
-        if (onclickAttr === `showPage('${pageName}')`) {
-            tab.classList.add('active');
-        } else if (hrefAttr === pageName) {
+    tabs.forEach((tab, index) => {
+        if ((pageName === 'home' && index === 0) ||
+            (pageName === 'queue' && index === 1) ||
+            (pageName === 'member' && index === 2)) {
             tab.classList.add('active');
         }
     });
@@ -1666,7 +1600,6 @@ function closeEditMemberModal() {
     editingMember = null;
 }
 
-// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function register() {
     const activationCode = document.getElementById('regActivationCode').value.trim().toUpperCase();
     const username = document.getElementById('regUsername').value.trim();
@@ -1678,25 +1611,22 @@ async function register() {
     const securityQuestion = document.getElementById('regSecurityQuestion').value;
     const securityAnswer = document.getElementById('regSecurityAnswer').value.trim();
 
-    const lang = getCurrentLang();
-    const trans = translations[lang];
-
     if (!nickname) {
         nickname = username;
     }
 
     if (!activationCode || !username || !password || !confirmPassword || !gameUID || !securityQuestion || !securityAnswer) {
-        alert(trans.alert_fill_form);
+        alert('請填寫完整必填資訊（暱稱為選填）');
         return;
     }
 
     if (password.length < 6) {
-        alert(trans.alert_password_short);
+        alert('密碼至少需要6個字元');
         return;
     }
 
     if (password !== confirmPassword) {
-        alert(trans.alert_password_mismatch);
+        alert('兩次輸入的密碼不一致，請重新確認');
         return;
     }
 
@@ -1706,19 +1636,19 @@ async function register() {
 
         const codeIndex = data.activationCodes.findIndex(c => c.code === activationCode);
         if (codeIndex === -1) {
-            alert(trans.alert_code_not_exist);
+            alert('兌換碼不存在，請確認是否輸入正確');
             hideLoading();
             return;
         }
 
         if (data.activationCodes[codeIndex].used) {
-            alert(trans.alert_code_used);
+            alert('此兌換碼已被使用');
             hideLoading();
             return;
         }
 
         if (data.members.find(m => m.username === username)) {
-            alert(trans.alert_user_exist);
+            alert('使用者名稱已存在，請選擇其他名稱');
             hideLoading();
             return;
         }
@@ -1750,26 +1680,22 @@ async function register() {
         data.members.push(newMember);
         await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
 
-        alert(trans.alert_register_success);
+        alert('註冊成功！請登入');
         closeRegisterModal();
     } catch (error) {
         console.error('註冊失敗:', error);
-        alert(trans.alert_register_fail);
+        alert('註冊失敗，請稍後再試');
     } finally {
         hideLoading();
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function login() {
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
 
-    const lang = getCurrentLang();
-    const trans = translations[lang];
-
     if (!username || !password) {
-        alert(trans.alert_input_prompt);
+        alert('請輸入使用者名稱和密碼');
         return;
     }
 
@@ -1780,7 +1706,7 @@ async function login() {
         const member = data.members.find(m => m.username === username && m.passwordHash === passwordHash);
 
         if (!member) {
-            alert(trans.alert_login_wrong);
+            alert('使用者名稱或密碼錯誤');
             hideLoading();
             return;
         }
@@ -1796,12 +1722,7 @@ async function login() {
         
         sessionStorage.setItem('currentUser', member.username);
 
-        let alertMsg = trans.alert_login_success;
-        if(member.isAdmin) {
-            alertMsg += `\n${trans.alert_admin_privilege}`;
-        }
-        alert(alertMsg);
-
+        alert(`登入成功！${member.isAdmin ? '\n您擁有管理員權限' : ''}`);
         closeLoginModal();
         updateUserSection();
 
@@ -1810,17 +1731,14 @@ async function login() {
         }
     } catch (error) {
         console.error('登入失敗:', error);
-        alert(trans.alert_login_fail);
+        alert('登入失敗，請稍後再試');
     } finally {
         hideLoading();
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function logout() {
     sessionStorage.removeItem('currentUser');
-    const lang = getCurrentLang();
-    const trans = translations[lang];
 
     if (currentUser) {
         showLoading();
@@ -1843,18 +1761,15 @@ async function logout() {
 
     currentUser = null;
     updateUserSection();
-    alert(trans.alert_logout);
+    alert('已登出');
     showPage('home');
 }
 
-// ▼▼▼ 已修改，支援多語言 (Alerts + 動態問題) ▼▼▼
 async function checkSecurityQuestion() {
     const username = document.getElementById('forgotUsername').value.trim();
-    const lang = getCurrentLang();
-    const trans = translations[lang];
 
     if (!username) {
-        alert(trans.alert_input_username);
+        alert('請輸入使用者名稱');
         return;
     }
 
@@ -1864,65 +1779,55 @@ async function checkSecurityQuestion() {
         const member = data.members.find(m => m.username === username);
 
         if (!member) {
-            alert(trans.alert_user_not_found);
+            alert('找不到此使用者');
             hideLoading();
             return;
         }
 
         forgotPasswordUser = member;
-        
-        // 動態翻譯安全問題
-        const qKey = 'sec_q_' + member.securityQuestion;
-        document.getElementById('displaySecurityQuestion').value = trans[qKey] || securityQuestions[lang][member.securityQuestion];
-        
+        document.getElementById('displaySecurityQuestion').value = securityQuestions[member.securityQuestion];
         document.getElementById('securityQuestionSection').style.display = 'block';
     } catch (error) {
         console.error('檢查安全問題失敗:', error);
-        alert(trans.alert_op_fail);
+        alert('操作失敗，請稍後再試');
     } finally {
         hideLoading();
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 function verifySecurityAnswer() {
     const answer = document.getElementById('securityAnswer').value.trim().toLowerCase();
-    const lang = getCurrentLang();
-    const trans = translations[lang];
 
     if (!answer) {
-        alert(trans.alert_input_answer);
+        alert('請輸入答案');
         return;
     }
 
     if (answer === forgotPasswordUser.securityAnswer) {
-        alert(trans.alert_verify_success);
+        alert('驗證成功！請設定新密碼');
         document.getElementById('securityQuestionSection').style.display = 'none';
         document.getElementById('resetPasswordSection').style.display = 'block';
     } else {
-        alert(trans.alert_verify_fail);
+        alert('答案錯誤，請重新輸入');
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function resetPassword() {
     const newPassword = document.getElementById('newPassword').value.trim();
     const confirmNewPassword = document.getElementById('confirmNewPassword').value.trim();
-    const lang = getCurrentLang();
-    const trans = translations[lang];
 
     if (!newPassword || !confirmNewPassword) {
-        alert(trans.alert_fill_all);
+        alert('請填寫完整資訊');
         return;
     }
 
     if (newPassword.length < 6) {
-        alert(trans.alert_password_short);
+        alert('密碼至少需要6個字元');
         return;
     }
 
     if (newPassword !== confirmNewPassword) {
-        alert(trans.alert_password_mismatch);
+        alert('兩次輸入的密碼不一致');
         return;
     }
 
@@ -1933,36 +1838,33 @@ async function resetPassword() {
         member.passwordHash = await hashPassword(newPassword);
         await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
 
-        alert(trans.alert_password_reset_success);
+        alert('密碼重設成功！請使用新密碼登入');
         closeForgotPasswordModal();
     } catch (error) {
         console.error('重設密碼失敗:', error);
-        alert(trans.alert_password_reset_fail);
+        alert('重設密碼失敗，請稍後再試');
     } finally {
         hideLoading();
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function changePassword() {
     const currentPassword = document.getElementById('currentPassword').value.trim();
     const newPassword = document.getElementById('changeNewPassword').value.trim();
     const confirmPassword = document.getElementById('changeConfirmPassword').value.trim();
-    const lang = getCurrentLang();
-    const trans = translations[lang];
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-        alert(trans.alert_fill_all);
+        alert('請填寫完整資訊');
         return;
     }
 
     if (newPassword.length < 6) {
-        alert(trans.alert_password_short);
+        alert('新密碼至少需要6個字元');
         return;
     }
 
     if (newPassword !== confirmPassword) {
-        alert(trans.alert_password_mismatch);
+        alert('兩次輸入的新密碼不一致');
         return;
     }
 
@@ -1970,7 +1872,7 @@ async function changePassword() {
     try {
         const currentPasswordHash = await hashPassword(currentPassword);
         if (currentPasswordHash !== currentUser.passwordHash) {
-            alert(trans.alert_current_password_wrong);
+            alert('目前密碼錯誤');
             hideLoading();
             return;
         }
@@ -1982,24 +1884,21 @@ async function changePassword() {
 
         currentUser.passwordHash = member.passwordHash;
 
-        alert(trans.alert_password_change_success);
+        alert('密碼更改成功！');
         closeChangePasswordModal();
     } catch (error) {
         console.error('更改密碼失敗:', error);
-        alert(trans.alert_password_change_fail);
+        alert('更改密碼失敗，請稍後再試');
     } finally {
         hideLoading();
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function showMemberInfo() {
     const content = document.getElementById('memberContent');
-    const lang = getCurrentLang();
-    const trans = translations[lang];
 
     if (!currentUser) {
-        content.innerHTML = `<div class="empty-state"><h3>${trans.member_login_prompt}</h3></div>`;
+        content.innerHTML = '<div class="empty-state"><h3>請先登入</h3></div>';
         return;
     }
 
@@ -2016,10 +1915,8 @@ async function showMemberInfo() {
             await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
         }
 
-        const levelKey = currentUser.level === 'legend' ? 'level_legend' :
-            currentUser.level === 'diamond' ? 'level_diamond' : 'level_gold';
-        const levelText = trans[levelKey];
-
+        const levelText = currentUser.level === 'legend' ? '傳說會員' :
+            currentUser.level === 'diamond' ? '鑽石會員' : '黃金會員';
         const badgeClass = currentUser.level === 'legend' ? 'badge-legend' :
             currentUser.level === 'diamond' ? 'badge-diamond' : 'badge-gold';
 
@@ -2034,72 +1931,69 @@ async function showMemberInfo() {
 <div class="member-info">
     <h2>👤 ${currentUser.nickname}</h2>
     <div class="info-item">
-        <span>${trans.member_platform}</span>
+        <span>平台</span>
         <span>${platformText}</span>
     </div>
     <div class="info-item">
-        <span>${trans.member_level}</span>
+        <span>會員等級</span>
         <span class="badge ${badgeClass}">${levelText}</span>
     </div>
     <div class="info-item">
-        <span>${trans.member_uid}</span>
+        <span>CODM UID</span>
         <div class="copy-area">
             <span>${currentUser.gameUID}</span>
-            <button class="btn-copy" onclick="copyToClipboard('${currentUser.gameUID}', this)">📋 ${trans.copy}</button>
+            <button class="btn-copy" onclick="copyToClipboard('${currentUser.gameUID}', this)">📋 複製</button>
         </div>
     </div>
     <div class="info-item">
-        <span>${trans.member_code}</span>
+        <span>兌換碼</span>
         <span style="font-family: 'Courier New', monospace; font-weight: bold;">${currentUser.activationCode}</span>
     </div>
     ${codeData ? `
     <div class="info-item">
-        <span>${trans.member_code_duration}</span>
+        <span>兌換碼原始時長</span>
         <span>${formatTimeDisplay(codeTimeObj)}</span>
     </div>
     ` : ''}
     <div class="info-item">
-        <span>${trans.member_join_date}</span>
-        <span>${new Date(currentUser.joinDate).toLocaleDateString(lang === 'zh' ? 'zh-TW' : 'en-US')}</span>
+        <span>加入時間</span>
+        <span>${new Date(currentUser.joinDate).toLocaleDateString('zh-TW')}</span>
     </div>
     <div class="info-item">
-        <span>${trans.member_remaining_sec}</span>
-        <span class="countdown-time ${timeClass}" data-username="${currentUser.username}">${currentUser.remainingSeconds.toLocaleString(lang === 'zh' ? 'zh-TW' : 'en-US')} ${trans.time_second}</span>
+        <span>剩餘秒數</span>
+        <span class="countdown-time ${timeClass}" data-username="${currentUser.username}">${currentUser.remainingSeconds.toLocaleString()} 秒</span>
     </div>
     ${currentUser.isAdmin ? `
     <div class="info-item">
-        <span>${trans.member_permission}</span>
-        <span class="badge-admin">${trans.member_admin}</span>
+        <span>權限</span>
+        <span class="badge-admin">管理員</span>
     </div>
     ` : ''}
 </div>
 <div style="text-align: center; padding: 30px;">
-    <h3 style="margin-bottom: 10px;">${trans.member_remaining_time}</h3>
+    <h3 style="margin-bottom: 10px;">會員剩餘時間</h3>
     <div class="time-display ${timeClass}">${formatTimeDisplay(timeObj)}</div>
-    ${currentUser.remainingSeconds <= 0 ? `<p style="color: #e74c3c; margin-top: 10px;">${trans.member_expired}</p>` : ''}
+    ${currentUser.remainingSeconds <= 0 ? '<p style="color: #e74c3c; margin-top: 10px;">您的會員已過期</p>' : ''}
 </div>
 
 <div class="settings-section">
-    <h4 data-lang-key="member_account_settings">⚙️ ${trans.member_account_settings}</h4>
-    <button class="btn btn-small" onclick="openChangePasswordModal()" data-lang-key="member_change_password">🔒 ${trans.member_change_password}</button>
+    <h4>⚙️ 帳號設定</h4>
+    <button class="btn btn-small" onclick="openChangePasswordModal()">🔒 更改密碼</button>
 </div>
 `;
     } catch (error) {
         console.error('顯示會員資訊失敗:', error);
-        content.innerHTML = `<div class="empty-state"><h3>${trans.member_load_fail}</h3></div>`;
+        content.innerHTML = '<div class="empty-state"><h3>載入失敗，請重試</h3></div>';
     } finally {
         hideLoading();
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function showQueuePage() {
     const content = document.getElementById('queueContent');
-    const lang = getCurrentLang();
-    const trans = translations[lang];
 
     if (!currentUser) {
-        content.innerHTML = `<div class="empty-state"><h3>${trans.queue_login_prompt}</h3></div>`;
+        content.innerHTML = '<div class="empty-state"><h3>請先登入才能使用排隊功能</h3></div>';
         return;
     }
 
@@ -2118,62 +2012,54 @@ async function showQueuePage() {
         }
 
         if (currentUser.remainingSeconds <= 0) {
-            content.innerHTML = `<div class="empty-state"><h3>${trans.queue_expired_prompt}</h3></div>`;
+            content.innerHTML = '<div class="empty-state"><h3>您的會員已過期，無法使用排隊功能</h3></div>';
             hideLoading();
             return;
         }
 
         if (!data.gameSession) {
-            content.innerHTML = `<div class="empty-state"><h3 data-lang-key="queue_no_session">${trans.queue_no_session}</h3><p data-lang-key="queue_wait_for_streamer">${trans.queue_wait_for_streamer}</p></div>`;
+            content.innerHTML = '<div class="empty-state"><h3>目前沒有開放的遊戲場次<br>請等待主播開放排隊</h3></div>';
             hideLoading();
             return;
         }
 
         const myQueueIndex = data.queue.findIndex(q => q.username === currentUser.username);
         const myPosition = myQueueIndex + 1;
-        
-        const levelSimpleKey = (level) => {
-            if (level === 'legend') return 'level_legend_simple';
-            if (level === 'diamond') return 'level_diamond_simple';
-            return 'level_gold_simple';
-        };
-        
-        const startTimeLocale = new Date(data.gameSession.startTime).toLocaleString(lang === 'zh' ? 'zh-TW' : 'en-US');
 
         content.innerHTML = `
 <div style="text-align: right; margin-bottom: 10px; color: #666; font-size: 14px;">
-    <span class="auto-refresh-indicator"></span> <span data-lang-key="queue_refreshing">${trans.queue_refreshing}</span>
+    <span class="auto-refresh-indicator"></span> 自動刷新中
 </div>
 <div class="game-session-card">
     <h2>🎮 ${data.gameSession.gameName}</h2>
-    <div class="game-session-info">${trans.queue_session_start_time} ${startTimeLocale}</div>
-    <div class="game-session-info">${trans.queue_session_slots} ${data.gameSession.slots}${trans.queue_session_slots_unit}</div>
+    <div class="game-session-info">開放時間: ${new Date(data.gameSession.startTime).toLocaleString('zh-TW')}</div>
+    <div class="game-session-info">名額: ${data.gameSession.slots}位</div>
     ${data.gameSession.description ? `<div style="margin-top: 10px; font-size: 0.9em;">${data.gameSession.description}</div>` : ''}
 </div>
 
 ${myPosition > 0 ? `
 <div class="queue-card">
-    <h3 data-lang-key="queue_your_position_title">${trans.queue_your_position_title}</h3>
+    <h3>你目前的排隊順位</h3>
     <div class="queue-position">#${myPosition}</div>
-    <div style="color: #666;" data-lang-key="queue_position_prefix">${trans.queue_position_prefix} ${myPosition - 1} ${trans.queue_position_suffix}</div>
-    <button class="btn btn-danger" onclick="leaveQueue()" data-lang-key="queue_leave">${trans.queue_leave}</button>
+    <div style="color: #666;">前面還有 ${myPosition - 1} 人</div>
+    <button class="btn btn-danger" onclick="leaveQueue()">離開排隊</button>
 </div>
 ` : `
 <div class="queue-card">
-    <h3 data-lang-key="queue_join_title">${trans.queue_join_title}</h3>
-    <button class="btn" onclick="joinQueue()" style="margin-top: 20px; font-size: 1.2em; padding: 15px 40px;" data-lang-key="queue_join_button">${trans.queue_join_button}</button>
+    <h3>立即加入排隊</h3>
+    <button class="btn" onclick="joinQueue()" style="margin-top: 20px; font-size: 1.2em; padding: 15px 40px;">🚀 一鍵排隊</button>
 </div>
 `}
 
 <div class="queue-status">
-    <h3 style="margin-bottom: 15px;" data-lang-key="queue_status_title">${trans.queue_status_title} (${data.queue.length}${trans.queue_status_people}</h3>
-    ${data.queue.length === 0 ? `<div class="empty-state" style="padding: 20px;" data-lang-key="queue_empty">${trans.queue_empty}</div>` :
+    <h3 style="margin-bottom: 15px;">目前排隊狀況 (${data.queue.length}人)</h3>
+    ${data.queue.length === 0 ? '<div class="empty-state" style="padding: 20px;">目前沒有人排隊</div>' :
     data.queue.slice(0, 10).map((q, index) => {
-        const levelText = trans[levelSimpleKey(q.level)];
+        const levelText = q.level === 'legend' ? '傳說' :
+            q.level === 'diamond' ? '鑽石' : '黃金';
         const badgeClass = q.level === 'legend' ? 'badge-legend' :
             q.level === 'diamond' ? 'badge-diamond' : 'badge-gold';
         const isCurrent = q.username === currentUser.username;
-        const joinTimeLocale = new Date(q.joinTime).toLocaleTimeString(lang === 'zh' ? 'zh-TW' : 'en-US');
         return `
 <div class="queue-item ${isCurrent ? 'current' : ''}">
     <div>
@@ -2182,32 +2068,29 @@ ${myPosition > 0 ? `
         <div style="font-size: 12px; color: #666; margin-top: 3px;">CODM UID: ${q.gameUID}</div>
     </div>
     <div style="font-size: 14px; color: #666;">
-        ${joinTimeLocale}
+        ${new Date(q.joinTime).toLocaleTimeString('zh-TW')}
     </div>
 </div>
 `;
     }).join('')}
-    ${data.queue.length > 10 ? `<div style="text-align: center; color: #666; margin-top: 10px;" data-lang-key="queue_more_people_prefix">${trans.queue_more_people_prefix} ${data.queue.length - 10} ${trans.queue_more_people_suffix}</div>` : ''}
+    ${data.queue.length > 10 ? `<div style="text-align: center; color: #666; margin-top: 10px;">還有 ${data.queue.length - 10} 人...</div>` : ''}
 </div>
 `;
     } catch (error) {
         console.error('顯示排隊頁面失敗:', error);
-        content.innerHTML = `<div class="empty-state"><h3 data-lang-key="queue_load_fail">${trans.queue_load_fail}</h3></div>`;
+        content.innerHTML = '<div class="empty-state"><h3>載入失敗，請重試</h3></div>';
     } finally {
         hideLoading();
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function joinQueue() {
     showLoading();
-    const lang = getCurrentLang();
-    const trans = translations[lang];
     try {
         const data = await loadData();
 
         if (data.queue.find(q => q.username === currentUser.username)) {
-            alert(trans.alert_already_in_queue);
+            alert('你已經在排隊中了！');
             hideLoading();
             return;
         }
@@ -2223,22 +2106,18 @@ async function joinQueue() {
         data.queue.push(queueItem);
         await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
 
-        alert(trans.alert_join_queue_success);
+        alert('成功加入排隊！');
         showQueuePage();
     } catch (error) {
         console.error('加入排隊失敗:', error);
-        alert(trans.alert_join_queue_fail);
+        alert('加入排隊失敗，請稍後再試');
     } finally {
         hideLoading();
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function leaveQueue() {
-    const lang = getCurrentLang();
-    const trans = translations[lang];
-
-    if (!confirm(trans.alert_leave_queue_confirm)) {
+    if (!confirm('確定要離開排隊嗎？')) {
         return;
     }
 
@@ -2248,11 +2127,11 @@ async function leaveQueue() {
         data.queue = data.queue.filter(q => q.username !== currentUser.username);
         await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
 
-        alert(trans.alert_leave_queue_success);
+        alert('已離開排隊');
         await showQueuePage();
     } catch (error) {
         console.error('離開排隊失敗:', error);
-        alert(trans.alert_leave_queue_fail);
+        alert('離開排隊失敗，請稍後再試');
     } finally {
         hideLoading();
     }
@@ -2374,398 +2253,10 @@ async function initialize() {
         alert('系統初始化失敗，請重新整理頁面');
     } finally {
         hideLoading();
-        // 初始化完成後，最後再跑一次語言設定
-        document.dispatchEvent(new Event('DOMContentLoaded'));
     }
 }
 
 console.log('⏳ 等待 Firebase 認證...');
-
-
-// 
-//
-// --- 翻譯邏輯 (已更新) ---
-//
-//
-
-// 輔助函數：獲取當前語言
-function getCurrentLang() {
-    return localStorage.getItem('language') || 'zh';
-}
-
-// 語言翻譯字典
-const translations = {
-    'zh': {
-        'page_title': '廖嘉泰の會員管理系統',
-        'app_title': '🎮 廖嘉泰の會員管理系統',
-        'app_subtitle': '📢 GAME LIVE 主播專屬平台',
-        'login': '登入',
-        'register': '註冊',
-        'tab_home': '首頁',
-        'tab_plans': '💎 查看方案',
-        'tab_queue': '排隊系統',
-        'tab_member': '我的會員',
-        'home_welcome': '歡迎來到 廖嘉泰の會員系統',
-        'home_plans_title': '會員方案',
-        'home_plans_button': '💎 查看完整方案 & 名單',
-        'duration_1': '1個月 (30天)',
-        'duration_2': '3個月 (90天)',
-        'duration_3': '5個月 (150天)',
-        'home_how_to_title': '📝 如何註冊',
-        'home_step_1': '向主播購買會員方案，獲得 <strong>6位兌換碼</strong>',
-        'home_step_2': '點擊右上角「註冊」按鈕',
-        'home_step_3': '輸入兌換碼和您的資料',
-        'home_step_4': '完成註冊,開始享受會員權益!',
-        'login_title': '會員登入',
-        'username': '使用者名稱',
-        'username_placeholder': '請輸入使用者名稱',
-        'password': '密碼',
-        'password_placeholder': '請輸入密碼',
-        'forgot_password': '忘記密碼？',
-        'register_title': '註冊會員',
-        'redeem_code': '兌換碼',
-        'redeem_code_placeholder': '請輸入6位兌換碼',
-        'redeem_code_note': '向主播購買會員後獲得的兌換碼',
-        'username_reg_placeholder': '請輸入使用者名稱（用於登入）',
-        'password_reg_placeholder': '請輸入密碼（至少6個字元）',
-        'confirm_password': '確認密碼',
-        'confirm_password_placeholder': '請再次輸入密碼',
-        'platform_select': '平台選擇',
-        'nickname': '暱稱',
-        'optional': '(選填)',
-        'nickname_placeholder': '請輸入你的TikTok或YouTube暱稱',
-        'nickname_note': '如果不填寫，將使用使用者名稱作為暱稱',
-        'game_uid_placeholder': '請輸入 Call of Duty Mobile UID',
-        'game_uid_note': '可在遊戲內個人資料查看',
-        'sec_q': '安全問題（用於找回密碼）',
-        'sec_q_select': '請選擇安全問題',
-        'sec_q_pet': '你的第一隻寵物叫什麼名字？',
-        'sec_q_school': '你的小學校名是什麼？',
-        'sec_q_city': '你出生的城市是哪裡？',
-        'sec_q_food': '你最喜歡的食物是什麼？',
-        'sec_q_game': '你最喜歡的CODM角色是什麼？',
-        'sec_a': '安全答案',
-        'sec_a_placeholder': '請輸入答案（請記住此答案）',
-        'forgot_password_title': '找回密碼',
-        'next_step': '下一步',
-        'sec_q_display': '安全問題',
-        'sec_a_verify_placeholder': '請輸入答案',
-        'verify_answer': '驗證答案',
-        'new_password': '新密碼',
-        'confirm_new_password': '確認新密碼',
-        'reset_password': '重設密碼',
-        'change_password_title': '更改密碼',
-        'current_password': '目前密碼',
-        'current_password_placeholder': '請輸入目前密碼',
-        'confirm_change': '確認更改',
-        'edit_member_title': '編輯會員',
-        'logout': '登出',
-        'admin_panel': '⚙️ 管理後台',
-        // --- 動態金鑰 ---
-        'member_platform': '平台',
-        'member_level': '會員等級',
-        'level_legend': '傳說會員',
-        'level_diamond': '鑽石會員',
-        'level_gold': '黃金會員',
-        'member_uid': 'CODM UID',
-        'member_code': '兌換碼',
-        'copy': '複製',
-        'copy_ok': '✓ 已複製',
-        'copy_fail': '複製失敗，請手動複製',
-        'member_code_duration': '兌換碼原始時長',
-        'member_join_date': '加入時間',
-        'member_remaining_sec': '剩餘秒數',
-        'member_permission': '權限',
-        'member_admin': '管理員',
-        'member_remaining_time': '會員剩餘時間',
-        'member_expired': '您的會員已過期',
-        'member_account_settings': '帳號設定',
-        'member_change_password': '更改密碼',
-        'member_login_prompt': '請先登入',
-        'member_load_fail': '載入失敗，請重試',
-        'queue_login_prompt': '請先登入才能使用排隊功能',
-        'queue_expired_prompt': '您的會員已過期，無法使用排隊功能',
-        'queue_no_session': '目前沒有開放的遊戲場次',
-        'queue_wait_for_streamer': '請等待主播開放排隊',
-        'queue_refreshing': '自動刷新中',
-        'queue_session_start_time': '開放時間:',
-        'queue_session_slots': '名額:',
-        'queue_session_slots_unit': '位',
-        'queue_your_position_title': '你目前的排隊順位',
-        'queue_position_prefix': '前面還有',
-        'queue_position_suffix': '人',
-        'queue_leave': '離開排隊',
-        'queue_join_title': '立即加入排隊',
-        'queue_join_button': '🚀 一鍵排隊',
-        'queue_status_title': '目前排隊狀況',
-        'queue_status_people': '人)',
-        'queue_empty': '目前沒有人排隊',
-        'level_legend_simple': '傳說',
-        'level_diamond_simple': '鑽石',
-        'level_gold_simple': '黃金',
-        'queue_more_people_prefix': '還有',
-        'queue_more_people_suffix': '人...',
-        'queue_load_fail': '載入失敗，請重試',
-        'time_year': '年',
-        'time_month': '月',
-        'time_day': '天',
-        'time_hour': '時',
-        'time_minute': '分',
-        'time_second': '秒',
-        // --- Alerts ---
-        'alert_logout': '已登出',
-        'alert_login_success': '登入成功！',
-        'alert_admin_privilege': '您擁有管理員權限',
-        'alert_login_fail': '登入失敗，請稍後再試',
-        'alert_login_wrong': '使用者名稱或密碼錯誤',
-        'alert_input_prompt': '請輸入使用者名稱和密碼',
-        'alert_register_success': '註冊成功！請登入',
-        'alert_register_fail': '註冊失敗，請稍後再試',
-        'alert_code_used': '此兌換碼已被使用',
-        'alert_code_not_exist': '兌換碼不存在，請確認是否輸入正確',
-        'alert_user_exist': '使用者名稱已存在，請選擇其他名稱',
-        'alert_password_mismatch': '兩次輸入的密碼不一致，請重新確認',
-        'alert_password_short': '密碼至少需要6個字元',
-        'alert_fill_form': '請填寫完整必填資訊（暱稱為選填）',
-        'alert_verify_success': '驗證成功！請設定新密碼',
-        'alert_verify_fail': '答案錯誤，請重新輸入',
-        'alert_input_answer': '請輸入答案',
-        'alert_input_username': '請輸入使用者名稱',
-        'alert_user_not_found': '找不到此使用者',
-        'alert_op_fail': '操作失敗，請稍後再試',
-        'alert_fill_all': '請填寫完整資訊',
-        'alert_password_reset_success': '密碼重設成功！請使用新密碼登入',
-        'alert_password_reset_fail': '重設密碼失敗，請稍後再試',
-        'alert_current_password_wrong': '目前密碼錯誤',
-        'alert_password_change_success': '密碼更改成功！',
-        'alert_password_change_fail': '更改密碼失敗，請稍後再試',
-        'alert_already_in_queue': '你已經在排隊中了！',
-        'alert_join_queue_success': '成功加入排隊！',
-        'alert_join_queue_fail': '加入排隊失敗，請稍後再試',
-        'alert_leave_queue_confirm': '確定要離開排隊嗎？',
-        'alert_leave_queue_success': '已離開排隊',
-        'alert_leave_queue_fail': '離開排隊失敗，請稍後再試',
-        'alert_no_backup_data': '目前沒有會員資料可導出',
-        'alert_backup_fail': '備份失敗，請稍後再試'
-    },
-    'en': {
-        'page_title': "Liao Jia-Tai's Member System",
-        'app_title': "🎮 Liao Jia-Tai's Member System",
-        'app_subtitle': '📢 Exclusive Platform for GAME LIVE Streamers',
-        'login': 'Login',
-        'register': 'Register',
-        'tab_home': 'Home',
-        'tab_plans': '💎 View Plans',
-        'tab_queue': 'Queue System',
-        'tab_member': 'My Membership',
-        'home_welcome': "Welcome to Liao Jia-Tai's Member System",
-        'home_plans_title': 'Membership Plans',
-        'home_plans_button': '💎 View Full Plans & Roster',
-        'duration_1': '1 Month (30 Days)',
-        'duration_2': '3 Months (90 Days)',
-        'duration_3': '5 Months (150 Days)',
-        'home_how_to_title': '📝 How to Register',
-        'home_step_1': 'Purchase a plan from the streamer to get a <strong>6-digit code</strong>',
-        'home_step_2': 'Click the "Register" button in the top right',
-        'home_step_3': 'Enter your activation code and information',
-        'home_step_4': 'Complete registration and enjoy your benefits!',
-        'login_title': 'Member Login',
-        'username': 'Username',
-        'username_placeholder': 'Enter your username',
-        'password': 'Password',
-        'password_placeholder': 'Enter your password',
-        'forgot_password': 'Forgot Password?',
-        'register_title': 'Register Membership',
-        'redeem_code': 'Activation Code',
-        'redeem_code_placeholder': 'Enter 6-digit activation code',
-        'redeem_code_note': 'Code received after purchasing a plan from the streamer',
-        'username_reg_placeholder': 'Enter your username (for login)',
-        'password_reg_placeholder': 'Enter password (at least 6 characters)',
-        'confirm_password': 'Confirm Password',
-        'confirm_password_placeholder': 'Enter password again',
-        'platform_select': 'Platform',
-        'nickname': 'Nickname',
-        'optional': '(Optional)',
-        'nickname_placeholder': 'Enter your TikTok or YouTube nickname',
-        'nickname_note': 'If left blank, your username will be used as your nickname',
-        'game_uid_placeholder': 'Enter Call of Duty Mobile UID',
-        'game_uid_note': 'Viewable in your in-game profile',
-        'sec_q': 'Security Question (for password recovery)',
-        'sec_q_select': 'Please select a security question',
-        'sec_q_pet': "What is your first pet's name?",
-        'sec_q_school': "What is your elementary school's name?",
-        'sec_q_city': 'In what city were you born?',
-        'sec_q_food': 'What is your favorite food?',
-        'sec_q_game': 'What is your favorite CODM character?',
-        'sec_a': 'Security Answer',
-        'sec_a_placeholder': 'Enter your answer (please remember it)',
-        'forgot_password_title': 'Recover Password',
-        'next_step': 'Next',
-        'sec_q_display': 'Security Question',
-        'sec_a_verify_placeholder': 'Enter your answer',
-        'verify_answer': 'Verify Answer',
-        'new_password': 'New Password',
-        'confirm_new_password': 'Confirm New Password',
-        'reset_password': 'Reset Password',
-        'change_password_title': 'Change Password',
-        'current_password': 'Current Password',
-        'current_password_placeholder': 'Enter your current password',
-        'confirm_change': 'Confirm Change',
-        'edit_member_title': 'Edit Member',
-        'logout': 'Logout',
-        'admin_panel': '⚙️ Admin Panel',
-        // --- 動態金鑰 ---
-        'member_platform': 'Platform',
-        'member_level': 'Membership Level',
-        'level_legend': 'Legend Member',
-        'level_diamond': 'Diamond Member',
-        'level_gold': 'Gold Member',
-        'member_uid': 'CODM UID',
-        'member_code': 'Activation Code',
-        'copy': 'Copy',
-        'copy_ok': '✓ Copied',
-        'copy_fail': 'Copy failed, please copy manually',
-        'member_code_duration': 'Original Code Duration',
-        'member_join_date': 'Join Date',
-        'member_remaining_sec': 'Remaining Seconds',
-        'member_permission': 'Permission',
-        'member_admin': 'Admin',
-        'member_remaining_time': 'Membership Time Remaining',
-        'member_expired': 'Your membership has expired',
-        'member_account_settings': 'Account Settings',
-        'member_change_password': 'Change Password',
-        'member_login_prompt': 'Please login first',
-        'member_load_fail': 'Failed to load, please try again',
-        'queue_login_prompt': 'Please login to use the queue system',
-        'queue_expired_prompt': 'Your membership has expired, you cannot use the queue',
-        'queue_no_session': 'There are no open game sessions',
-        'queue_wait_for_streamer': 'Please wait for the streamer to open the queue',
-        'queue_refreshing': 'Auto-refreshing',
-        'queue_session_start_time': 'Start Time:',
-        'queue_session_slots': 'Slots:',
-        'queue_session_slots_unit': '',
-        'queue_your_position_title': 'Your Current Queue Position',
-        'queue_position_prefix': 'There are',
-        'queue_position_suffix': 'people ahead of you',
-        'queue_leave': 'Leave Queue',
-        'queue_join_title': 'Join Queue Now',
-        'queue_join_button': '🚀 One-Click Join',
-        'queue_status_title': 'Current Queue Status',
-        'queue_status_people': ' people)',
-        'queue_empty': 'The queue is currently empty',
-        'level_legend_simple': 'Legend',
-        'level_diamond_simple': 'Diamond',
-        'level_gold_simple': 'Gold',
-        'queue_more_people_prefix': 'and',
-        'queue_more_people_suffix': ' more...',
-        'queue_load_fail': 'Failed to load, please try again',
-        'time_year': 'y',
-        'time_month': 'm',
-        'time_day': 'd',
-        'time_hour': 'h',
-        'time_minute': 'min',
-        'time_second': 's',
-        // --- Alerts ---
-        'alert_logout': 'Logged out',
-        'alert_login_success': 'Login successful!',
-        'alert_admin_privilege': 'You have admin privileges',
-        'alert_login_fail': 'Login failed, please try again later',
-        'alert_login_wrong': 'Incorrect username or password',
-        'alert_input_prompt': 'Please enter username and password',
-        'alert_register_success': 'Registration successful! Please login',
-        'alert_register_fail': 'Registration failed, please try again later',
-        'alert_code_used': 'This activation code has already been used',
-        'alert_code_not_exist': 'Activation code does not exist, please check your input',
-        'alert_user_exist': 'Username already exists, please choose another name',
-        'alert_password_mismatch': 'Passwords do not match, please re-confirm',
-        'alert_password_short': 'Password must be at least 6 characters',
-        'alert_fill_form': 'Please fill in all required fields (Nickname is optional)',
-        'alert_verify_success': 'Verification successful! Please set a new password',
-        'alert_verify_fail': 'Answer is incorrect, please try again',
-        'alert_input_answer': 'Please enter your answer',
-        'alert_input_username': 'Please enter your username',
-        'alert_user_not_found': 'User not found',
-        'alert_op_fail': 'Operation failed, please try again later',
-        'alert_fill_all': 'Please fill in all fields',
-        'alert_password_reset_success': 'Password reset successful! Please login with your new password',
-        'alert_password_reset_fail': 'Password reset failed, please try again later',
-        'alert_current_password_wrong': 'Current password is wrong',
-        'alert_password_change_success': 'Password changed successfully!',
-        'alert_password_change_fail': 'Password change failed, please try again later',
-        'alert_already_in_queue': 'You are already in the queue!',
-        'alert_join_queue_success': 'Successfully joined the queue!',
-        'alert_join_queue_fail': 'Failed to join queue, please try again later',
-        'alert_leave_queue_confirm': 'Are you sure you want to leave the queue?',
-        'alert_leave_queue_success': 'You have left the queue',
-        'alert_leave_queue_fail': 'Failed to leave queue, please try again later',
-        'alert_no_backup_data': 'No member data to export',
-        'alert_backup_fail': 'Backup failed, please try again later'
-    }
-};
-
-// 負責切換語言的函數
-function setLanguage(lang) {
-    // 1. 保存用戶偏好
-    localStorage.setItem('language', lang);
-
-    // 2. 更新按鈕的 .active 狀態
-    document.querySelectorAll('.btn-lang').forEach(btn => {
-        if (btn.getAttribute('onclick') === `setLanguage('${lang}')`) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-
-    // 3. 翻譯所有帶 data-lang-key 的元素
-    const langDict = translations[lang];
-    document.querySelectorAll('[data-lang-key]').forEach(el => {
-        const key = el.dataset.langKey;
-        const translation = langDict[key];
-
-        if (translation === undefined) {
-            console.warn(`Missing translation for key: ${key} in lang: ${lang}`);
-            return;
-        }
-
-        // 根據不同標籤類型賦值
-        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-            el.placeholder = translation;
-        } else if (key === 'home_step_1') { // 處理有 <strong> 的特殊情況
-            el.innerHTML = translation;
-        } else {
-            // 檢查是否為按鈕 (BTN) 或連結 (A)
-            if (el.tagName === 'BUTTON' || el.tagName === 'A') {
-                // 保留按鈕/連結前的圖示 (如果有的話)
-                const icon = el.innerHTML.match(/^(<.*?>|.*?<\/.*?>|💎|📝|⚙️|🔒|🚀)/);
-                if (icon && icon[0].length < 20) { // 增加一個長度檢查，避免誤判
-                    el.innerHTML = `${icon[0]} ${translation}`;
-                } else {
-                    el.textContent = translation;
-                }
-            } else {
-                el.textContent = translation;
-            }
-        }
-    });
-
-    // 4. 動態翻譯登入後的按鈕 (如果存在)
-    updateUserSection(); // 重新整理 user section 就會自動翻譯
-    
-    // 5. 如果剛好在 '我的會員' 或 '排隊系統' 頁面，重新整理該頁面
-    if (currentPage === 'member' && currentUser) {
-        showMemberInfo();
-    } else if (currentPage === 'queue' && currentUser) {
-        showQueuePage();
-    }
-}
-
-// 頁面載入時，自動套用儲存的語言
-document.addEventListener('DOMContentLoaded', () => {
-    const savedLang = localStorage.getItem('language') || 'zh'; // 預設為中文
-    setLanguage(savedLang);
-});
 </script>
-
 </body>
 </html>
