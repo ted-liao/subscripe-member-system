@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title data-lang-key="page_title">會員方案 - 廖嘉泰の會員管理系統</title>
 <style>
-/* ... (您所有的 CSS 樣式都保持不變) ... */
 * {
     margin: 0;
     padding: 0;
@@ -507,7 +506,7 @@ firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
 
-// --- ▼▼▼ 翻譯邏輯 (移到最前面) ▼▼▼ ---
+// --- ▼▼▼ 翻譯邏輯 (修正後) ▼▼▼ ---
 
 // 輔助函數：獲取當前語言
 function getCurrentLang() {
@@ -543,7 +542,9 @@ const translations = {
         'no_members': '目前尚無會員'
     },
     'en': {
-        'page_title': 'Plans - Liao Jia-Tai's Member System',
+        // ▼▼▼ 這裡就是修正的地方 ▼▼▼
+        'page_title': "Plans - Liao Jia-Tai's Member System", // 從 ' 改成 "
+        // ▲▲▲ 修正結束 ▲▲▲
         'header_title': '💎 Membership Plan Overview',
         'header_subtitle': 'View all available membership tiers',
         'back_to_home': '🏠 Back to Home',
@@ -595,7 +596,6 @@ function setLanguage(lang) {
             return;
         }
 
-        // 檢查是否為需要保留 <b> 標籤的特殊福利
         const isBenefit = key.startsWith('legend_b') || key.startsWith('diamond_b') || key.startsWith('gold_b');
 
         if (isBenefit) {
@@ -603,7 +603,6 @@ function setLanguage(lang) {
         } else if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
             el.placeholder = translation;
         } else {
-            // 保留按鈕/連結前的圖示
             const icon = el.innerHTML.match(/^(<.*?>|.*?<\/.*?>|💎|📝|⚙️|🔒|🚀|🏠|🔥|💛)/);
             if ((el.tagName === 'BUTTON' || el.tagName === 'A' || el.tagName === 'H2' || el.tagName === 'H4') && icon && icon[0].length < 20) {
                 el.innerHTML = `${icon[0]} ${translation}`;
@@ -613,8 +612,7 @@ function setLanguage(lang) {
         }
     });
 
-    // 4. 重新載入動態列表 (因為 "目前尚無會員" 這段文字需要更新)
-    // 確保 loadMemberLists 存在後才呼叫
+    // 4. 重新載入動態列表
     if (typeof loadMemberLists === 'function') {
         loadMemberLists();
     }
@@ -631,7 +629,7 @@ firebase.auth().signInAnonymously().catch((error) => {
 firebase.auth().onAuthStateChanged((user) => {
     if (user) {
         console.log("Firebase 認證成功，正在載入會員名單...");
-        loadMemberLists(); // 現在呼叫是安全的，因為 translations 已經在上面定義了
+        loadMemberLists();
     } else {
         console.log("Firebase 尚未認證...");
     }
@@ -642,7 +640,7 @@ firebase.auth().onAuthStateChanged((user) => {
 // 載入會員名單 (已修改，支援多語言)
 async function loadMemberLists() {
     const lang = getCurrentLang();
-    const trans = translations[lang]; // 現在可以安全讀取
+    const trans = translations[lang];
     try {
         const membersSnapshot = await database.ref('members').once('value');
         const membersData = membersSnapshot.val() || {};
@@ -679,7 +677,7 @@ async function loadMemberLists() {
 function renderList(elementId, members) {
     const container = document.getElementById(elementId);
     const lang = getCurrentLang();
-    const trans = translations[lang]; // 現在可以安全讀取
+    const trans = translations[lang];
     
     if (!members || members.length === 0) {
         container.innerHTML = `<span class='member-badge' style='opacity: 0.7;'>${trans.no_members}</span>`;
