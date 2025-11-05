@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title data-lang-key="page_title">管理後台 - 廖嘉泰の會員管理系統</title>
 <style>
+/* ... (您所有的 CSS 樣式都保持不變) ... */
 * {
     margin: 0;
     padding: 0;
@@ -52,11 +53,10 @@ body {
     align-items: center;
 }
 
-/* ▼▼▼ 1. 新增的 CSS 樣式 ▼▼▼ */
 .lang-switcher {
     display: flex;
     align-items: center;
-    margin-right: 15px; /* 和登入按鈕隔開 */
+    margin-right: 15px;
 }
 .btn-lang {
     background: none;
@@ -78,10 +78,9 @@ body {
     text-underline-offset: 3px;
 }
 a.btn {
-    text-decoration: none; /* 移除 a 標籤按鈕的底線 */
-    color: white; /* 確保文字是白色的 */
+    text-decoration: none;
+    color: white;
 }
-/* ▲▲▲ CSS 結束 ▲▲▲ */
 
 .user-info {
     background: white;
@@ -787,10 +786,10 @@ a.btn {
         <div class="card">
             <h2 data-lang-key="code_admin_title">🔑 兌換碼管理</h2>
             <div class="sub-tabs">
-                <button class="sub-tab active" onclick="showCodeSubTab('generate')" data-lang-key="code_tab_generate">產生新碼</button>
-                <button class="sub-tab" onclick="showCodeSubTab('unused')" data-lang-key="code_tab_unused">未使用 (<span id="unusedCodeCount">0</span>)</button>
-                <button class="sub-tab" onclick="showCodeSubTab('used')" data-lang-key="code_tab_used">已使用 (<span id="usedCodeCount">0</span>)</button>
-            </div>
+                <button class="sub-tab active" onclick="showCodeSubTab('generate')"><span data-lang-key="code_tab_generate">產生新碼</span></button>
+                <button class="sub-tab" onclick="showCodeSubTab('unused')"><span data-lang-key="code_tab_unused">未使用</span> (<span id="unusedCodeCount">0</span>)</button>
+                <button class="sub-tab" onclick="showCodeSubTab('used')"><span data-lang-key="code_tab_used">已使用</span> (<span id="usedCodeCount">0</span>)</button>
+                </div>
 
             <div id="generate" class="sub-page active">
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
@@ -827,9 +826,9 @@ a.btn {
         <div class="card">
             <h2 data-lang-key="member_admin_title">🧑‍🤝‍🧑 會員管理</h2>
             <div class="sub-tabs">
-                <button class="sub-tab active" onclick="showMemberSubTab('active')" data-lang-key="member_tab_active">生效中 (<span id="activeMemberCount">0</span>)</button>
-                <button class="sub-tab" onclick="showMemberSubTab('expired')" data-lang-key="member_tab_expired">已到期 (<span id="expiredMemberCount">0</span>)</button>
-            </div>
+                <button class="sub-tab active" onclick="showMemberSubTab('active')"><span data-lang-key="member_tab_active">生效中</span> (<span id="activeMemberCount">0</span>)</button>
+                <button class="sub-tab" onclick="showMemberSubTab('expired')"><span data-lang-key="member_tab_expired">已到期</span> (<span id="expiredMemberCount">0</span>)</button>
+                </div>
 
             <div id="activeMembers" class="sub-page active">
                 <div class="list-container" id="activeMemberList"></div>
@@ -946,8 +945,10 @@ const translations = {
         'queue_remove_button': '移除',
         'code_admin_title': '🔑 兌換碼管理',
         'code_tab_generate': '產生新碼',
+        // ▼▼▼ 字典修正 ▼▼▼
         'code_tab_unused': '未使用',
         'code_tab_used': '已使用',
+        // ▲▲▲ 修正結束 ▲▲▲
         'code_level_label': '會員等級',
         'level_gold': '💛 黃金會員',
         'level_diamond': '💎 鑽石會員',
@@ -963,8 +964,10 @@ const translations = {
         'code_used_by': '使用者:',
         'code_used_date': '使用日期:',
         'member_admin_title': '🧑‍🤝‍🧑 會員管理',
+        // ▼▼▼ 字典修正 ▼▼▼
         'member_tab_active': '生效中',
         'member_tab_expired': '已到期',
+        // ▲▲▲ 修正結束 ▲▲▲
         'member_no_active': '沒有生效中的會員',
         'member_no_expired': '沒有已到期的會員',
         'member_edit_button': '編輯',
@@ -1101,8 +1104,10 @@ const translations = {
         'queue_remove_button': 'Remove',
         'code_admin_title': '🔑 Activation Code Management',
         'code_tab_generate': 'Generate New',
+        // ▼▼▼ 字典修正 ▼▼▼
         'code_tab_unused': 'Unused',
         'code_tab_used': 'Used',
+        // ▲▲▲ 修正結束 ▲▲▲
         'code_level_label': 'Membership Level',
         'level_gold': '💛 Gold Member',
         'level_diamond': '💎 Diamond Member',
@@ -1118,8 +1123,10 @@ const translations = {
         'code_used_by': 'Used By:',
         'code_used_date': 'Used Date:',
         'member_admin_title': '🧑‍🤝‍🧑 Member Management',
+        // ▼▼▼ 字典修正 ▼▼▼
         'member_tab_active': 'Active',
         'member_tab_expired': 'Expired',
+        // ▲▲▲ 修正結束 ▲▲▲
         'member_no_active': 'No active members',
         'member_no_expired': 'No expired members',
         'member_edit_button': 'Edit',
@@ -1265,7 +1272,17 @@ function setLanguage(lang) {
             // 保留按鈕/連結前的圖示
             const icon = el.innerHTML.match(/^(<.*?>|.*?<\/.*?>|💎|📝|⚙️|🔒|🚀|🏠|🔥|💛|🎮|❌|👥|🔑|🧑‍🤝‍🧑|📈|🗂️)/);
             if ((el.tagName === 'BUTTON' || el.tagName === 'A' || el.tagName === 'H2') && icon && icon[0].length < 20) {
-                el.innerHTML = `${icon[0]} ${translation}`;
+                
+                // ▼▼▼ 這是針對 <button><span>...</span> (<span>...</span>)</button> 的特殊處理 ▼▼▼
+                const innerSpan = el.querySelector('span[data-lang-key]');
+                if (innerSpan) {
+                     innerSpan.textContent = translation;
+                } 
+                // ▲▲▲ 特殊處理結束 ▲▲▲
+                
+                else {
+                    el.innerHTML = `${icon[0]} ${translation}`;
+                }
             } else {
                 el.textContent = translation;
             }
@@ -1298,25 +1315,51 @@ firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
 let isAuthReady = false;
+let isDomReady = false; // 新增 DOM 狀態旗標
+
+// ▼▼▼ 修正：將 Firebase 認證邏輯與 DOM 載入邏輯分開 ▼▼▼
 
 firebase.auth().onAuthStateChanged((user) => {
+    console.log('✅ Firebase Auth 狀態改變');
+    isAuthReady = true;
     if (user) {
-        console.log('✅ Firebase 匿名登入成功:', user.uid);
-        isAuthReady = true;
-
-        if (!window.appInitialized) {
-            window.appInitialized = true;
-            initializeAdminPage();
-        }
+        console.log('✅ 用戶已登入 (匿名或非匿名):', user.uid);
     } else {
         console.log('⏳ 嘗試匿名登入...');
-        firebase.auth().signInAnonymously()
-        .catch((error) => {
-            console.error('❌ 登入失敗:', error);
+        firebase.auth().signInAnonymously().catch((error) => {
+            console.error('❌ 匿名登入失敗:', error);
             alert('系統初始化失敗，請重新整理頁面');
         });
     }
+    // 嘗試初始化
+    tryInitialize();
 });
+
+// 頁面載入時，更新 DOM 狀態旗標並嘗試初始化
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('✅ DOM 已載入');
+    isDomReady = true;
+    // 嘗試初始化
+    tryInitialize();
+});
+
+function tryInitialize() {
+    // 只有在 DOM 和 Firebase 都準備好之後，才執行
+    if (isDomReady && isAuthReady) {
+        console.log('🚀 DOM 與 Firebase 均已就緒，開始初始化...');
+        
+        if (!window.appInitialized) {
+            window.appInitialized = true;
+            initializeAdminPage(); // 這是您的主要啟動函數
+        }
+        
+        // 單獨執行語言設定
+        const savedLang = localStorage.getItem('language') || 'zh';
+        setLanguage(savedLang);
+    }
+}
+// ▲▲▲ 修正結束 ▲▲▲
+
 
 let currentUser = null;
 let editingMember = null;
@@ -1398,7 +1441,6 @@ async function saveData(members, activationCodes, queue, gameSession) {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function secondsToTime(seconds) {
     if (seconds <= 0) return { years: 0, months: 0, days: 0, hours: 0, minutes: 0, seconds: 0 };
     const years = Math.floor(seconds / (365 * 24 * 60 * 60));
@@ -1423,7 +1465,6 @@ function timeToSeconds(years, months, days, hours, minutes, seconds) {
         seconds;
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function formatTimeDisplay(timeObj) {
     const lang = getCurrentLang();
     const trans = translations[lang];
@@ -1453,7 +1494,6 @@ function generateActivationCode() {
     return code;
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function copyToClipboard(text, button) {
     const lang = getCurrentLang();
     const trans = translations[lang];
@@ -1469,24 +1509,6 @@ function copyToClipboard(text, button) {
         alert(trans.copy_fail);
     });
 }
-
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
-const securityQuestions = {
-    'zh': {
-        'pet': '你的第一隻寵物叫什麼名字？',
-        'school': '你的小學校名是什麼？',
-        'city': '你出生的城市是哪裡？',
-        'food': '你最喜歡的食物是什麼？',
-        'game': '你最喜歡的CODM角色是什麼？'
-    },
-    'en': {
-        'pet': "What is your first pet's name?",
-        'school': "What is your elementary school's name?",
-        'city': 'In what city were you born?',
-        'food': 'What is your favorite food?',
-        'game': 'What is your favorite CODM character?'
-    }
-};
 
 function openLoginModal() {
     document.getElementById('loginModalTitle').textContent = translations[getCurrentLang()].login_title_admin;
@@ -1517,7 +1539,6 @@ function closeEditMemberModal() {
     editingMember = null;
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function login() {
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
@@ -1563,7 +1584,6 @@ async function login() {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function logout() {
     sessionStorage.removeItem('currentUser');
     currentUser = null;
@@ -1577,13 +1597,11 @@ async function logout() {
     alert(translations[getCurrentLang()].alert_logout);
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function updateUserSection() {
     const userSection = document.getElementById('userSection');
     const lang = getCurrentLang();
     const trans = translations[lang];
     
-    // 找到語言切換器
     const langSwitcher = userSection.querySelector('.lang-switcher');
 
     if (currentUser && currentUser.isAdmin) {
@@ -1602,7 +1620,6 @@ function updateUserSection() {
         <button class="btn btn-small" onclick="openLoginModal()" data-lang-key="login">${trans.login}</button>
         `;
     }
-    // 把語言切換器加回來
     if (langSwitcher) {
         userSection.prepend(langSwitcher);
     }
@@ -1746,8 +1763,6 @@ async function initializeAdminPage() {
         alert('頁面載入失敗，請重試');
     } finally {
         hideLoading();
-        // 初始化完成後，最後再跑一次語言設定
-        document.dispatchEvent(new Event('DOMContentLoaded'));
     }
 }
 
@@ -1776,7 +1791,6 @@ async function refreshAdminDashboard() {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function renderGameSession(gameSession) {
     const container = document.getElementById('currentGameSession');
     const lang = getCurrentLang();
@@ -1802,7 +1816,6 @@ function renderGameSession(gameSession) {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function renderQueueList(queue) {
     const container = document.getElementById('adminQueueList');
     const lang = getCurrentLang();
@@ -1832,18 +1845,23 @@ function renderQueueList(queue) {
     }).join('');
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function renderCodeLists(activationCodes) {
     const unused = activationCodes.filter(c => !c.used);
     const used = activationCodes.filter(c => c.used);
     const lang = getCurrentLang();
     const trans = translations[lang];
     
-    document.getElementById('unusedCodeCount').textContent = unused.length;
-    document.getElementById('usedCodeCount').textContent = used.length;
+    // ▼▼▼ 修正：確保在修改 .textContent 之前，元素存在 ▼▼▼
+    const unusedCountEl = document.getElementById('unusedCodeCount');
+    if (unusedCountEl) unusedCountEl.textContent = unused.length;
+    
+    const usedCountEl = document.getElementById('usedCodeCount');
+    if (usedCountEl) usedCountEl.textContent = used.length;
+    // ▲▲▲ 修正結束 ▲▲▲
 
     if (currentCodeSubTab === 'unused') {
         const unusedContainer = document.getElementById('unusedCodeList');
+        if (!unusedContainer) return; // 防呆
         unusedContainer.innerHTML = unused.length === 0 ? `<div class="empty-state" data-lang-key="code_no_unused">${trans.code_no_unused}</div>` :
             unused.map(c => {
                 const levelText = c.level === 'legend' ? trans.level_legend_simple : (c.level === 'diamond' ? trans.level_diamond_simple : trans.level_gold_simple);
@@ -1868,6 +1886,7 @@ function renderCodeLists(activationCodes) {
 
     if (currentCodeSubTab === 'used') {
         const usedContainer = document.getElementById('usedCodeList');
+        if (!usedContainer) return; // 防呆
         usedContainer.innerHTML = used.length === 0 ? `<div class="empty-state" data-lang-key="code_no_used">${trans.code_no_used}</div>` :
             used.slice().reverse().map(c => {
                 const levelText = c.level === 'legend' ? trans.level_legend_simple : (c.level === 'diamond' ? trans.level_diamond_simple : trans.level_gold_simple);
@@ -1885,7 +1904,6 @@ function renderCodeLists(activationCodes) {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function renderMemberLists(members) {
     const allMembers = members.filter(m => m.username !== 'admin');
     const lang = getCurrentLang();
@@ -1894,8 +1912,13 @@ function renderMemberLists(members) {
     const active = allMembers.filter(m => m.remainingSeconds > 0);
     const expired = allMembers.filter(m => m.remainingSeconds <= 0);
     
-    document.getElementById('activeMemberCount').textContent = active.length;
-    document.getElementById('expiredMemberCount').textContent = expired.length;
+    // ▼▼▼ 修正：確保在修改 .textContent 之前，元素存在 ▼▼▼
+    const activeCountEl = document.getElementById('activeMemberCount');
+    if (activeCountEl) activeCountEl.textContent = active.length;
+    
+    const expiredCountEl = document.getElementById('expiredMemberCount');
+    if (expiredCountEl) expiredCountEl.textContent = expired.length;
+    // ▲▲▲ 修正結束 ▲▲▲
 
     const renderMemberItem = (m) => {
         const levelText = m.level === 'legend' ? trans.level_legend_simple : (m.level === 'diamond' ? trans.level_diamond_simple : trans.level_gold_simple);
@@ -1929,18 +1952,20 @@ function renderMemberLists(members) {
 
     if (currentMemberSubTab === 'active') {
         const activeContainer = document.getElementById('activeMemberList');
+        if (!activeContainer) return; // 防呆
         activeContainer.innerHTML = active.length === 0 ? `<div class="empty-state" data-lang-key="member_no_active">${trans.member_no_active}</div>` : active.map(renderMemberItem).join('');
     }
     
     if (currentMemberSubTab === 'expired') {
         const expiredContainer = document.getElementById('expiredMemberList');
+        if (!expiredContainer) return; // 防呆
         expiredContainer.innerHTML = expired.length === 0 ? `<div class="empty-state" data-lang-key="member_no_expired">${trans.member_no_expired}</div>` : expired.map(renderMemberItem).join('');
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function renderBackupInfo(lastBackupTime) {
     const container = document.getElementById('backupInfo');
+    if (!container) return; // 防呆
     const lang = getCurrentLang();
     const trans = translations[lang];
 
@@ -1951,7 +1976,6 @@ function renderBackupInfo(lastBackupTime) {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function createGameSession() {
     const gameName = document.getElementById('sessionGameName').value.trim() || 'CODM 會員場';
     const slots = parseInt(document.getElementById('sessionSlots').value.trim()) || 10;
@@ -1986,7 +2010,6 @@ async function createGameSession() {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function closeGameSession() {
     const lang = getCurrentLang();
     const trans = translations[lang];
@@ -2005,7 +2028,6 @@ async function closeGameSession() {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function removeFromQueue(username) {
     const lang = getCurrentLang();
     const trans = translations[lang];
@@ -2024,7 +2046,6 @@ async function removeFromQueue(username) {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function clearQueue() {
     const lang = getCurrentLang();
     const trans = translations[lang];
@@ -2043,7 +2064,6 @@ async function clearQueue() {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function generateCode() {
     const level = document.getElementById('codeLevel').value;
     const days = parseInt(document.getElementById('codeDays').value) || 0;
@@ -2113,7 +2133,6 @@ async function generateCode() {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function deleteCode(code) {
     const lang = getCurrentLang();
     const trans = translations[lang];
@@ -2132,7 +2151,6 @@ async function deleteCode(code) {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function openEditMember(username) {
     showLoading();
     const lang = getCurrentLang();
@@ -2232,7 +2250,6 @@ async function openEditMember(username) {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function adjustTime(isAdding) {
     const years = parseInt(document.getElementById('editYears').value) || 0;
     const months = parseInt(document.getElementById('editMonths').value) || 0;
@@ -2286,7 +2303,6 @@ async function adjustTime(isAdding) {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function saveMemberEdit() {
     if (!editingMember) return;
     const lang = getCurrentLang();
@@ -2327,7 +2343,6 @@ async function saveMemberEdit() {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function deleteMember(username) {
     const lang = getCurrentLang();
     const trans = translations[lang];
@@ -2365,7 +2380,6 @@ async function deleteMember(username) {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function changePassword() {
     const currentPassword = document.getElementById('currentPassword').value.trim();
     const newPassword = document.getElementById('changeNewPassword').value.trim();
@@ -2464,7 +2478,6 @@ function initDailyBackup() {
     console.log(`每日自動備份將在 ${formatTimeDisplay(secondsToTime(Math.floor(timeUntilMidnight/1000)))} 後執行`);
 }
 
-// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function exportToExcel(isAuto = false) {
     const lang = getCurrentLang();
     const trans = translations[lang];
@@ -2534,12 +2547,6 @@ async function exportToExcel(isAuto = false) {
         if (!isAuto) hideLoading();
     }
 }
-
-// 頁面載入時，自動套用儲存的語言
-document.addEventListener('DOMContentLoaded', () => {
-    const savedLang = localStorage.getItem('language') || 'zh'; // 預設為中文
-    setLanguage(savedLang);
-});
 </script>
 </body>
 </html>
