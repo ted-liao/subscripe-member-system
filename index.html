@@ -705,6 +705,94 @@ a.tab:hover {
         flex-wrap: wrap;
     }
 }
+
+/* --- 新增的 CSS --- */
+
+/* 優先排隊控制項容器 */
+.priority-queue-controls {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 2px solid #e0e0e0;
+}
+
+/* 剩餘次數文字 */
+.priority-quota-display {
+    font-size: 16px;
+    font-weight: bold;
+    color: #667eea;
+}
+.priority-quota-display span {
+    color: #C44569;
+    font-size: 1.2em;
+}
+
+/* Toggle Switch 美化 */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+}
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 34px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+input:checked + .slider {
+    background-color: #667eea;
+}
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+input:disabled + .slider {
+    background-color: #e0e0e0;
+    cursor: not-allowed;
+}
+
+/* 按鈕發光效果 */
+.btn.priority-glow {
+    animation: priority-pulse 1.5s infinite;
+    box-shadow: 0 0 15px 5px rgba(240, 147, 251, 0.7);
+}
+
+@keyframes priority-pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(240, 147, 251, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 15px 10px rgba(240, 147, 251, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(240, 147, 251, 0);
+    }
+}
 </style>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -1032,6 +1120,7 @@ window.initializeAdmin = async function() {
 
         const passwordHash = await hashPassword(adminPassword);
         const now = Math.floor(Date.now() / 1000);
+        const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
 
         await adminRef.set({
             username: adminUsername,
@@ -1046,7 +1135,9 @@ window.initializeAdmin = async function() {
             remainingSeconds: 999999999,
             lastUpdateTime: now,
             activationCode: 'ADMIN0',
-            isAdmin: true
+            isAdmin: true,
+            priorityQuota: 999, // 管理員無限次數
+            quotaLastReset: currentMonth
         });
 
         console.log('✅ 管理員建立成功');
@@ -1095,6 +1186,7 @@ async function initializeDefaultAdmin() {
     try {
         const adminRef = database.ref('members/admin');
         const snapshot = await adminRef.once('value');
+        const currentMonth = new Date().toISOString().slice(0, 7); // YYYY-MM
 
         if (!snapshot.exists()) {
             const passwordHash = await hashPassword('Admin@123456');
@@ -1113,7 +1205,9 @@ async function initializeDefaultAdmin() {
                 remainingSeconds: 999999999,
                 lastUpdateTime: now,
                 activationCode: 'ADMIN0',
-                isAdmin: true
+                isAdmin: true,
+                priorityQuota: 999, // 管理員無限次數
+                quotaLastReset: currentMonth
             });
 
             console.log('✅ 預設管理員已建立：admin / Admin@123456');
@@ -1123,6 +1217,7 @@ async function initializeDefaultAdmin() {
     }
 }
 
+// 【已修改】 包含排序邏輯
 async function loadData() {
     try {
         const membersSnapshot = await database.ref('members').once('value');
@@ -1139,13 +1234,29 @@ async function loadData() {
         const codesData = codesSnapshot.val() || {};
         const activationCodes = Object.values(codesData);
 
+        // 【修改】排序邏輯
         const queueData = queueSnapshot.val() || {};
-        const queue = Object.values(queueData).sort((a, b) => new Date(a.joinTime) - new Date(b.joinTime));
+        const queue = Object.values(queueData); // 1. 從物件轉為陣列
+
+        // 2. 進行排序
+        queue.sort((a, b) => {
+            // 賦予預設值 0 (一般排隊)
+            const priorityA = a.priorityLevel || 0;
+            const priorityB = b.priorityLevel || 0;
+
+            // 規則 1: 優先級高的排前面 (傳說 2 > 鑽石 1 > 一般 0)
+            if (priorityA !== priorityB) {
+                return priorityB - priorityA;
+            }
+
+            // 規則 2: 優先級相同，先來的排前面
+            return new Date(a.joinTime) - new Date(b.joinTime);
+        });
 
         return {
             members,
             activationCodes,
-            queue,
+            queue, // 3. 回傳排好序的陣列
             gameSession: sessionSnapshot.val()
         };
     } catch (error) {
@@ -1153,11 +1264,12 @@ async function loadData() {
         return {
             members: [],
             activationCodes: [],
-            queue: [],
+            queue: [], // 回傳空陣列
             gameSession: null
         };
     }
 }
+
 
 async function saveData(members, activationCodes, queue, gameSession) {
     try {
@@ -1321,7 +1433,9 @@ async function exportToExcel() {
                 '剩餘秒數': member.remainingSeconds,
                 '兌換碼': member.activationCode,
                 '加入日期': new Date(member.joinDate).toLocaleDateString('zh-TW'),
-                '是否為管理員': member.isAdmin ? '是' : '否'
+                '是否為管理員': member.isAdmin ? '是' : '否',
+                '插隊次數': member.priorityQuota,
+                '次數重置月份': member.quotaLastReset
             };
         });
 
@@ -1378,22 +1492,34 @@ async function updateAllCountdowns() {
     try {
         const data = await loadData();
         const now = Math.floor(Date.now() / 1000);
-        let needSave = false;
+        let membersToUpdate = {}; // 使用物件來批次更新
 
         data.members.forEach(member => {
             const elapsed = now - member.lastUpdateTime;
-            if (elapsed > 0) {
-                const oldExpired = member.remainingSeconds <= 0;
+            if (elapsed > 0 && member.remainingSeconds > 0) { // 只更新有剩餘時間的
+                const oldRemaining = member.remainingSeconds;
                 member.remainingSeconds = Math.max(0, member.remainingSeconds - elapsed);
                 member.lastUpdateTime = now;
-                needSave = true;
+                
+                // 只有在秒數真的改變時才標記更新
+                if (oldRemaining !== member.remainingSeconds) {
+                    membersToUpdate[member.username] = {
+                        remainingSeconds: member.remainingSeconds,
+                        lastUpdateTime: member.lastUpdateTime
+                    };
+                }
             }
         });
 
-        if (needSave) {
-            await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+        // 批次更新
+        if (Object.keys(membersToUpdate).length > 0) {
+             // 分開更新，避免覆蓋 queue
+            for (const username in membersToUpdate) {
+                await database.ref('members/' + username).update(membersToUpdate[username]);
+            }
         }
 
+        // ... (更新 UI 的程式碼 ...)
         document.querySelectorAll('.countdown-time').forEach(element => {
             const username = element.getAttribute('data-username');
             if (username) {
@@ -1409,7 +1535,7 @@ async function updateAllCountdowns() {
         if (currentPage === 'member' && currentUser) {
             const member = data.members.find(m => m.username === currentUser.username);
             if (member) {
-                currentUser = member;
+                currentUser = member; // 保持本地 currentUser 同步
                 const timeDisplay = document.querySelector('.time-display');
                 if (timeDisplay) {
                     const timeObj = secondsToTime(member.remainingSeconds);
@@ -1450,7 +1576,7 @@ function startAutoRefresh() {
 
 async function refreshQueueOnly() {
     try {
-        const data = await loadData();
+        const data = await loadData(); // loadData() 已包含排序
         const lang = getCurrentLang();
         const trans = translations[lang];
 
@@ -1464,18 +1590,13 @@ async function refreshQueueOnly() {
             const myPosition = myQueueIndex + 1;
 
             const queueCardElement = document.querySelector('.queue-card');
-            if (queueCardElement) {
+            if (queueCardElement && !document.getElementById('prioritySwitch')) { // 只更新"已在排隊"的卡片
                 if (myPosition > 0) {
                     queueCardElement.innerHTML = `
 <h3>${trans.queue_your_position_title}</h3>
 <div class="queue-position">#${myPosition}</div>
 <div style="color: #666;">${trans.queue_position_prefix} ${myPosition - 1} ${trans.queue_position_suffix}</div>
 <button class="btn btn-danger" onclick="leaveQueue()">${trans.queue_leave}</button>
-`;
-                } else {
-                    queueCardElement.innerHTML = `
-<h3>${trans.queue_join_title}</h3>
-<button class="btn" onclick="joinQueue()" style="margin-top: 20px; font-size: 1.2em; padding: 15px 40px;">${trans.queue_join_button}</button>
 `;
                 }
             }
@@ -1489,10 +1610,14 @@ data.queue.slice(0, 10).map((q, index) => {
     const badgeClass = q.level === 'legend' ? 'badge-legend' :
         q.level === 'diamond' ? 'badge-diamond' : 'badge-gold';
     const isCurrent = q.username === currentUser.username;
+    
+    // 【新增】顯示插隊圖示
+    const priorityIcon = q.priorityLevel === 2 ? '🔥' : (q.priorityLevel === 1 ? '💎' : '');
+
     return `
 <div class="queue-item ${isCurrent ? 'current' : ''}">
     <div>
-        <strong>#${index + 1} ${q.nickname}</strong>
+        <strong>${priorityIcon} #${index + 1} ${q.nickname}</strong>
         <span class="badge ${badgeClass}" style="margin-left: 10px;">${levelText}</span>
         <div style="font-size: 12px; color: #666; margin-top: 3px;">CODM UID: ${q.gameUID}</div>
     </div>
@@ -1642,6 +1767,7 @@ function closeEditMemberModal() {
     editingMember = null;
 }
 
+// 【已修改】 包含插隊次數邏輯
 async function register() {
     const activationCode = document.getElementById('regActivationCode').value.trim().toUpperCase();
     const username = document.getElementById('regUsername').value.trim();
@@ -1701,6 +1827,15 @@ async function register() {
         const codeData = data.activationCodes[codeIndex];
         const passwordHash = await hashPassword(password);
         const now = Math.floor(Date.now() / 1000);
+        const currentMonth = new Date().toISOString().slice(0, 7); // 格式: YYYY-MM
+
+        // 【新增】根據會員等級設定插隊次數
+        let initialQuota = 0;
+        if (codeData.level === 'legend') {
+            initialQuota = 5;
+        } else if (codeData.level === 'diamond') {
+            initialQuota = 2;
+        }
 
         const newMember = {
             username,
@@ -1715,7 +1850,10 @@ async function register() {
             remainingSeconds: codeData.seconds,
             lastUpdateTime: now,
             activationCode: activationCode,
-            isAdmin: false
+            isAdmin: false,
+            // 【新增】插隊相關欄位
+            priorityQuota: initialQuota,
+            quotaLastReset: currentMonth
         };
 
         data.activationCodes[codeIndex].used = true;
@@ -1735,6 +1873,7 @@ async function register() {
     }
 }
 
+// 【已修改】 包含插隊次數重置邏輯
 async function login() {
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
@@ -1751,7 +1890,7 @@ async function login() {
     try {
         const data = await loadData();
         const passwordHash = await hashPassword(password);
-        const member = data.members.find(m => m.username === username && m.passwordHash === passwordHash);
+        let member = data.members.find(m => m.username === username && m.passwordHash === passwordHash);
 
         if (!member) {
             alert(trans.alert_login_wrong);
@@ -1759,15 +1898,21 @@ async function login() {
             return;
         }
 
+        // 【新增】檢查並重置插隊次數
+        member = await checkAndResetQuota(member);
+
         const now = Math.floor(Date.now() / 1000);
         const elapsed = now - member.lastUpdateTime;
         member.remainingSeconds = Math.max(0, member.remainingSeconds - elapsed);
         member.lastUpdateTime = now;
 
-        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+        // 【修改】只更新時間，因為次數已在 checkAndResetQuota 中更新
+        await database.ref('members/' + member.username).update({
+             remainingSeconds: member.remainingSeconds,
+             lastUpdateTime: member.lastUpdateTime
+        });
 
         currentUser = member;
-        
         sessionStorage.setItem('currentUser', member.username);
 
         let alertMsg = trans.alert_login_success;
@@ -1798,14 +1943,19 @@ async function logout() {
     if (currentUser) {
         showLoading();
         try {
-            const data = await loadData();
-            const member = data.members.find(m => m.username === currentUser.username);
-            if (member) {
+            // 只更新登出使用者的時間
+            const memberRef = database.ref('members/' + currentUser.username);
+            const snapshot = await memberRef.once('value');
+            if (snapshot.exists()) {
+                const member = snapshot.val();
                 const now = Math.floor(Date.now() / 1000);
                 const elapsed = now - member.lastUpdateTime;
-                member.remainingSeconds = Math.max(0, member.remainingSeconds - elapsed);
-                member.lastUpdateTime = now;
-                await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+                const newRemainingSeconds = Math.max(0, member.remainingSeconds - elapsed);
+                
+                await memberRef.update({
+                    remainingSeconds: newRemainingSeconds,
+                    lastUpdateTime: now
+                });
             }
         } catch (error) {
             console.error('登出時儲存失敗:', error);
@@ -1893,10 +2043,11 @@ async function resetPassword() {
 
     showLoading();
     try {
-        const data = await loadData();
-        const member = data.members.find(m => m.username === forgotPasswordUser.username);
-        member.passwordHash = await hashPassword(newPassword);
-        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+        const newPasswordHash = await hashPassword(newPassword);
+        // 只更新密碼
+        await database.ref('members/' + forgotPasswordUser.username).update({
+            passwordHash: newPasswordHash
+        });
 
         alert('密碼重設成功！請使用新密碼登入');
         closeForgotPasswordModal();
@@ -1937,12 +2088,13 @@ async function changePassword() {
             return;
         }
 
-        const data = await loadData();
-        const member = data.members.find(m => m.username === currentUser.username);
-        member.passwordHash = await hashPassword(newPassword);
-        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+        const newPasswordHash = await hashPassword(newPassword);
+        // 只更新密碼
+        await database.ref('members/' + currentUser.username).update({
+            passwordHash: newPasswordHash
+        });
 
-        currentUser.passwordHash = member.passwordHash;
+        currentUser.passwordHash = newPasswordHash;
 
         alert('密碼更改成功！');
         closeChangePasswordModal();
@@ -1952,6 +2104,39 @@ async function changePassword() {
     } finally {
         hideLoading();
     }
+}
+
+// 【新增】檢查並重置插隊次數的函數
+async function checkAndResetQuota(member) {
+    const currentMonth = new Date().toISOString().slice(0, 7); // 格式: YYYY-MM
+    
+    // 檢查上次重置月份是否與本月不同
+    if (member.quotaLastReset !== currentMonth && !member.isAdmin) { // 管理員不重置
+        console.log(`為 ${member.username} 重置插隊次數...`);
+        
+        let newQuota = 0;
+        if (member.level === 'legend') {
+            newQuota = 5;
+        } else if (member.level === 'diamond') {
+            newQuota = 2;
+        }
+        
+        // 更新會員物件
+        member.priorityQuota = newQuota;
+        member.quotaLastReset = currentMonth;
+        
+        // 立刻存回資料庫
+        try {
+            await database.ref('members/' + member.username).update({
+                priorityQuota: newQuota,
+                quotaLastReset: currentMonth
+            });
+            console.log(`... ${member.username} 次數已重置為 ${newQuota}`);
+        } catch (error) {
+            console.error('重置次數失敗:', error);
+        }
+    }
+    return member; // 回傳 (可能已更新的) 會員物件
 }
 
 // ▼▼▼ 已修改，支援多語言 ▼▼▼
@@ -1967,16 +2152,34 @@ async function showMemberInfo() {
 
     showLoading();
     try {
-        const data = await loadData();
-        const updatedUser = data.members.find(m => m.username === currentUser.username);
-        if (updatedUser) {
-            const now = Math.floor(Date.now() / 1000);
-            const elapsed = now - updatedUser.lastUpdateTime;
+        // 從資料庫重新獲取最新資料，確保時間和次數是準確的
+        const snapshot = await database.ref('members/' + currentUser.username).once('value');
+        if (!snapshot.exists()) {
+            alert('錯誤：找不到您的會員資料，請重新登入');
+            logout();
+            return;
+        }
+        
+        let updatedUser = snapshot.val();
+        updatedUser.username = currentUser.username; // 補上 username
+        
+        // 檢查次數
+        updatedUser = await checkAndResetQuota(updatedUser);
+        
+        // 更新時間
+        const now = Math.floor(Date.now() / 1000);
+        const elapsed = now - updatedUser.lastUpdateTime;
+        if (elapsed > 0 && updatedUser.remainingSeconds > 0) {
             updatedUser.remainingSeconds = Math.max(0, updatedUser.remainingSeconds - elapsed);
             updatedUser.lastUpdateTime = now;
-            currentUser = updatedUser;
-            await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+            // 寫回更新後的時間
+            await database.ref('members/' + updatedUser.username).update({
+                remainingSeconds: updatedUser.remainingSeconds,
+                lastUpdateTime: updatedUser.lastUpdateTime
+            });
         }
+        
+        currentUser = updatedUser; // 保持本地資料最新
 
         const levelKey = currentUser.level === 'legend' ? 'level_legend' :
             currentUser.level === 'diamond' ? 'level_diamond' : 'level_gold';
@@ -1989,7 +2192,9 @@ async function showMemberInfo() {
         const timeObj = secondsToTime(currentUser.remainingSeconds);
         const timeClass = getTimeColorClass(currentUser.remainingSeconds);
 
-        const codeData = data.activationCodes.find(c => c.code === currentUser.activationCode);
+        // 查找兌換碼資料 (非關鍵，可以慢一點)
+        const codeSnapshot = await database.ref('activationCodes/' + currentUser.activationCode).once('value');
+        const codeData = codeSnapshot.val();
         const codeTimeObj = codeData ? secondsToTime(codeData.seconds) : null;
 
         content.innerHTML = `
@@ -2054,7 +2259,7 @@ async function showMemberInfo() {
     }
 }
 
-// ▼▼▼ 已修改，支援多語言 ▼▼▼
+// ▼▼▼ 已修改，支援多語言和插隊開關 ▼▼▼
 async function showQueuePage() {
     const content = document.getElementById('queueContent');
     const lang = getCurrentLang();
@@ -2067,17 +2272,16 @@ async function showQueuePage() {
 
     showLoading();
     try {
-        const data = await loadData();
-
-        const updatedUser = data.members.find(m => m.username === currentUser.username);
-        if (updatedUser) {
-            const now = Math.floor(Date.now() / 1000);
-            const elapsed = now - updatedUser.lastUpdateTime;
-            updatedUser.remainingSeconds = Math.max(0, updatedUser.remainingSeconds - elapsed);
-            updatedUser.lastUpdateTime = now;
-            currentUser = updatedUser;
-            await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+        // 【修改】也檢查並更新當前用戶的次數 (以防萬一)
+        // 確保 currentUser 是最新的
+        const snapshot = await database.ref('members/' + currentUser.username).once('value');
+        if (snapshot.exists()) {
+             let updatedUser = snapshot.val();
+             updatedUser.username = currentUser.username;
+             currentUser = await checkAndResetQuota(updatedUser);
         }
+
+        const data = await loadData(); // data.queue 已排序
 
         if (currentUser.remainingSeconds <= 0) {
             content.innerHTML = `<div class="empty-state"><h3>${trans.queue_expired_prompt}</h3></div>`;
@@ -2100,6 +2304,13 @@ async function showQueuePage() {
             return 'level_gold_simple';
         };
 
+        // 【新增】插隊次數顯示文字
+        const quotaText = (trans.queue_priority_quota || '本月剩餘 <span>{0}</span> 次權限')
+                            .replace('{0}', currentUser.priorityQuota);
+        
+        // 【新增】開關的 onchange 事件
+        const onSwitchChange = `togglePriorityGlow(this.checked, ${currentUser.priorityQuota})`;
+
         content.innerHTML = `
 <div style="text-align: right; margin-bottom: 10px; color: #666; font-size: 14px;">
     <span class="auto-refresh-indicator"></span> ${trans.queue_refreshing}
@@ -2119,9 +2330,25 @@ ${myPosition > 0 ? `
     <button class="btn btn-danger" onclick="leaveQueue()">${trans.queue_leave}</button>
 </div>
 ` : `
+${(currentUser.level === 'diamond' || currentUser.level === 'legend') ? `
+<div class="priority-queue-controls">
+    <div class="priority-quota-display">
+        ${trans.queue_priority_switch || '優先排隊'}
+        <br>
+        <small style="font-weight: normal;">(${quotaText})</small>
+    </div>
+    <label class="switch">
+        <input type="checkbox" id="prioritySwitch" onchange="${onSwitchChange}" ${currentUser.priorityQuota <= 0 ? 'disabled' : ''}>
+        <span class="slider"></span>
+    </label>
+</div>
+` : ''}
+
 <div class="queue-card">
     <h3>${trans.queue_join_title}</h3>
-    <button class="btn" onclick="joinQueue()" style="margin-top: 20px; font-size: 1.2em; padding: 15px 40px;">${trans.queue_join_button}</button>
+    <button id="btnJoinQueue" class="btn" onclick="joinQueue()" style="margin-top: 20px; font-size: 1.2em; padding: 15px 40px;">
+        ${trans.queue_join_button}
+    </button>
 </div>
 `}
 
@@ -2133,10 +2360,14 @@ ${myPosition > 0 ? `
         const badgeClass = q.level === 'legend' ? 'badge-legend' :
             q.level === 'diamond' ? 'badge-diamond' : 'badge-gold';
         const isCurrent = q.username === currentUser.username;
+        
+        // 【新增】顯示插隊圖示
+        const priorityIcon = q.priorityLevel === 2 ? '🔥' : (q.priorityLevel === 1 ? '💎' : '');
+
         return `
 <div class="queue-item ${isCurrent ? 'current' : ''}">
     <div>
-        <strong>#${index + 1} ${q.nickname}</strong>
+        <strong>${priorityIcon} #${index + 1} ${q.nickname}</strong>
         <span class="badge ${badgeClass}" style="margin-left: 10px;">${levelText}</span>
         <div style="font-size: 12px; color: #666; margin-top: 3px;">CODM UID: ${q.gameUID}</div>
     </div>
@@ -2157,49 +2388,70 @@ ${myPosition > 0 ? `
     }
 }
 
+// 【已修改】 包含插隊次數扣除邏輯
 async function joinQueue() {
     showLoading();
     
-    // 取得當前語言的翻譯
     const lang = getCurrentLang();
     const trans = translations[lang];
 
-    try {
-        // -----------------------------------------------------------------
-        // 【修正點 1】
-        // 檢查是否已在排隊，只讀取你自己的節點，而不是 loadData()
-        const snapshot = await database.ref('queue/' + currentUser.username).once('value');
-        if (snapshot.exists()) {
-            alert(trans.alert_already_in_queue || '你已經在排隊中了！');
+    // 【新增】檢查開關狀態和優先級
+    const switchElement = document.getElementById('prioritySwitch');
+    const usePriority = switchElement ? switchElement.checked : false;
+    
+    let priorityLevel = 0; // 0 = 一般
+
+    if (usePriority) {
+        if (currentUser.priorityQuota <= 0) {
+            alert(trans.queue_priority_no_quota || '您的優先排隊權限已用完');
+            switchElement.checked = false; // 關掉開關
+            togglePriorityGlow(false); // 關掉光暈
             hideLoading();
             return;
         }
-        // -----------------------------------------------------------------
+        // 傳說 = 2, 鑽石 = 1
+        priorityLevel = (currentUser.level === 'legend') ? 2 : 1;
+    }
+
+    try {
+        const snapshot = await database.ref('queue/' + currentUser.username).once('value');
+        if (snapshot.exists()) {
+            alert(trans.alert_already_in_queue);
+            hideLoading();
+            return;
+        }
 
         const queueItem = {
             username: currentUser.username,
             nickname: currentUser.nickname,
             gameUID: currentUser.gameUID,
             level: currentUser.level,
-            joinTime: new Date().toISOString()
+            joinTime: new Date().toISOString(),
+            priorityLevel: priorityLevel // 【新增】儲存優先級
         };
 
-        // -----------------------------------------------------------------
-        // 【修正點 2】
-        // 原本是 loadData() -> push -> saveData()
-        // 改成使用 .set() 進行原子寫入，只新增/覆蓋你自己的節點
+        // 寫入排隊資料
         await database.ref('queue/' + currentUser.username).set(queueItem);
-        // -----------------------------------------------------------------
 
-        alert(trans.alert_join_queue_success || '成功加入排隊！');
-        showQueuePage();
+        // 【新增】如果使用了插隊，則扣除次數
+        if (usePriority) {
+            currentUser.priorityQuota -= 1; // 1. 更新本地物件
+            // 2. 更新資料庫
+            await database.ref('members/' + currentUser.username + '/priorityQuota').set(currentUser.priorityQuota);
+        }
+
+        alert(trans.alert_join_queue_success);
+        showQueuePage(); // 重新整理頁面 (會自動顯示正確順位)
     } catch (error) {
         console.error('加入排隊失敗:', error);
-        alert(trans.alert_join_queue_fail || '加入排隊失敗，請稍後再試');
+        alert(trans.alert_join_queue_fail);
     } finally {
         hideLoading();
     }
 }
+
+
+// 【已修改】 使用原子操作 .remove()
 async function leaveQueue() {
     // 取得當前語言的翻譯
     const lang = getCurrentLang();
@@ -2212,7 +2464,6 @@ async function leaveQueue() {
 
     showLoading();
     try {
-        // -----------------------------------------------------------------
         // 【修正點】
         // 原本是 loadData() -> filter -> saveData()
         // 改成使用 .remove() 進行原子刪除，只刪除你自己的節點
@@ -2228,6 +2479,7 @@ async function leaveQueue() {
         hideLoading();
     }
 }
+
 
 function showCodeSubTab(tabName) {
 }
@@ -2268,6 +2520,25 @@ async function saveMemberEdit() {
 async function deleteMember(username) {
 }
 
+// 【新增】控制按鈕光暈的函數
+function togglePriorityGlow(isON, quota) {
+    const btn = document.getElementById('btnJoinQueue');
+    const lang = getCurrentLang();
+    const trans = translations[lang];
+
+    if (btn) {
+        if (isON && quota > 0) {
+            btn.classList.add('priority-glow');
+            // 你也可以在這裡改變按鈕文字
+            // btn.innerHTML = `🔥 ${trans.queue_priority_join_button || '優先排隊'}`;
+        } else {
+            btn.classList.remove('priority-glow');
+            // 恢復按鈕文字
+            btn.innerHTML = `🚀 ${trans.queue_join_button || '一鍵排隊'}`;
+        }
+    }
+}
+
 async function toggleAdminStatus(username) {
 }
 
@@ -2277,13 +2548,13 @@ async function validateSessionUser(username, retries = 3, delay = 500) {
     for (let i = 0; i < retries; i++) {
         try {
             console.log(`[Session] 嘗試第 ${i + 1} 次驗證: ${username}`);
-            const data = await loadData();
-            if (data.members && data.members.length > 0) {
-                const member = data.members.find(m => m.username === username);
-                if (member) {
-                    console.log('[Session] 驗證成功');
-                    return member;
-                }
+            // 直接抓取該用戶的資料
+            const snapshot = await database.ref('members/' + username).once('value');
+            if (snapshot.exists()) {
+                console.log('[Session] 驗證成功');
+                let member = snapshot.val();
+                member.username = username; // 補上 username
+                return member;
             }
             if (i === retries - 1) {
                 console.log('[Session] 找不到用戶，驗證失敗');
@@ -2298,6 +2569,7 @@ async function validateSessionUser(username, retries = 3, delay = 500) {
     return null;
 }
 
+// 【已修改】 包含插隊次數重置邏輯
 async function initialize() {
     showLoading();
     try {
@@ -2306,9 +2578,11 @@ async function initialize() {
         const loggedInUsername = sessionStorage.getItem('currentUser');
         
         if (loggedInUsername) {
-            const member = await validateSessionUser(loggedInUsername);
+            let member = await validateSessionUser(loggedInUsername);
 
             if (member) {
+                // 【新增】檢查並重置插隊次數
+                member = await checkAndResetQuota(member);
                 currentUser = member;
                 console.log(`Session 驗證成功: ${currentUser.username}`);
             } else {
@@ -2349,6 +2623,7 @@ async function initialize() {
         document.dispatchEvent(new Event('DOMContentLoaded'));
     }
 }
+
 
 console.log('⏳ 等待 Firebase 認證...');
 
@@ -2507,7 +2782,11 @@ const translations = {
         'alert_join_queue_fail': '加入排隊失敗，請稍後再試',
         'alert_leave_queue_confirm': '確定要離開排隊嗎？',
         'alert_leave_queue_success': '已離開排隊',
-        'alert_leave_queue_fail': '離開排隊失敗，請稍後再試'
+        'alert_leave_queue_fail': '離開排隊失敗，請稍後再試',
+        // 【新增翻譯】
+        'queue_priority_switch': '優先排隊',
+        'queue_priority_quota': '本月剩餘 <span>{0}</span> 次權限',
+        'queue_priority_no_quota': '您的優先排隊權限已用完'
     },
     'en': {
         'page_title': "Ted's Member System",
@@ -2650,7 +2929,11 @@ const translations = {
         'alert_join_queue_fail': 'Failed to join queue, please try again later',
         'alert_leave_queue_confirm': 'Are you sure you want to leave the queue?',
         'alert_leave_queue_success': 'You have left the queue',
-        'alert_leave_queue_fail': 'Failed to leave queue, please try again later'
+        'alert_leave_queue_fail': 'Failed to leave queue, please try again later',
+        // 【新增翻譯】
+        'queue_priority_switch': 'Priority Queue',
+        'queue_priority_quota': '<span>{0}</span> priority credits left this month',
+        'queue_priority_no_quota': 'You have no priority queue credits left'
     }
 };
 
@@ -2720,8 +3003,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
-
-
-
-
