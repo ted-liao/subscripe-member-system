@@ -2159,14 +2159,22 @@ ${myPosition > 0 ? `
 
 async function joinQueue() {
     showLoading();
-    try {
-        const data = await loadData();
+    
+    // 取得當前語言的翻譯
+    const lang = getCurrentLang();
+    const trans = translations[lang];
 
-        if (data.queue.find(q => q.username === currentUser.username)) {
-            alert('你已經在排隊中了！');
+    try {
+        // -----------------------------------------------------------------
+        // 【修正點 1】
+        // 檢查是否已在排隊，只讀取你自己的節點，而不是 loadData()
+        const snapshot = await database.ref('queue/' + currentUser.username).once('value');
+        if (snapshot.exists()) {
+            alert(trans.alert_already_in_queue || '你已經在排隊中了！');
             hideLoading();
             return;
         }
+        // -----------------------------------------------------------------
 
         const queueItem = {
             username: currentUser.username,
@@ -2176,35 +2184,46 @@ async function joinQueue() {
             joinTime: new Date().toISOString()
         };
 
-        data.queue.push(queueItem);
-        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+        // -----------------------------------------------------------------
+        // 【修正點 2】
+        // 原本是 loadData() -> push -> saveData()
+        // 改成使用 .set() 進行原子寫入，只新增/覆蓋你自己的節點
+        await database.ref('queue/' + currentUser.username).set(queueItem);
+        // -----------------------------------------------------------------
 
-        alert('成功加入排隊！');
+        alert(trans.alert_join_queue_success || '成功加入排隊！');
         showQueuePage();
     } catch (error) {
         console.error('加入排隊失敗:', error);
-        alert('加入排隊失敗，請稍後再試');
+        alert(trans.alert_join_queue_fail || '加入排隊失敗，請稍後再試');
     } finally {
         hideLoading();
     }
 }
-
 async function leaveQueue() {
-    if (!confirm('確定要離開排隊嗎？')) {
+    // 取得當前語言的翻譯
+    const lang = getCurrentLang();
+    const trans = translations[lang];
+
+    // 1. 確認視窗
+    if (!confirm(trans.alert_leave_queue_confirm || '確定要離開排隊嗎？')) {
         return;
     }
 
     showLoading();
     try {
-        const data = await loadData();
-        data.queue = data.queue.filter(q => q.username !== currentUser.username);
-        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+        // -----------------------------------------------------------------
+        // 【修正點】
+        // 原本是 loadData() -> filter -> saveData()
+        // 改成使用 .remove() 進行原子刪除，只刪除你自己的節點
+        await database.ref('queue/' + currentUser.username).remove();
+        // -----------------------------------------------------------------
 
-        alert('已離開排隊');
-        await showQueuePage();
+        alert(trans.alert_leave_queue_success || '已離開排隊');
+        await showQueuePage(); // 重新整理 UI
     } catch (error) {
         console.error('離開排隊失敗:', error);
-        alert('離開排隊失敗，請稍後再試');
+        alert(trans.alert_leave_queue_fail || '離開排隊失敗，請稍後再試');
     } finally {
         hideLoading();
     }
@@ -2701,6 +2720,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
