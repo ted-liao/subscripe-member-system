@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>會員方案 - 廖嘉泰の會員管理系統</title>
+<title data-lang-key="page_title">會員方案 - 廖嘉泰の會員管理系統</title>
 <style>
 * {
     margin: 0;
@@ -58,6 +58,39 @@ body {
     align-items: center;
 }
 
+/* ▼▼▼ 1. 新增的 CSS 樣式 ▼▼▼ */
+.lang-switcher {
+    display: flex;
+    align-items: center;
+    margin-right: 15px; /* 和返回按鈕隔開 */
+}
+.btn-lang {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+    padding: 5px;
+}
+.btn-lang:hover {
+    opacity: 1;
+}
+/* 當前啟用語言的樣式 */
+.btn-lang.active {
+    opacity: 1;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+a.btn {
+    text-decoration: none; /* 移除 a 標籤按鈕的底線 */
+    color: white; /* 確保文字是白色的 */
+}
+/* ▲▲▲ CSS 結束 ▲▲▲ */
+
+
 .card {
     background: white;
     border-radius: 15px;
@@ -111,7 +144,6 @@ body {
     box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     border: 3px solid transparent;
     transition: all 0.3s ease;
-    /* 確保卡片有足夠高度 */
     min-height: 400px; 
     display: flex;
     flex-direction: column;
@@ -131,7 +163,6 @@ body {
     font-size: 1.1em;
     color: #555;
     line-height: 1.6;
-    /* 讓說明文字佔據可用空間 */
     flex-grow: 1; 
 }
 
@@ -163,16 +194,13 @@ body {
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-
-/* --- ▼▼▼ 新增：價格區塊樣式 ▼▼▼ --- */
 .price-section {
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 2px dashed rgba(255, 255, 255, 0.3); /* 預設分隔線 */
+    border-top: 2px dashed rgba(255, 255, 255, 0.3);
 }
 .price-grid {
     display: grid;
-    /* 調整 minmax 讓 3 個項目能並排 */
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
     gap: 10px;
 }
@@ -185,15 +213,13 @@ body {
 .price-box .price {
     font-size: 1.4em;
     font-weight: bold;
-    color: white; /* 預設價格顏色 */
+    color: white;
     margin-bottom: 5px;
 }
 .price-box .duration {
     font-size: 0.9em;
-    color: #f0f0f0; /* 預設時長顏色 */
+    color: #f0f0f0;
 }
-/* --- ▲▲▲ 樣式結束 ▲▲▲ --- */
-
 
 /* 傳說 */
 .tier-legend {
@@ -210,7 +236,6 @@ body {
     color: #f0f0f0;
 }
 .tier-legend .price-section { border-top-color: rgba(255, 255, 255, 0.5); }
-/* 傳說列表方框 */
 .tier-legend-list {
     background: linear-gradient(135deg, #FF6B6B 10%, #C44569 100%);
     color: white;
@@ -224,28 +249,24 @@ body {
     color: white;
 }
 
-
-/* --- ▼▼▼ 修改 1：調整鑽石級卡片文字顏色 ▼▼▼ --- */
+/* 鑽石 */
 .tier-diamond {
     background: linear-gradient(135deg, #B9F2FF 10%, #00B4DB 100%);
-    color: #005670; /* 卡片預設文字改為深色 */
+    color: #005670;
     border-color: #B9F2FF;
 }
 .tier-diamond h2 {
-    color: #005670; /* 標題改為深色 */
-    text-shadow: none; /* 移除白色文字的陰影 */
+    color: #005670;
+    text-shadow: none;
     font-size: 2.2em;
 }
 .tier-diamond p, .tier-diamond li {
-    color: #005670; /* 說明文字改為深色 */
+    color: #005670;
 }
-/* 鑽石價格區塊 */
 .tier-diamond .price-section { border-top-color: rgba(0, 86, 112, 0.3); } 
 .tier-diamond .price-box { background-color: rgba(255, 255, 255, 0.4); }
-.tier-diamond .price-box .price { color: #005670; } /* 價格改為深色 */
-.tier-diamond .price-box .duration { color: #005670; } /* 時長改為深色 */
-
-/* 鑽石列表方框 (維持不變) */
+.tier-diamond .price-box .price { color: #005670; }
+.tier-diamond .price-box .duration { color: #005670; }
 .tier-diamond-list {
     background: linear-gradient(135deg, #B9F2FF 10%, #00B4DB 100%);
     color: #005670; 
@@ -258,8 +279,6 @@ body {
     background-color: rgba(255, 255, 255, 0.4);
     color: #005670;
 }
-/* --- ▲▲▲ 修改結束 ▲▲▲ --- */
-
 
 /* 黃金 */
 .tier-gold {
@@ -274,12 +293,10 @@ body {
 .tier-gold p, .tier-gold li {
     color: #555;
 }
-/* 黃金價格區塊 */
 .tier-gold .price-section { border-top-color: rgba(160, 82, 45, 0.3); }
 .tier-gold .price-box { background-color: rgba(255, 255, 255, 0.4); }
 .tier-gold .price-box .price { color: #a0522d; }
 .tier-gold .price-box .duration { color: #555; }
-/* 黃金列表方框 */
 .tier-gold-list {
     background: linear-gradient(135deg, #FFD700 10%, #FFA500 100%);
     color: #333;
@@ -292,7 +309,6 @@ body {
     background-color: rgba(255, 255, 255, 0.4);
     color: #333;
 }
-
 
 /* 載入中 spinner */
 .loading-spinner {
@@ -309,7 +325,6 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-
 @media (max-width: 1024px) {
     .tier-grid {
         flex-direction: column; 
@@ -320,7 +335,7 @@ body {
         max-width: 700px;
     }
     .member-tier-card {
-        min-height: auto; /* 在手機上取消最小高度 */
+        min-height: auto;
     }
 }
 
@@ -338,6 +353,10 @@ body {
     .member-tier-card {
         padding: 20px;
     }
+    /* 讓語言切換器也換行 */
+    .user-section {
+        flex-wrap: wrap;
+    }
 }
 </style>
 
@@ -351,12 +370,17 @@ body {
 <div class="container">
     <div class="top-bar">
         <div class="header">
-            <h1>💎 會員方案總覽</h1>
-            <p>查看所有可用的會員等級</p>
+            <h1 data-lang-key="header_title">💎 會員方案總覽</h1>
+            <p data-lang-key="header_subtitle">查看所有可用的會員等級</p>
         </div>
 
         <div class="user-section">
-            <a href="index.html" class="btn btn-small">🏠 返回首頁</a>
+            <div class="lang-switcher">
+                <button class="btn-lang" onclick="setLanguage('en')">English</button>
+                <span style="color: white; margin: 0 5px;">|</span>
+                <button class="btn-lang active" onclick="setLanguage('zh')">中文</button>
+            </div>
+            <a href="index.html" class="btn btn-small" data-lang-key="back_to_home">🏠 返回首頁</a>
         </div>
     </div>
 
@@ -365,13 +389,13 @@ body {
 
             <div class="tier-group">
                 <div class="member-tier-card tier-legend">
-                    <h2>🔥 傳說會員</h2>
+                    <h2 data-lang-key="legend_title">🔥 傳說會員</h2>
                     <p>
-                        尊爵不凡的頂級會員，享受所有專屬權益。
+                        <span data-lang-key="legend_desc">尊爵不凡的頂級會員，享受所有專屬權益。</span>
                         <ul style="padding-left: 20px; margin-top: 10px;">
-                            <li><b>一次連續5把</b></li>
-                            <li><b>5次/月 插隊額度</b></li>
-                            <li><b>偶爾專屬同樂場</b></li>
+                            <li data-lang-key="legend_b1"><b>一次連續5把</b></li>
+                            <li data-lang-key="legend_b2"><b>5次/月 插隊額度</b></li>
+                            <li data-lang-key="legend_b3"><b>偶爾專屬同樂場</b></li>
                         </ul>
                     </p>
                     
@@ -379,21 +403,21 @@ body {
                         <div class="price-grid">
                             <div class="price-box">
                                 <div class="price">NT$200</div>
-                                <div class="duration">1個月 (30天)</div>
+                                <div class="duration" data-lang-key="duration_1">1個月 (30天)</div>
                             </div>
                             <div class="price-box">
                                 <div class="price">NT$580</div>
-                                <div class="duration">3個月 (90天)</div>
+                                <div class="duration" data-lang-key="duration_2">3個月 (90天)</div>
                             </div>
                             <div class="price-box">
                                 <div class="price">NT$950</div>
-                                <div class="duration">5個月 (150天)</div>
+                                <div class="duration" data-lang-key="duration_3">5個月 (150天)</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="member-list-box tier-legend-list">
-                    <h4>🔥 傳說會員名單</h4>
+                    <h4 data-lang-key="legend_list_title">🔥 傳說會員名單</h4>
                     <div class="member-list-container" id="legend-members">
                         <div class="loading-spinner"></div>
                     </div>
@@ -402,12 +426,12 @@ body {
 
             <div class="tier-group">
                 <div class="member-tier-card tier-diamond">
-                    <h2>💎 鑽石會員</h2>
+                    <h2 data-lang-key="diamond_title">💎 鑽石會員</h2>
                     <p>
-                        進階會員方案，解鎖更多獨特福利。
+                        <span data-lang-key="diamond_desc">進階會員方案，解鎖更多獨特福利。</span>
                         <ul style="padding-left: 20px; margin-top: 10px;">
-                            <li><b>一次連續3把</b></li>
-                            <li><b>2次/月 插隊額度</b></li>
+                            <li data-lang-key="diamond_b1"><b>一次連續3把</b></li>
+                            <li data-lang-key="diamond_b2"><b>2次/月 插隊額度</b></li>
                         </ul>
                     </p>
 
@@ -415,21 +439,21 @@ body {
                         <div class="price-grid">
                             <div class="price-box">
                                 <div class="price">NT$100</div>
-                                <div class="duration">1個月 (30天)</div>
+                                <div class="duration" data-lang-key="duration_1">1個月 (30天)</div>
                             </div>
                             <div class="price-box">
                                 <div class="price">NT$280</div>
-                                <div class="duration">3個月 (90天)</div>
+                                <div class="duration" data-lang-key="duration_2">3個月 (90天)</div>
                             </div>
                             <div class="price-box">
                                 <div class="price">NT$450</div>
-                                <div class="duration">5個月 (150天)</div>
+                                <div class="duration" data-lang-key="duration_3">5個月 (150天)</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="member-list-box tier-diamond-list">
-                    <h4>💎 鑽石會員名單</h4>
+                    <h4 data-lang-key="diamond_list_title">💎 鑽石會員名單</h4>
                     <div class="member-list-container" id="diamond-members">
                         <div class="loading-spinner"></div>
                     </div>
@@ -438,11 +462,11 @@ body {
 
             <div class="tier-group">
                 <div class="member-tier-card tier-gold">
-                    <h2>💛 黃金會員</h2>
+                    <h2 data-lang-key="gold_title">💛 黃金會員</h2>
                     <p>
-                        標準會員方案，開始您的會員之旅。
+                        <span data-lang-key="gold_desc">標準會員方案，開始您的會員之旅。</span>
                         <ul style="padding-left: 20px; margin-top: 10px;">
-                            <li><b>一次連續3把</b></li>
+                            <li data-lang-key="gold_b1"><b>一次連續3把</b></li>
                         </ul>
                     </p>
 
@@ -450,21 +474,21 @@ body {
                         <div class="price-grid">
                             <div class="price-box">
                                 <div class="price">NT$60</div>
-                                <div class="duration">1個月 (30天)</div>
+                                <div class="duration" data-lang-key="duration_1">1個月 (30天)</div>
                             </div>
                             <div class="price-box">
                                 <div class="price">NT$160</div>
-                                <div class="duration">3個月 (90天)</div>
+                                <div class="duration" data-lang-key="duration_2">3個月 (90天)</div>
                             </div>
                             <div class="price-box">
                                 <div class="price">NT$250</div>
-                                <div class="duration">5個月 (150天)</div>
+                                <div class="duration" data-lang-key="duration_3">5個月 (150天)</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="member-list-box tier-gold-list">
-                    <h4>💛 黃金會員名單</h4>
+                    <h4 data-lang-key="gold_list_title">💛 黃金會員名單</h4>
                     <div class="member-list-container" id="gold-members">
                         <div class="loading-spinner"></div>
                     </div>
@@ -503,10 +527,14 @@ firebase.auth().onAuthStateChanged((user) => {
     } else {
         console.log("Firebase 尚未認證...");
     }
+    // 認證後，執行一次語言設定
+    document.dispatchEvent(new Event('DOMContentLoaded'));
 });
 
-// 載入會員名單
+// 載入會員名單 (已修改，支援多語言)
 async function loadMemberLists() {
+    const lang = getCurrentLang(); // 先獲取當前語言
+    const trans = translations[lang];
     try {
         const membersSnapshot = await database.ref('members').once('value');
         const membersData = membersSnapshot.val() || {};
@@ -533,18 +561,22 @@ async function loadMemberLists() {
 
     } catch (error) {
         console.error("載入會員名單失敗:", error);
-        document.getElementById('legend-members').innerHTML = "<p style='color:red;'>載入失敗</T>";
-        document.getElementById('diamond-members').innerHTML = "<p style='color:red;'>載入失敗</T>";
-        document.getElementById('gold-members').innerHTML = "<p style='color:red;'>載入失敗</T>";
+        // 使用翻譯字典顯示錯誤
+        document.getElementById('legend-members').innerHTML = `<p style='color:red;'>${trans.loading_fail}</p>`;
+        document.getElementById('diamond-members').innerHTML = `<p style='color:red;'>${trans.loading_fail}</p>`;
+        document.getElementById('gold-members').innerHTML = `<p style='color:red;'>${trans.loading_fail}</p>`;
     }
 }
 
-// 顯示列表
+// 顯示列表 (已修改，支援多語言)
 function renderList(elementId, members) {
     const container = document.getElementById(elementId);
+    const lang = getCurrentLang();
+    const trans = translations[lang];
     
     if (!members || members.length === 0) {
-        container.innerHTML = "<span class='member-badge' style='opacity: 0.7;'>目前尚無會員</span>";
+        // 使用翻譯字典顯示 "目前尚無會員"
+        container.innerHTML = `<span class='member-badge' style='opacity: 0.7;'>${trans.no_members}</span>`;
         return;
     }
     
@@ -558,6 +590,122 @@ function renderList(elementId, members) {
     });
 }
 
+
+// --- 翻譯邏輯 ---
+
+// 輔助函數：獲取當前語言
+function getCurrentLang() {
+    return localStorage.getItem('language') || 'zh';
+}
+
+// 語言翻譯字典
+const translations = {
+    'zh': {
+        'page_title': '會員方案 - 廖嘉泰の會員管理系統',
+        'header_title': '💎 會員方案總覽',
+        'header_subtitle': '查看所有可用的會員等級',
+        'back_to_home': '🏠 返回首頁',
+        'legend_title': '🔥 傳說會員',
+        'legend_desc': '尊爵不凡的頂級會員，享受所有專屬權益。',
+        'legend_b1': '<b>一次連續5把</b>',
+        'legend_b2': '<b>5次/月 插隊額度</b>',
+        'legend_b3': '<b>偶爾專屬同樂場</b>',
+        'legend_list_title': '🔥 傳說會員名單',
+        'diamond_title': '💎 鑽石會員',
+        'diamond_desc': '進階會員方案，解鎖更多獨特福利。',
+        'diamond_b1': '<b>一次連續3把</b>',
+        'diamond_b2': '<b>2次/月 插隊額度</b>',
+        'diamond_list_title': '💎 鑽石會員名單',
+        'gold_title': '💛 黃金會員',
+        'gold_desc': '標準會員方案，開始您的會員之旅。',
+        'gold_b1': '<b>一次連續3把</b>',
+        'gold_list_title': '💛 黃金會員名單',
+        'duration_1': '1個月 (30天)',
+        'duration_2': '3個月 (90天)',
+        'duration_3': '5個月 (150天)',
+        'loading_fail': '載入失敗',
+        'no_members': '目前尚無會員'
+    },
+    'en': {
+        'page_title': 'Plans - Liao Jia-Tai's Member System',
+        'header_title': '💎 Membership Plan Overview',
+        'header_subtitle': 'View all available membership tiers',
+        'back_to_home': '🏠 Back to Home',
+        'legend_title': '🔥 Legend Member',
+        'legend_desc': 'The premium top-tier membership, enjoy all exclusive benefits.',
+        'legend_b1': '<b>5 Games in a row</b>',
+        'legend_b2': '<b>5 Queue Jumps / month</b>',
+        'legend_b3': '<b>Occasional exclusive games</b>',
+        'legend_list_title': '🔥 Legend Member Roster',
+        'diamond_title': '💎 Diamond Member',
+        'diamond_desc': 'Advanced membership plan, unlock more unique benefits.',
+        'diamond_b1': '<b>3 Games in a row</b>',
+        'diamond_b2': '<b>2 Queue Jumps / month</b>',
+        'diamond_list_title': '💎 Diamond Member Roster',
+        'gold_title': '💛 Gold Member',
+        'gold_desc': 'Standard membership plan, start your journey here.',
+        'gold_b1': '<b>3 Games in a row</b>',
+        'gold_list_title': '💛 Gold Member Roster',
+        'duration_1': '1 Month (30 Days)',
+        'duration_2': '3 Months (90 Days)',
+        'duration_3': '5 Months (150 Days)',
+        'loading_fail': 'Failed to load',
+        'no_members': 'No members yet'
+    }
+};
+
+// 負責切換語言的函數
+function setLanguage(lang) {
+    // 1. 保存用戶偏好
+    localStorage.setItem('language', lang);
+
+    // 2. 更新按鈕的 .active 狀態
+    document.querySelectorAll('.btn-lang').forEach(btn => {
+        if (btn.getAttribute('onclick') === `setLanguage('${lang}')`) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // 3. 翻譯所有帶 data-lang-key 的元素
+    const langDict = translations[lang];
+    document.querySelectorAll('[data-lang-key]').forEach(el => {
+        const key = el.dataset.langKey;
+        const translation = langDict[key];
+
+        if (translation === undefined) {
+            console.warn(`Missing translation for key: ${key} in lang: ${lang}`);
+            return;
+        }
+
+        // 檢查是否為需要保留 <b> 標籤的特殊福利
+        const isBenefit = key.startsWith('legend_b') || key.startsWith('diamond_b') || key.startsWith('gold_b');
+
+        if (isBenefit) {
+            el.innerHTML = translation;
+        } else if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            el.placeholder = translation;
+        } else {
+            // 保留按鈕/連結前的圖示
+            const icon = el.innerHTML.match(/^(<.*?>|.*?<\/.*?>|💎|📝|⚙️|🔒|🚀|🏠|🔥|💛)/);
+            if ((el.tagName === 'BUTTON' || el.tagName === 'A' || el.tagName === 'H2' || el.tagName === 'H4') && icon && icon[0].length < 20) {
+                el.innerHTML = `${icon[0]} ${translation}`;
+            } else {
+                el.textContent = translation;
+            }
+        }
+    });
+
+    // 4. 重新載入動態列表 (因為 "目前尚無會員" 這段文字需要更新)
+    loadMemberLists();
+}
+
+// 頁面載入時，自動套用儲存的語言
+document.addEventListener('DOMContentLoaded', () => {
+    const savedLang = localStorage.getItem('language') || 'zh'; // 預設為中文
+    setLanguage(savedLang);
+});
 </script>
 
 </body>
