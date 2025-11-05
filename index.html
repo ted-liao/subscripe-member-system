@@ -2470,6 +2470,7 @@ async function joinQueue() {
     }
 }
 
+
 // 【已修改】 使用原子操作 .remove()
 async function leaveQueue() {
     // 取得當前語言的翻譯
@@ -2553,7 +2554,7 @@ function togglePriorityGlow(isON, quota) {
         } else {
             btn.classList.remove('priority-glow');
             // 恢復按鈕文字
-            btn.innerHTML = ` ${trans.queue_join_button || '🚀 一鍵排隊'}`;
+            btn.innerHTML = `🚀 ${trans.queue_join_button || '一鍵排隊'}`;
         }
     }
 }
@@ -2805,7 +2806,7 @@ const translations = {
         // 【新增翻譯】
         'queue_priority_switch': '優先排隊',
         'queue_priority_quota': '本月剩餘 <span>{0}</span> 次權限',
-        'queue_priority_no_quota': '您的優先排隊權限已用完'
+        'queue_priority_no_quota': '您的優先排隊權限已用完',
         'alert_priority_confirm': '確定要使用 1 次優先排隊權限嗎？'
     },
     'en': {
@@ -2953,7 +2954,7 @@ const translations = {
         // 【新增翻譯】
         'queue_priority_switch': 'Priority Queue',
         'queue_priority_quota': '<span>{0}</span> priority credits left this month',
-        'queue_priority_no_quota': 'You have no priority queue credits left'
+        'queue_priority_no_quota': 'You have no priority queue credits left',
         'alert_priority_confirm': 'Are you sure you want to use 1 priority queue credit?'
     }
 };
@@ -3024,14 +3025,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
