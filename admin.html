@@ -20,7 +20,7 @@ body {
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1400px; /* <-- 已幫您拓寬 */
     margin: 0 auto;
 }
 
@@ -945,10 +945,8 @@ const translations = {
         'queue_remove_button': '移除',
         'code_admin_title': '🔑 兌換碼管理',
         'code_tab_generate': '產生新碼',
-        // ▼▼▼ 字典修正 ▼▼▼
         'code_tab_unused': '未使用',
         'code_tab_used': '已使用',
-        // ▲▲▲ 修正結束 ▲▲▲
         'code_level_label': '會員等級',
         'level_gold': '💛 黃金會員',
         'level_diamond': '💎 鑽石會員',
@@ -964,10 +962,8 @@ const translations = {
         'code_used_by': '使用者:',
         'code_used_date': '使用日期:',
         'member_admin_title': '🧑‍🤝‍🧑 會員管理',
-        // ▼▼▼ 字典修正 ▼▼▼
         'member_tab_active': '生效中',
         'member_tab_expired': '已到期',
-        // ▲▲▲ 修正結束 ▲▲▲
         'member_no_active': '沒有生效中的會員',
         'member_no_expired': '沒有已到期的會員',
         'member_edit_button': '編輯',
@@ -1004,6 +1000,7 @@ const translations = {
         'edit_game_uid': 'CODM UID',
         'edit_level': '會員等級',
         'edit_platform': '平台',
+        'edit_priority_quota': '插隊權限 (次數)', // 【新增翻譯】
         'edit_admin_perm': '管理員權限',
         'edit_set_admin': '設為管理員',
         'edit_save': '儲存變更',
@@ -1104,10 +1101,8 @@ const translations = {
         'queue_remove_button': 'Remove',
         'code_admin_title': '🔑 Activation Code Management',
         'code_tab_generate': 'Generate New',
-        // ▼▼▼ 字典修正 ▼▼▼
         'code_tab_unused': 'Unused',
         'code_tab_used': 'Used',
-        // ▲▲▲ 修正結束 ▲▲▲
         'code_level_label': 'Membership Level',
         'level_gold': '💛 Gold Member',
         'level_diamond': '💎 Diamond Member',
@@ -1123,10 +1118,8 @@ const translations = {
         'code_used_by': 'Used By:',
         'code_used_date': 'Used Date:',
         'member_admin_title': '🧑‍🤝‍🧑 Member Management',
-        // ▼▼▼ 字典修正 ▼▼▼
         'member_tab_active': 'Active',
         'member_tab_expired': 'Expired',
-        // ▲▲▲ 修正結束 ▲▲▲
         'member_no_active': 'No active members',
         'member_no_expired': 'No expired members',
         'member_edit_button': 'Edit',
@@ -1163,6 +1156,7 @@ const translations = {
         'edit_game_uid': 'CODM UID',
         'edit_level': 'Member Level',
         'edit_platform': 'Platform',
+        'edit_priority_quota': 'Priority Quota (Uses)', // 【新增翻譯】
         'edit_admin_perm': 'Admin Permission',
         'edit_set_admin': 'Set as Admin',
         'edit_save': 'Save Changes',
@@ -1301,21 +1295,9 @@ function setLanguage(lang) {
 
 
 // Firebase 初始化
-const firebaseConfig = {
-    apiKey: "AIzaSyCQEXz8OIzbb9dDxnz52tymNnYofGDEczQ",
-    authDomain: "subscription-member-system.firebaseapp.com",
-    databaseURL: "https://subscription-member-system-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "subscription-member-system",
-    storageBucket: "subscription-member-system.firebasestorage.app",
-    messagingSenderId: "970681171187",
-    appId: "1:970681171187:web:f3f86b743e27667a994b86"
-};
-
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
-
+// (已移到頂部，但保留變數)
 let isAuthReady = false;
-let isDomReady = false; // 新增 DOM 狀態旗標
+let isDomReady = false; 
 
 // ▼▼▼ 修正：將 Firebase 認證邏輯與 DOM 載入邏輯分開 ▼▼▼
 
@@ -1387,6 +1369,7 @@ async function hashPassword(password) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+// 【已修改】 包含排隊優先級排序
 async function loadData() {
     try {
         const membersSnapshot = await database.ref('members').once('value');
@@ -1404,13 +1387,29 @@ async function loadData() {
         const codesData = codesSnapshot.val() || {};
         const activationCodes = Object.values(codesData);
 
+        // 【修改】排序邏輯
         const queueData = queueSnapshot.val() || {};
-        const queue = Object.values(queueData).sort((a, b) => new Date(a.joinTime) - new Date(b.joinTime));
+        const queue = Object.values(queueData); // 1. 從物件轉為陣列
+
+        // 2. 進行排序
+        queue.sort((a, b) => {
+            // 賦予預設值 0 (一般排隊)
+            const priorityA = a.priorityLevel || 0;
+            const priorityB = b.priorityLevel || 0;
+
+            // 規則 1: 優先級高的排前面 (傳說 2 > 鑽石 1 > 一般 0)
+            if (priorityA !== priorityB) {
+                return priorityB - priorityA;
+            }
+
+            // 規則 2: 優先級相同，先來的排前面
+            return new Date(a.joinTime) - new Date(b.joinTime);
+        });
 
         return {
             members,
             activationCodes,
-            queue,
+            queue, // 3. 回傳排好序的陣列
             gameSession: sessionSnapshot.val(),
             lastBackupTime: backupSnapshot.val()
         };
@@ -1637,16 +1636,24 @@ async function updateAllCountdowns() {
     try {
         const data = await loadData();
         const now = Math.floor(Date.now() / 1000);
-        let needSave = false;
+        let membersToUpdate = {}; // 批次更新
         let needRefreshAdmin = false;
 
         data.members.forEach(member => {
             const elapsed = now - member.lastUpdateTime;
-            if (elapsed > 0) {
-                const oldExpired = member.remainingSeconds <= 0;
+            if (elapsed > 0 && member.remainingSeconds > 0) {
+                const oldRemaining = member.remainingSeconds;
+                const oldExpired = oldRemaining <= 0;
+                
                 member.remainingSeconds = Math.max(0, member.remainingSeconds - elapsed);
                 member.lastUpdateTime = now;
-                needSave = true;
+
+                if (oldRemaining !== member.remainingSeconds) {
+                    membersToUpdate[member.username] = {
+                        remainingSeconds: member.remainingSeconds,
+                        lastUpdateTime: member.lastUpdateTime
+                    };
+                }
 
                 const newExpired = member.remainingSeconds <= 0;
                 if (!oldExpired && newExpired) {
@@ -1655,8 +1662,10 @@ async function updateAllCountdowns() {
             }
         });
 
-        if (needSave) {
-            await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+        if (Object.keys(membersToUpdate).length > 0) {
+            for (const username in membersToUpdate) {
+                await database.ref('members/' + username).update(membersToUpdate[username]);
+            }
         }
         
         if (needRefreshAdmin && (currentMemberSubTab === 'active' || currentMemberSubTab === 'expired')) {
@@ -1816,6 +1825,7 @@ function renderGameSession(gameSession) {
     }
 }
 
+// 【已修改】 包含插隊圖示
 function renderQueueList(queue) {
     const container = document.getElementById('adminQueueList');
     const lang = getCurrentLang();
@@ -1832,10 +1842,13 @@ function renderQueueList(queue) {
         const levelText = q.level === 'legend' ? trans.level_legend_simple : (q.level === 'diamond' ? trans.level_diamond_simple : trans.level_gold_simple);
         const badgeClass = q.level === 'legend' ? 'badge-legend' : (q.level === 'diamond' ? 'badge-diamond' : 'badge-gold');
         
+        // 【新增】顯示插隊圖示
+        const priorityIcon = q.priorityLevel === 2 ? '🔥' : (q.priorityLevel === 1 ? '💎' : '');
+
         return `
         <div class="queue-item">
             <div>
-                <strong>#${index + 1} ${q.nickname}</strong>
+                <strong>${priorityIcon} #${index + 1} ${q.nickname}</strong>
                 <span class="badge ${badgeClass}" style="margin-left: 10px;">${levelText}</span>
                 <div style="font-size: 12px; color: #666; margin-top: 3px;">UID: ${q.gameUID}</div>
             </div>
@@ -1851,13 +1864,11 @@ function renderCodeLists(activationCodes) {
     const lang = getCurrentLang();
     const trans = translations[lang];
     
-    // ▼▼▼ 修正：確保在修改 .textContent 之前，元素存在 ▼▼▼
     const unusedCountEl = document.getElementById('unusedCodeCount');
     if (unusedCountEl) unusedCountEl.textContent = unused.length;
     
     const usedCountEl = document.getElementById('usedCodeCount');
     if (usedCountEl) usedCountEl.textContent = used.length;
-    // ▲▲▲ 修正結束 ▲▲▲
 
     if (currentCodeSubTab === 'unused') {
         const unusedContainer = document.getElementById('unusedCodeList');
@@ -1912,13 +1923,11 @@ function renderMemberLists(members) {
     const active = allMembers.filter(m => m.remainingSeconds > 0);
     const expired = allMembers.filter(m => m.remainingSeconds <= 0);
     
-    // ▼▼▼ 修正：確保在修改 .textContent 之前，元素存在 ▼▼▼
     const activeCountEl = document.getElementById('activeMemberCount');
     if (activeCountEl) activeCountEl.textContent = active.length;
     
     const expiredCountEl = document.getElementById('expiredMemberCount');
     if (expiredCountEl) expiredCountEl.textContent = expired.length;
-    // ▲▲▲ 修正結束 ▲▲▲
 
     const renderMemberItem = (m) => {
         const levelText = m.level === 'legend' ? trans.level_legend_simple : (m.level === 'diamond' ? trans.level_diamond_simple : trans.level_gold_simple);
@@ -2151,6 +2160,7 @@ async function deleteCode(code) {
     }
 }
 
+// 【已修改】 包含插隊權限的 HTML
 async function openEditMember(username) {
     showLoading();
     const lang = getCurrentLang();
@@ -2213,6 +2223,11 @@ async function openEditMember(username) {
                 <option value="tiktok" ${member.platform === 'tiktok' ? 'selected' : ''}>TikTok</option>
                 <option value="youtube" ${member.platform === 'youtube' ? 'selected' : ''}>YouTube</option>
             </select>
+        </div>
+        
+        <div class="input-group">
+            <label>${trans.edit_priority_quota}</label>
+            <input type="number" id="editPriorityQuota" value="${member.priorityQuota || 0}">
         </div>
         
         <hr style="margin: 20px 0;">
@@ -2303,6 +2318,7 @@ async function adjustTime(isAdding) {
     }
 }
 
+// 【已修改】 包含儲存插隊權限
 async function saveMemberEdit() {
     if (!editingMember) return;
     const lang = getCurrentLang();
@@ -2313,6 +2329,7 @@ async function saveMemberEdit() {
     const newLevel = document.getElementById('editLevel').value;
     const newPlatform = document.getElementById('editPlatform').value;
     const newIsAdmin = document.getElementById('editIsAdmin').checked;
+    const newPriorityQuota = parseInt(document.getElementById('editPriorityQuota').value) || 0; // 【新增】
     
     if (!newNickname || !newGameUID) {
         alert(trans.alert_member_empty_fields);
@@ -2329,6 +2346,7 @@ async function saveMemberEdit() {
         member.level = newLevel;
         member.platform = newPlatform;
         member.isAdmin = newIsAdmin;
+        member.priorityQuota = newPriorityQuota; // 【新增】
         
         await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
         
@@ -2504,7 +2522,8 @@ async function exportToExcel(isAuto = false) {
                 'CODM UID': member.gameUID, '會員等級': levelText, '狀態': statusText,
                 '剩餘時間': formatTimeDisplay(timeObj), '剩餘秒數': member.remainingSeconds,
                 '兌換碼': member.activationCode, '加入日期': new Date(member.joinDate).toLocaleDateString('zh-TW'),
-                '是否為管理員': member.isAdmin ? '是' : '否'
+                '是否為管理員': member.isAdmin ? '是' : '否',
+                '插隊次數': member.priorityQuota // 導出插隊次數
             };
         });
 
