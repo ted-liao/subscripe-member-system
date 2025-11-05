@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title data-lang-key="page_title">管理後台 - 廖嘉泰の會員管理系統</title>
 <style>
-/* ... (您所有的 CSS 樣式都保持不變) ... */
 * {
     margin: 0;
     padding: 0;
@@ -20,7 +19,7 @@ body {
 }
 
 .container {
-    max-width: 1400px; /* <-- 已幫您拓寬 */
+    max-width: 1400px; /* <-- 已拓寬 */
     margin: 0 auto;
 }
 
@@ -1294,10 +1293,24 @@ function setLanguage(lang) {
 // --- ▲▲▲ 翻譯邏輯結束 ▲▲▲ ---
 
 
+// --- ▼▼▼ 核心 Javascript 開始 ▼▼▼ ---
+
 // Firebase 初始化
-// (已移到頂部，但保留變數)
+const firebaseConfig = {
+    apiKey: "AIzaSyCQEXz8OIzbb9dDxnz52tymNnYofGDEczQ",
+    authDomain: "subscription-member-system.firebaseapp.com",
+    databaseURL: "https://subscription-member-system-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "subscription-member-system",
+    storageBucket: "subscription-member-system.firebasestorage.app",
+    messagingSenderId: "970681171187",
+    appId: "1:970681171187:web:f3f86b743e27667a994b86"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
 let isAuthReady = false;
-let isDomReady = false; 
+let isDomReady = false; // 新增 DOM 狀態旗標
 
 // ▼▼▼ 修正：將 Firebase 認證邏輯與 DOM 載入邏輯分開 ▼▼▼
 
@@ -1640,7 +1653,7 @@ async function updateAllCountdowns() {
         let needRefreshAdmin = false;
 
         data.members.forEach(member => {
-            const elapsed = now - member.lastUpdateTime;
+            const elapsed = now - (member.lastUpdateTime || now); // 防呆
             if (elapsed > 0 && member.remainingSeconds > 0) {
                 const oldRemaining = member.remainingSeconds;
                 const oldExpired = oldRemaining <= 0;
@@ -1657,21 +1670,24 @@ async function updateAllCountdowns() {
 
                 const newExpired = member.remainingSeconds <= 0;
                 if (!oldExpired && newExpired) {
-                    needRefreshAdmin = true;
+                    needRefreshAdmin = true; // 有會員剛過期
                 }
             }
         });
 
         if (Object.keys(membersToUpdate).length > 0) {
             for (const username in membersToUpdate) {
+                // 使用 .update() 避免覆蓋其他欄位
                 await database.ref('members/' + username).update(membersToUpdate[username]);
             }
         }
         
+        // 如果有會員剛過期，且剛好在看會員列表，就刷新
         if (needRefreshAdmin && (currentMemberSubTab === 'active' || currentMemberSubTab === 'expired')) {
             await refreshAdminDashboard();
         }
 
+        // 更新編輯彈窗中的倒數
         const modalCountdown = document.getElementById('editMemberCountdown');
         if (modalCountdown && editingMember) {
             const member = data.members.find(m => m.username === editingMember.username);
@@ -2287,20 +2303,24 @@ async function adjustTime(isAdding) {
     
     showLoading();
     try {
-        const data = await loadData();
-        const member = data.members.find(m => m.username === editingMember.username);
+        const memberRef = database.ref('members/' + editingMember.username);
+        const snapshot = await memberRef.once('value');
+        const member = snapshot.val();
         
+        let newRemainingSeconds;
         if (isAdding) {
-            member.remainingSeconds += secondsToAdd;
+            newRemainingSeconds = (member.remainingSeconds || 0) + secondsToAdd;
         } else {
-            member.remainingSeconds = Math.max(0, member.remainingSeconds - secondsToAdd);
+            newRemainingSeconds = Math.max(0, (member.remainingSeconds || 0) - secondsToAdd);
         }
-        member.lastUpdateTime = Math.floor(Date.now() / 1000);
         
-        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+        await memberRef.update({
+            remainingSeconds: newRemainingSeconds,
+            lastUpdateTime: Math.floor(Date.now() / 1000)
+        });
         
-        const timeObj = secondsToTime(member.remainingSeconds);
-        const timeClass = getTimeColorClass(member.remainingSeconds);
+        const timeObj = secondsToTime(newRemainingSeconds);
+        const timeClass = getTimeColorClass(newRemainingSeconds);
         document.getElementById('editMemberCountdown').textContent = formatTimeDisplay(timeObj);
         document.getElementById('editMemberCountdown').className = 'countdown-time ' + timeClass;
         
@@ -2338,17 +2358,15 @@ async function saveMemberEdit() {
     
     showLoading();
     try {
-        const data = await loadData();
-        const member = data.members.find(m => m.username === editingMember.username);
-        
-        member.nickname = newNickname;
-        member.gameUID = newGameUID;
-        member.level = newLevel;
-        member.platform = newPlatform;
-        member.isAdmin = newIsAdmin;
-        member.priorityQuota = newPriorityQuota; // 【新增】
-        
-        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+        // 使用 .update() 進行原子更新
+        await database.ref('members/' + editingMember.username).update({
+            nickname: newNickname,
+            gameUID: newGameUID,
+            level: newLevel,
+            platform: newPlatform,
+            isAdmin: newIsAdmin,
+            priorityQuota: newPriorityQuota // 【新增】
+        });
         
         alert(trans.alert_member_save_success);
         closeEditMemberModal();
@@ -2374,19 +2392,9 @@ async function deleteMember(username) {
     
     showLoading();
     try {
-        const data = await loadData();
-        
-        const memberIndex = data.members.findIndex(m => m.username === username);
-        if (memberIndex > -1) {
-            data.members.splice(memberIndex, 1);
-        }
-        
-        const queueIndex = data.queue.findIndex(q => q.username === username);
-        if (queueIndex > -1) {
-            data.queue.splice(queueIndex, 1);
-        }
-        
-        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+        // 原子刪除
+        await database.ref('members/' + username).remove();
+        await database.ref('queue/' + username).remove(); // 順便從排隊中移除
         
         alert(trans.alert_member_delete_success.replace('{username}', username));
         await refreshAdminDashboard();
@@ -2427,12 +2435,13 @@ async function changePassword() {
             return;
         }
 
-        const data = await loadData();
-        const member = data.members.find(m => m.username === currentUser.username);
-        member.passwordHash = await hashPassword(newPassword);
-        await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
+        const newPasswordHash = await hashPassword(newPassword);
+        // 只更新密碼
+        await database.ref('members/' + currentUser.username).update({
+            passwordHash: newPasswordHash
+        });
 
-        currentUser.passwordHash = member.passwordHash;
+        currentUser.passwordHash = newPasswordHash;
 
         alert(trans.alert_password_change_success);
         closeChangePasswordModal();
@@ -2569,3 +2578,6 @@ async function exportToExcel(isAuto = false) {
 </script>
 </body>
 </html>
+</body>
+</html>
+
