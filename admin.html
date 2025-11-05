@@ -906,6 +906,9 @@ a.btn {
 <script>
 // --- ▼▼▼ 翻譯邏輯 (已移到最前面) ▼▼▼ ---
 
+<script>
+// --- ▼▼▼ 翻譯邏輯 (已移到最前面) ▼▼▼ ---
+
 // 輔助函數：獲取當前語言
 function getCurrentLang() {
     return localStorage.getItem('language') || 'zh';
@@ -1068,7 +1071,6 @@ const translations = {
         'alert_current_password_wrong': '目前密碼錯誤',
         'alert_password_change_success': '密碼更改成功！',
         'alert_password_change_fail': '更改密碼失敗，請稍後再試'
-        // 'alert_move_priority_fail' 已被移除
     },
     'en': {
         'page_title': "Admin Panel - Liao Jia-Tai's Member System",
@@ -1225,7 +1227,6 @@ const translations = {
         'alert_current_password_wrong': 'Current password is wrong',
         'alert_password_change_success': 'Password changed successfully!',
         'alert_password_change_fail': 'Password change failed, please try again later'
-        // 'alert_move_priority_fail' 已被移除
     }
 };
 
@@ -1398,22 +1399,27 @@ async function loadData() {
         const codesData = codesSnapshot.val() || {};
         const activationCodes = Object.values(codesData);
 
-        // 【修改】排序邏輯
         const queueData = queueSnapshot.val() || {};
         const queue = Object.values(queueData); // 1. 從物件轉為陣列
 
-        // 2. 進行排序
+        // 【修改】 採用新的排序邏輯
         queue.sort((a, b) => {
-            // 賦予預設值 0 (一般排隊)
+            const adminA = a.adminOrder || 9999; // 9999 代表沒有手動排過
+            const adminB = b.adminOrder || 9999;
+
+            // 1. 如果有手動排序，以此為準
+            if (adminA !== 9999 || adminB !== 9999) {
+                return adminA - adminB;
+            }
+            
+            // 2. 如果都沒有手動排序，才用優先級
             const priorityA = a.priorityLevel || 0;
             const priorityB = b.priorityLevel || 0;
-
-            // 規則 1: 優先級高的排前面 (傳說 2 > 鑽石 1 > 一般 0)
             if (priorityA !== priorityB) {
-                return priorityB - priorityA;
+                return priorityB - priorityA; // 優先級高的在前
             }
-
-            // 規則 2: 優先級相同，先來的排前面
+            
+            // 3. 優先級也相同，用加入時間
             return new Date(a.joinTime) - new Date(b.joinTime);
         });
 
@@ -2096,51 +2102,39 @@ async function clearQueue() {
     }
 }
 
-// 【已修改】 移除優先級檢查，改為交換優先級
+// 【已修改】 移除優先級檢查，改為手動設置 adminOrder
 async function moveQueueItem(username, direction) {
     const lang = getCurrentLang();
     const trans = translations[lang];
     showLoading();
     
     try {
-        const data = await loadData(); // 1. Gets the sorted list
+        const data = await loadData(); // 1. 取得當前已排序的列表
+        let queue = data.queue;
         
-        const currentIndex = data.queue.findIndex(q => q.username === username);
+        const currentIndex = queue.findIndex(q => q.username === username);
         if (currentIndex === -1) throw new Error("找不到該用戶");
 
         const targetIndex = (direction === 'up') ? currentIndex - 1 : currentIndex + 1;
         
-        if (targetIndex < 0 || targetIndex >= data.queue.length) {
+        if (targetIndex < 0 || targetIndex >= queue.length) {
             hideLoading();
             return; 
         }
 
-        const itemA = data.queue[currentIndex]; // The one being moved
-        const itemB = data.queue[targetIndex]; // The one being swapped with
+        // 2. 在本地陣列中移動
+        const [itemToMove] = queue.splice(currentIndex, 1);
+        queue.splice(targetIndex, 0, itemToMove);
         
-        // --- 修正後的邏輯: 交換時間和優先級 ---
-        
-        // 1. 交換 joinTime
-        const tempTime = itemA.joinTime;
-        itemA.joinTime = itemB.joinTime;
-        itemB.joinTime = tempTime;
-        
-        // 2. 交換 priorityLevel (確保 defaults 被處理)
-        const priorityA = itemA.priorityLevel || 0;
-        const priorityB = itemB.priorityLevel || 0;
-        itemA.priorityLevel = priorityB;
-        itemB.priorityLevel = priorityA;
-        // --- 邏輯結束 ---
-        
-        // 分別更新兩個項目到 Firebase
-        await database.ref('queue/' + itemA.username).update({
-            joinTime: itemA.joinTime,
-            priorityLevel: itemA.priorityLevel
+        // 3. 建立一個更新物件，為 *所有* 項目分配新的 adminOrder
+        const updates = {};
+        queue.forEach((item, index) => {
+            // `index + 1` 確保 order 從 1 開始
+            updates[`/queue/${item.username}/adminOrder`] = index + 1;
         });
-        await database.ref('queue/' + itemB.username).update({
-            joinTime: itemB.joinTime,
-            priorityLevel: itemB.priorityLevel
-        });
+        
+        // 4. 一次性將所有更新寫入 Firebase
+        await database.ref().update(updates);
         
         await refreshAdminDashboard(); // 立即刷新畫面
         
