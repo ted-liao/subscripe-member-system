@@ -706,7 +706,7 @@ a.tab:hover {
     }
 }
 
-/* --- 新增的 CSS --- */
+/* --- 方案一：熾熱火焰效果 --- */
 
 /* 優先排隊控制項容器 */
 .priority-queue-controls {
@@ -776,21 +776,33 @@ input:disabled + .slider {
     cursor: not-allowed;
 }
 
-/* 按鈕發光效果 */
+/* 【修改點】按鈕發光效果 */
 .btn.priority-glow {
-    animation: priority-pulse 1.5s infinite;
-    box-shadow: 0 0 15px 5px rgba(240, 147, 251, 0.7);
+    /* 讓動畫在 1.2 秒內無限循環 */
+    animation: priority-fire-pulse 1.2s infinite;
+    /* 確保縮放從中心開始 */
+    transform-origin: center;
 }
 
-@keyframes priority-pulse {
+/* 【修改點】新的 @keyframes */
+@keyframes priority-fire-pulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(240, 147, 251, 0.7);
+        transform: scale(1);
+        /* 內圈金光 + 外圈橘光 */
+        box-shadow: 0 0 10px 3px rgba(255, 220, 0, 0.8), 
+                    0 0 15px 8px rgba(255, 100, 0, 0.6);
     }
-    70% {
-        box-shadow: 0 0 15px 10px rgba(240, 147, 251, 0);
+    50% {
+        transform: scale(1.05); /* 按鈕放大 5% */
+        /* 光暈擴散並變淡 */
+        box-shadow: 0 0 20px 10px rgba(255, 220, 0, 0.4), 
+                    0 0 30px 20px rgba(255, 100, 0, 0);
     }
     100% {
-        box-shadow: 0 0 0 0 rgba(240, 147, 251, 0);
+        transform: scale(1);
+        /* 恢復原狀，形成呼吸感 */
+        box-shadow: 0 0 10px 3px rgba(255, 220, 0, 0.8), 
+                    0 0 15px 8px rgba(255, 100, 0, 0.6);
     }
 }
 </style>
@@ -3003,6 +3015,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
