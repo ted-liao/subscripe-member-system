@@ -52,10 +52,11 @@ body {
     align-items: center;
 }
 
+/* ▼▼▼ 1. 新增的 CSS 樣式 ▼▼▼ */
 .lang-switcher {
     display: flex;
     align-items: center;
-    margin-right: 15px;
+    margin-right: 15px; /* 和登入按鈕隔開 */
 }
 .btn-lang {
     background: none;
@@ -71,15 +72,18 @@ body {
 .btn-lang:hover {
     opacity: 1;
 }
+/* 當前啟用語言的樣式 */
 .btn-lang.active {
     opacity: 1;
     text-decoration: underline;
     text-underline-offset: 3px;
 }
 a.btn {
-    text-decoration: none;
-    color: white;
+    text-decoration: none; /* 移除 a 標籤按鈕的底線 */
+    color: white; /* 確保文字是白色的 */
 }
+/* ▲▲▲ CSS 結束 ▲▲▲ */
+
 
 .user-info {
     background: white;
@@ -142,6 +146,15 @@ a.btn {
     transition: all 0.3s;
 }
 
+.tab.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.tab:hover {
+    transform: translateY(-2px);
+}
+
 a.tab {
     text-decoration: none;
     color: #333;
@@ -151,15 +164,6 @@ a.tab.active {
 }
 a.tab:hover {
     color: #333;
-}
-
-.tab.active {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-}
-
-.tab:hover {
-    transform: translateY(-2px);
 }
 
 .page {
@@ -730,7 +734,6 @@ a.tab:hover {
                 <span style="color: white; margin: 0 5px;">|</span>
                 <button class="btn-lang active" onclick="setLanguage('zh')">中文</button>
             </div>
-
             <button class="btn btn-small" onclick="openLoginModal()" data-lang-key="login">登入</button>
             <button class="btn btn-success btn-small" onclick="openRegisterModal()" data-lang-key="register">註冊</button>
         </div>
@@ -981,7 +984,7 @@ a.tab:hover {
 
 
 <script>
-// Firebase 初始化
+// Firebase 初始化 (從 <head> 移到這裡，統一管理)
 const firebaseConfig = {
     apiKey: "AIzaSyCQEXz8OIzbb9dDxnz52tymNnYofGDEczQ",
     authDomain: "subscription-member-system.firebaseapp.com",
@@ -1192,12 +1195,22 @@ function isAdmin() {
     return currentUser.isAdmin === true;
 }
 
+// ▼▼▼ 已修改，支援多語言 ▼▼▼
 const securityQuestions = {
-    'pet': '你的第一隻寵物叫什麼名字？',
-    'school': '你的小學校名是什麼？',
-    'city': '你出生的城市是哪裡？',
-    'food': '你最喜歡的食物是什麼？',
-    'game': '你最喜歡的CODM角色是什麼？'
+    'zh': {
+        'pet': '你的第一隻寵物叫什麼名字？',
+        'school': '你的小學校名是什麼？',
+        'city': '你出生的城市是哪裡？',
+        'food': '你最喜歡的食物是什麼？',
+        'game': '你最喜歡的CODM角色是什麼？'
+    },
+    'en': {
+        'pet': "What is your first pet's name?",
+        'school': "What is your elementary school's name?",
+        'city': 'In what city were you born?',
+        'food': 'What is your favorite food?',
+        'game': 'What is your favorite CODM character?'
+    }
 };
 
 function secondsToTime(seconds) {
@@ -1230,15 +1243,18 @@ function timeToSeconds(years, months, days, hours, minutes, seconds) {
         seconds;
 }
 
+// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function formatTimeDisplay(timeObj) {
+    const lang = getCurrentLang();
+    const trans = translations[lang];
     const parts = [];
-    if (timeObj.years > 0) parts.push(`${timeObj.years}年`);
-    if (timeObj.months > 0) parts.push(`${timeObj.months}月`);
-    if (timeObj.days > 0) parts.push(`${timeObj.days}天`);
-    if (timeObj.hours > 0) parts.push(`${timeObj.hours}時`);
-    if (timeObj.minutes > 0) parts.push(`${timeObj.minutes}分`);
-    if (timeObj.seconds > 0) parts.push(`${timeObj.seconds}秒`);
-    return parts.join(' ') || '0秒';
+    if (timeObj.years > 0) parts.push(`${timeObj.years}${trans.time_year}`);
+    if (timeObj.months > 0) parts.push(`${timeObj.months}${trans.time_month}`);
+    if (timeObj.days > 0) parts.push(`${timeObj.days}${trans.time_day}`);
+    if (timeObj.hours > 0) parts.push(`${timeObj.hours}${trans.time_hour}`);
+    if (timeObj.minutes > 0) parts.push(`${timeObj.minutes}${trans.time_minute}`);
+    if (timeObj.seconds > 0) parts.push(`${timeObj.seconds}${trans.time_second}`);
+    return parts.join(' ') || `0${trans.time_second}`;
 }
 
 function getTimeColorClass(seconds) {
@@ -1257,6 +1273,7 @@ function generateActivationCode() {
     return code;
 }
 
+// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function copyToClipboard(text, button) {
     const lang = getCurrentLang();
     const trans = translations[lang];
@@ -1294,16 +1311,20 @@ function initDailyBackup() {
     }, timeUntilMidnight);
 }
 
+// ▼▼▼ 已修改，支援多語言 (僅 alert) ▼▼▼
 async function exportToExcel() {
     showLoading();
+    const lang = getCurrentLang();
+    const trans = translations[lang];
     try {
         const data = await loadData();
 
         if (data.members.length === 0) {
-            alert('目前沒有會員資料可導出');
+            alert(trans.alert_no_backup_data);
             return;
         }
 
+        // ... (Excel 導出邏輯不變，因為 Excel 檔案本身就是中文) ...
         const memberData = data.members.map(member => {
             const timeObj = secondsToTime(member.remainingSeconds);
             const levelText = member.level === 'legend' ? '傳說會員' :
@@ -1359,7 +1380,7 @@ async function exportToExcel() {
 
     } catch (error) {
         console.error('備份失敗:', error);
-        alert('備份失敗，請稍後再試');
+        alert(trans.alert_backup_fail);
     } finally {
         hideLoading();
     }
@@ -1401,7 +1422,7 @@ async function updateAllCountdowns() {
                 const member = data.members.find(m => m.username === username);
                 if (member) {
                     const timeObj = secondsToTime(member.remainingSeconds);
-                    element.textContent = formatTimeDisplay(timeObj);
+                    element.textContent = formatTimeDisplay(timeObj); // 會自動使用當前語言
                     element.className = 'countdown-time ' + getTimeColorClass(member.remainingSeconds);
                 }
             }
@@ -1414,7 +1435,7 @@ async function updateAllCountdowns() {
                 const timeDisplay = document.querySelector('.time-display');
                 if (timeDisplay) {
                     const timeObj = secondsToTime(member.remainingSeconds);
-                    timeDisplay.textContent = formatTimeDisplay(timeObj);
+                    timeDisplay.textContent = formatTimeDisplay(timeObj); // 會自動使用當前語言
                     timeDisplay.className = 'time-display ' + getTimeColorClass(member.remainingSeconds);
                 }
             }
@@ -1449,6 +1470,7 @@ function startAutoRefresh() {
     }, REFRESH_INTERVAL);
 }
 
+// ▼▼▼ 已修改，支援多語言 ▼▼▼
 async function refreshQueueOnly() {
     try {
         const data = await loadData();
@@ -1518,6 +1540,7 @@ function stopAutoRefresh() {
     }
 }
 
+// ▼▼▼ 已修改，支援多語言 ▼▼▼
 function updateUserSection() {
     const userSection = document.getElementById('userSection');
     const lang = getCurrentLang();
@@ -1565,17 +1588,17 @@ function showPage(pageName) {
     document.getElementById(pageName).classList.add('active');
 
     const tabs = document.querySelectorAll('.tab');
-    tabs.forEach((tab, index) => {
-        if ((pageName === 'home' && tab.getAttribute('onclick') === "showPage('home')") ||
-            (pageName === 'queue' && tab.getAttribute('onclick') === "showPage('queue')") ||
-            (pageName === 'member' && tab.getAttribute('onclick') === "showPage('member')")) {
+    tabs.forEach((tab) => {
+        // 檢查 onclick 屬性或 href 屬性
+        const onclickAttr = tab.getAttribute('onclick');
+        const hrefAttr = tab.getAttribute('href');
+
+        if (onclickAttr === `showPage('${pageName}')`) {
+            tab.classList.add('active');
+        } else if (hrefAttr === pageName) {
             tab.classList.add('active');
         }
     });
-    // 處理 "查看方案" 按鈕的 active 狀態
-    const plansTab = document.querySelector('.tab[href="member.html"]');
-    if (plansTab) plansTab.classList.remove('active');
-
 
     if (pageName === 'member') {
         showMemberInfo();
@@ -1643,6 +1666,7 @@ function closeEditMemberModal() {
     editingMember = null;
 }
 
+// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function register() {
     const activationCode = document.getElementById('regActivationCode').value.trim().toUpperCase();
     const username = document.getElementById('regUsername').value.trim();
@@ -1736,6 +1760,7 @@ async function register() {
     }
 }
 
+// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function login() {
     const username = document.getElementById('loginUsername').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
@@ -1791,6 +1816,7 @@ async function login() {
     }
 }
 
+// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function logout() {
     sessionStorage.removeItem('currentUser');
     const lang = getCurrentLang();
@@ -1821,11 +1847,14 @@ async function logout() {
     showPage('home');
 }
 
+// ▼▼▼ 已修改，支援多語言 (Alerts + 動態問題) ▼▼▼
 async function checkSecurityQuestion() {
     const username = document.getElementById('forgotUsername').value.trim();
+    const lang = getCurrentLang();
+    const trans = translations[lang];
 
     if (!username) {
-        alert('請輸入使用者名稱'); // 這個 alert 也需要翻譯，但我先專注於主要功能
+        alert(trans.alert_input_username);
         return;
     }
 
@@ -1835,60 +1864,65 @@ async function checkSecurityQuestion() {
         const member = data.members.find(m => m.username === username);
 
         if (!member) {
-            alert('找不到此使用者');
+            alert(trans.alert_user_not_found);
             hideLoading();
             return;
         }
 
         forgotPasswordUser = member;
+        
         // 動態翻譯安全問題
-        const lang = getCurrentLang();
-        const trans = translations[lang];
         const qKey = 'sec_q_' + member.securityQuestion;
-        document.getElementById('displaySecurityQuestion').value = trans[qKey] || securityQuestions[member.securityQuestion];
+        document.getElementById('displaySecurityQuestion').value = trans[qKey] || securityQuestions[lang][member.securityQuestion];
         
         document.getElementById('securityQuestionSection').style.display = 'block';
     } catch (error) {
         console.error('檢查安全問題失敗:', error);
-        alert('操作失敗，請稍後再試');
+        alert(trans.alert_op_fail);
     } finally {
         hideLoading();
     }
 }
 
+// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 function verifySecurityAnswer() {
     const answer = document.getElementById('securityAnswer').value.trim().toLowerCase();
+    const lang = getCurrentLang();
+    const trans = translations[lang];
 
     if (!answer) {
-        alert('請輸入答案');
+        alert(trans.alert_input_answer);
         return;
     }
 
     if (answer === forgotPasswordUser.securityAnswer) {
-        alert('驗證成功！請設定新密碼');
+        alert(trans.alert_verify_success);
         document.getElementById('securityQuestionSection').style.display = 'none';
         document.getElementById('resetPasswordSection').style.display = 'block';
     } else {
-        alert('答案錯誤，請重新輸入');
+        alert(trans.alert_verify_fail);
     }
 }
 
+// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function resetPassword() {
     const newPassword = document.getElementById('newPassword').value.trim();
     const confirmNewPassword = document.getElementById('confirmNewPassword').value.trim();
+    const lang = getCurrentLang();
+    const trans = translations[lang];
 
     if (!newPassword || !confirmNewPassword) {
-        alert('請填寫完整資訊');
+        alert(trans.alert_fill_all);
         return;
     }
 
     if (newPassword.length < 6) {
-        alert('密碼至少需要6個字元');
+        alert(trans.alert_password_short);
         return;
     }
 
     if (newPassword !== confirmNewPassword) {
-        alert('兩次輸入的密碼不一致');
+        alert(trans.alert_password_mismatch);
         return;
     }
 
@@ -1899,33 +1933,36 @@ async function resetPassword() {
         member.passwordHash = await hashPassword(newPassword);
         await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
 
-        alert('密碼重設成功！請使用新密碼登入');
+        alert(trans.alert_password_reset_success);
         closeForgotPasswordModal();
     } catch (error) {
         console.error('重設密碼失敗:', error);
-        alert('重設密碼失敗，請稍後再試');
+        alert(trans.alert_password_reset_fail);
     } finally {
         hideLoading();
     }
 }
 
+// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function changePassword() {
     const currentPassword = document.getElementById('currentPassword').value.trim();
     const newPassword = document.getElementById('changeNewPassword').value.trim();
     const confirmPassword = document.getElementById('changeConfirmPassword').value.trim();
+    const lang = getCurrentLang();
+    const trans = translations[lang];
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-        alert('請填寫完整資訊');
+        alert(trans.alert_fill_all);
         return;
     }
 
     if (newPassword.length < 6) {
-        alert('新密碼至少需要6個字元');
+        alert(trans.alert_password_short);
         return;
     }
 
     if (newPassword !== confirmPassword) {
-        alert('兩次輸入的新密碼不一致');
+        alert(trans.alert_password_mismatch);
         return;
     }
 
@@ -1933,7 +1970,7 @@ async function changePassword() {
     try {
         const currentPasswordHash = await hashPassword(currentPassword);
         if (currentPasswordHash !== currentUser.passwordHash) {
-            alert('目前密碼錯誤');
+            alert(trans.alert_current_password_wrong);
             hideLoading();
             return;
         }
@@ -1945,11 +1982,11 @@ async function changePassword() {
 
         currentUser.passwordHash = member.passwordHash;
 
-        alert('密碼更改成功！');
+        alert(trans.alert_password_change_success);
         closeChangePasswordModal();
     } catch (error) {
         console.error('更改密碼失敗:', error);
-        alert('更改密碼失敗，請稍後再試');
+        alert(trans.alert_password_change_fail);
     } finally {
         hideLoading();
     }
@@ -2023,11 +2060,11 @@ async function showMemberInfo() {
     ` : ''}
     <div class="info-item">
         <span>${trans.member_join_date}</span>
-        <span>${new Date(currentUser.joinDate).toLocaleDateString('zh-TW')}</span>
+        <span>${new Date(currentUser.joinDate).toLocaleDateString(lang === 'zh' ? 'zh-TW' : 'en-US')}</span>
     </div>
     <div class="info-item">
         <span>${trans.member_remaining_sec}</span>
-        <span class="countdown-time ${timeClass}" data-username="${currentUser.username}">${currentUser.remainingSeconds.toLocaleString()} 秒</span>
+        <span class="countdown-time ${timeClass}" data-username="${currentUser.username}">${currentUser.remainingSeconds.toLocaleString(lang === 'zh' ? 'zh-TW' : 'en-US')} ${trans.time_second}</span>
     </div>
     ${currentUser.isAdmin ? `
     <div class="info-item">
@@ -2043,8 +2080,8 @@ async function showMemberInfo() {
 </div>
 
 <div class="settings-section">
-    <h4>⚙️ ${trans.member_account_settings}</h4>
-    <button class="btn btn-small" onclick="openChangePasswordModal()">🔒 ${trans.member_change_password}</button>
+    <h4 data-lang-key="member_account_settings">⚙️ ${trans.member_account_settings}</h4>
+    <button class="btn btn-small" onclick="openChangePasswordModal()" data-lang-key="member_change_password">🔒 ${trans.member_change_password}</button>
 </div>
 `;
     } catch (error) {
@@ -2087,7 +2124,7 @@ async function showQueuePage() {
         }
 
         if (!data.gameSession) {
-            content.innerHTML = `<div class="empty-state"><h3>${trans.queue_no_session}</h3><p>${trans.queue_wait_for_streamer}</p></div>`;
+            content.innerHTML = `<div class="empty-state"><h3 data-lang-key="queue_no_session">${trans.queue_no_session}</h3><p data-lang-key="queue_wait_for_streamer">${trans.queue_wait_for_streamer}</p></div>`;
             hideLoading();
             return;
         }
@@ -2100,40 +2137,43 @@ async function showQueuePage() {
             if (level === 'diamond') return 'level_diamond_simple';
             return 'level_gold_simple';
         };
+        
+        const startTimeLocale = new Date(data.gameSession.startTime).toLocaleString(lang === 'zh' ? 'zh-TW' : 'en-US');
 
         content.innerHTML = `
 <div style="text-align: right; margin-bottom: 10px; color: #666; font-size: 14px;">
-    <span class="auto-refresh-indicator"></span> ${trans.queue_refreshing}
+    <span class="auto-refresh-indicator"></span> <span data-lang-key="queue_refreshing">${trans.queue_refreshing}</span>
 </div>
 <div class="game-session-card">
     <h2>🎮 ${data.gameSession.gameName}</h2>
-    <div class="game-session-info">${trans.queue_session_start_time} ${new Date(data.gameSession.startTime).toLocaleString('zh-TW')}</div>
+    <div class="game-session-info">${trans.queue_session_start_time} ${startTimeLocale}</div>
     <div class="game-session-info">${trans.queue_session_slots} ${data.gameSession.slots}${trans.queue_session_slots_unit}</div>
     ${data.gameSession.description ? `<div style="margin-top: 10px; font-size: 0.9em;">${data.gameSession.description}</div>` : ''}
 </div>
 
 ${myPosition > 0 ? `
 <div class="queue-card">
-    <h3>${trans.queue_your_position_title}</h3>
+    <h3 data-lang-key="queue_your_position_title">${trans.queue_your_position_title}</h3>
     <div class="queue-position">#${myPosition}</div>
-    <div style="color: #666;">${trans.queue_position_prefix} ${myPosition - 1} ${trans.queue_position_suffix}</div>
-    <button class="btn btn-danger" onclick="leaveQueue()">${trans.queue_leave}</button>
+    <div style="color: #666;" data-lang-key="queue_position_prefix">${trans.queue_position_prefix} ${myPosition - 1} ${trans.queue_position_suffix}</div>
+    <button class="btn btn-danger" onclick="leaveQueue()" data-lang-key="queue_leave">${trans.queue_leave}</button>
 </div>
 ` : `
 <div class="queue-card">
-    <h3>${trans.queue_join_title}</h3>
-    <button class="btn" onclick="joinQueue()" style="margin-top: 20px; font-size: 1.2em; padding: 15px 40px;">${trans.queue_join_button}</button>
+    <h3 data-lang-key="queue_join_title">${trans.queue_join_title}</h3>
+    <button class="btn" onclick="joinQueue()" style="margin-top: 20px; font-size: 1.2em; padding: 15px 40px;" data-lang-key="queue_join_button">${trans.queue_join_button}</button>
 </div>
 `}
 
 <div class="queue-status">
-    <h3 style="margin-bottom: 15px;">${trans.queue_status_title} (${data.queue.length}${trans.queue_status_people}</h3>
-    ${data.queue.length === 0 ? `<div class="empty-state" style="padding: 20px;">${trans.queue_empty}</div>` :
+    <h3 style="margin-bottom: 15px;" data-lang-key="queue_status_title">${trans.queue_status_title} (${data.queue.length}${trans.queue_status_people}</h3>
+    ${data.queue.length === 0 ? `<div class="empty-state" style="padding: 20px;" data-lang-key="queue_empty">${trans.queue_empty}</div>` :
     data.queue.slice(0, 10).map((q, index) => {
         const levelText = trans[levelSimpleKey(q.level)];
         const badgeClass = q.level === 'legend' ? 'badge-legend' :
             q.level === 'diamond' ? 'badge-diamond' : 'badge-gold';
         const isCurrent = q.username === currentUser.username;
+        const joinTimeLocale = new Date(q.joinTime).toLocaleTimeString(lang === 'zh' ? 'zh-TW' : 'en-US');
         return `
 <div class="queue-item ${isCurrent ? 'current' : ''}">
     <div>
@@ -2142,29 +2182,32 @@ ${myPosition > 0 ? `
         <div style="font-size: 12px; color: #666; margin-top: 3px;">CODM UID: ${q.gameUID}</div>
     </div>
     <div style="font-size: 14px; color: #666;">
-        ${new Date(q.joinTime).toLocaleTimeString('zh-TW')}
+        ${joinTimeLocale}
     </div>
 </div>
 `;
     }).join('')}
-    ${data.queue.length > 10 ? `<div style="text-align: center; color: #666; margin-top: 10px;">${trans.queue_more_people_prefix} ${data.queue.length - 10} ${trans.queue_more_people_suffix}</div>` : ''}
+    ${data.queue.length > 10 ? `<div style="text-align: center; color: #666; margin-top: 10px;" data-lang-key="queue_more_people_prefix">${trans.queue_more_people_prefix} ${data.queue.length - 10} ${trans.queue_more_people_suffix}</div>` : ''}
 </div>
 `;
     } catch (error) {
         console.error('顯示排隊頁面失敗:', error);
-        content.innerHTML = `<div class="empty-state"><h3>${trans.queue_load_fail}</h3></div>`;
+        content.innerHTML = `<div class="empty-state"><h3 data-lang-key="queue_load_fail">${trans.queue_load_fail}</h3></div>`;
     } finally {
         hideLoading();
     }
 }
 
+// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function joinQueue() {
     showLoading();
+    const lang = getCurrentLang();
+    const trans = translations[lang];
     try {
         const data = await loadData();
 
         if (data.queue.find(q => q.username === currentUser.username)) {
-            alert('你已經在排隊中了！');
+            alert(trans.alert_already_in_queue);
             hideLoading();
             return;
         }
@@ -2180,18 +2223,22 @@ async function joinQueue() {
         data.queue.push(queueItem);
         await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
 
-        alert('成功加入排隊！');
+        alert(trans.alert_join_queue_success);
         showQueuePage();
     } catch (error) {
         console.error('加入排隊失敗:', error);
-        alert('加入排隊失敗，請稍後再試');
+        alert(trans.alert_join_queue_fail);
     } finally {
         hideLoading();
     }
 }
 
+// ▼▼▼ 已修改，支援多語言 (Alerts) ▼▼▼
 async function leaveQueue() {
-    if (!confirm('確定要離開排隊嗎？')) {
+    const lang = getCurrentLang();
+    const trans = translations[lang];
+
+    if (!confirm(trans.alert_leave_queue_confirm)) {
         return;
     }
 
@@ -2201,11 +2248,11 @@ async function leaveQueue() {
         data.queue = data.queue.filter(q => q.username !== currentUser.username);
         await saveData(data.members, data.activationCodes, data.queue, data.gameSession);
 
-        alert('已離開排隊');
+        alert(trans.alert_leave_queue_success);
         await showQueuePage();
     } catch (error) {
         console.error('離開排隊失敗:', error);
-        alert('離開排隊失敗，請稍後再試');
+        alert(trans.alert_leave_queue_fail);
     } finally {
         hideLoading();
     }
@@ -2337,7 +2384,7 @@ console.log('⏳ 等待 Firebase 認證...');
 
 // 
 //
-// --- 翻譯邏輯 ---
+// --- 翻譯邏輯 (已更新) ---
 //
 //
 
@@ -2414,7 +2461,7 @@ const translations = {
         'edit_member_title': '編輯會員',
         'logout': '登出',
         'admin_panel': '⚙️ 管理後台',
-        // --- 新增的動態金鑰 ---
+        // --- 動態金鑰 ---
         'member_platform': '平台',
         'member_level': '會員等級',
         'level_legend': '傳說會員',
@@ -2459,6 +2506,13 @@ const translations = {
         'queue_more_people_prefix': '還有',
         'queue_more_people_suffix': '人...',
         'queue_load_fail': '載入失敗，請重試',
+        'time_year': '年',
+        'time_month': '月',
+        'time_day': '天',
+        'time_hour': '時',
+        'time_minute': '分',
+        'time_second': '秒',
+        // --- Alerts ---
         'alert_logout': '已登出',
         'alert_login_success': '登入成功！',
         'alert_admin_privilege': '您擁有管理員權限',
@@ -2490,7 +2544,9 @@ const translations = {
         'alert_join_queue_fail': '加入排隊失敗，請稍後再試',
         'alert_leave_queue_confirm': '確定要離開排隊嗎？',
         'alert_leave_queue_success': '已離開排隊',
-        'alert_leave_queue_fail': '離開排隊失敗，請稍後再試'
+        'alert_leave_queue_fail': '離開排隊失敗，請稍後再試',
+        'alert_no_backup_data': '目前沒有會員資料可導出',
+        'alert_backup_fail': '備份失敗，請稍後再試'
     },
     'en': {
         'page_title': "Liao Jia-Tai's Member System",
@@ -2558,7 +2614,7 @@ const translations = {
         'edit_member_title': 'Edit Member',
         'logout': 'Logout',
         'admin_panel': '⚙️ Admin Panel',
-        // --- 新增的動態金鑰 ---
+        // --- 動態金鑰 ---
         'member_platform': 'Platform',
         'member_level': 'Membership Level',
         'level_legend': 'Legend Member',
@@ -2595,14 +2651,21 @@ const translations = {
         'queue_join_title': 'Join Queue Now',
         'queue_join_button': '🚀 One-Click Join',
         'queue_status_title': 'Current Queue Status',
-        'queue_status_people': 'people)',
+        'queue_status_people': ' people)',
         'queue_empty': 'The queue is currently empty',
         'level_legend_simple': 'Legend',
         'level_diamond_simple': 'Diamond',
         'level_gold_simple': 'Gold',
         'queue_more_people_prefix': 'and',
-        'queue_more_people_suffix': 'more...',
+        'queue_more_people_suffix': ' more...',
         'queue_load_fail': 'Failed to load, please try again',
+        'time_year': 'y',
+        'time_month': 'm',
+        'time_day': 'd',
+        'time_hour': 'h',
+        'time_minute': 'min',
+        'time_second': 's',
+        // --- Alerts ---
         'alert_logout': 'Logged out',
         'alert_login_success': 'Login successful!',
         'alert_admin_privilege': 'You have admin privileges',
@@ -2634,7 +2697,9 @@ const translations = {
         'alert_join_queue_fail': 'Failed to join queue, please try again later',
         'alert_leave_queue_confirm': 'Are you sure you want to leave the queue?',
         'alert_leave_queue_success': 'You have left the queue',
-        'alert_leave_queue_fail': 'Failed to leave queue, please try again later'
+        'alert_leave_queue_fail': 'Failed to leave queue, please try again later',
+        'alert_no_backup_data': 'No member data to export',
+        'alert_backup_fail': 'Backup failed, please try again later'
     }
 };
 
@@ -2673,7 +2738,7 @@ function setLanguage(lang) {
             if (el.tagName === 'BUTTON' || el.tagName === 'A') {
                 // 保留按鈕/連結前的圖示 (如果有的話)
                 const icon = el.innerHTML.match(/^(<.*?>|.*?<\/.*?>|💎|📝|⚙️|🔒|🚀)/);
-                if (icon) {
+                if (icon && icon[0].length < 20) { // 增加一個長度檢查，避免誤判
                     el.innerHTML = `${icon[0]} ${translation}`;
                 } else {
                     el.textContent = translation;
