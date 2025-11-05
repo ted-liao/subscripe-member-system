@@ -999,7 +999,7 @@ const translations = {
         'edit_game_uid': 'CODM UID',
         'edit_level': '會員等級',
         'edit_platform': '平台',
-        'edit_priority_quota': '插隊權限 (次數)', // 【新增翻譯】
+        'edit_priority_quota': '插隊權限 (次數)',
         'edit_admin_perm': '管理員權限',
         'edit_set_admin': '設為管理員',
         'edit_save': '儲存變更',
@@ -1067,8 +1067,8 @@ const translations = {
         'alert_password_mismatch': '兩次輸入的新密碼不一致',
         'alert_current_password_wrong': '目前密碼錯誤',
         'alert_password_change_success': '密碼更改成功！',
-        'alert_password_change_fail': '更改密碼失敗，請稍後再試',
-        'alert_move_priority_fail': '無法將成員移動到不同的優先級群組中。' // 【新增翻譯】
+        'alert_password_change_fail': '更改密碼失敗，請稍後再試'
+        // 'alert_move_priority_fail' 已被移除
     },
     'en': {
         'page_title': "Admin Panel - Liao Jia-Tai's Member System",
@@ -1156,7 +1156,7 @@ const translations = {
         'edit_game_uid': 'CODM UID',
         'edit_level': 'Member Level',
         'edit_platform': 'Platform',
-        'edit_priority_quota': 'Priority Quota (Uses)', // 【新增翻譯】
+        'edit_priority_quota': 'Priority Quota (Uses)',
         'edit_admin_perm': 'Admin Permission',
         'edit_set_admin': 'Set as Admin',
         'edit_save': 'Save Changes',
@@ -1224,8 +1224,8 @@ const translations = {
         'alert_password_mismatch': 'The new passwords do not match',
         'alert_current_password_wrong': 'Current password is wrong',
         'alert_password_change_success': 'Password changed successfully!',
-        'alert_password_change_fail': 'Password change failed, please try again later',
-        'alert_move_priority_fail': 'Cannot move a member between different priority groups.' // 【新增翻譯】
+        'alert_password_change_fail': 'Password change failed, please try again later'
+        // 'alert_move_priority_fail' 已被移除
     }
 };
 
@@ -2096,14 +2096,14 @@ async function clearQueue() {
     }
 }
 
-// 【新增】手動調整排隊順序的函數
+// 【已修改】 移除優先級檢查，改為交換優先級
 async function moveQueueItem(username, direction) {
     const lang = getCurrentLang();
     const trans = translations[lang];
     showLoading();
     
     try {
-        const data = await loadData(); // 取得當前已排序的列表
+        const data = await loadData(); // 1. Gets the sorted list
         
         const currentIndex = data.queue.findIndex(q => q.username === username);
         if (currentIndex === -1) throw new Error("找不到該用戶");
@@ -2111,32 +2111,36 @@ async function moveQueueItem(username, direction) {
         const targetIndex = (direction === 'up') ? currentIndex - 1 : currentIndex + 1;
         
         if (targetIndex < 0 || targetIndex >= data.queue.length) {
-            // 理論上不會發生，因為按鈕會隱藏，但還是做個防呆
             hideLoading();
             return; 
         }
 
-        const itemA = data.queue[currentIndex]; // 正在移動的
-        const itemB = data.queue[targetIndex]; // 被交換的
+        const itemA = data.queue[currentIndex]; // The one being moved
+        const itemB = data.queue[targetIndex]; // The one being swapped with
         
-        // 檢查優先級
-        const priorityA = itemA.priorityLevel || 0;
-        const priorityB = itemB.priorityLevel || 0;
+        // --- 修正後的邏輯: 交換時間和優先級 ---
         
-        if (priorityA !== priorityB) {
-            alert(trans.alert_move_priority_fail);
-            hideLoading();
-            return;
-        }
-        
-        // 優先級相同，交換 joinTime
+        // 1. 交換 joinTime
         const tempTime = itemA.joinTime;
         itemA.joinTime = itemB.joinTime;
         itemB.joinTime = tempTime;
         
-        // 將更新後的 joinTime 寫回 Firebase
-        await database.ref('queue/' + itemA.username + '/joinTime').set(itemA.joinTime);
-        await database.ref('queue/' + itemB.username + '/joinTime').set(itemB.joinTime);
+        // 2. 交換 priorityLevel (確保 defaults 被處理)
+        const priorityA = itemA.priorityLevel || 0;
+        const priorityB = itemB.priorityLevel || 0;
+        itemA.priorityLevel = priorityB;
+        itemB.priorityLevel = priorityA;
+        // --- 邏輯結束 ---
+        
+        // 分別更新兩個項目到 Firebase
+        await database.ref('queue/' + itemA.username).update({
+            joinTime: itemA.joinTime,
+            priorityLevel: itemA.priorityLevel
+        });
+        await database.ref('queue/' + itemB.username).update({
+            joinTime: itemB.joinTime,
+            priorityLevel: itemB.priorityLevel
+        });
         
         await refreshAdminDashboard(); // 立即刷新畫面
         
@@ -2638,3 +2642,4 @@ async function exportToExcel(isAuto = false) {
 </script>
 </body>
 </html>
+
