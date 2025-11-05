@@ -706,9 +706,9 @@ a.tab:hover {
     }
 }
 
-/* --- 方案一：熾熱火焰效果 --- */
+/* --- 方案二：強力脈衝效果 --- */
 
-/* 優先排隊控制項容器 */
+/* 優先排隊控制項容器 (同上) */
 .priority-queue-controls {
     background: #f8f9fa;
     border-radius: 12px;
@@ -720,7 +720,7 @@ a.tab:hover {
     border: 2px solid #e0e0e0;
 }
 
-/* 剩餘次數文字 */
+/* 剩餘次數文字 (同上) */
 .priority-quota-display {
     font-size: 16px;
     font-weight: bold;
@@ -731,18 +731,14 @@ a.tab:hover {
     font-size: 1.2em;
 }
 
-/* Toggle Switch 美化 */
+/* Toggle Switch 美化 (同上) */
 .switch {
     position: relative;
     display: inline-block;
     width: 60px;
     height: 34px;
 }
-.switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
+.switch input { opacity: 0; width: 0; height: 0; }
 .slider {
     position: absolute;
     cursor: pointer;
@@ -765,44 +761,32 @@ a.tab:hover {
     transition: .4s;
     border-radius: 50%;
 }
-input:checked + .slider {
-    background-color: #667eea;
-}
-input:checked + .slider:before {
-    transform: translateX(26px);
-}
-input:disabled + .slider {
-    background-color: #e0e0e0;
-    cursor: not-allowed;
-}
+input:checked + .slider { background-color: #667eea; }
+input:checked + .slider:before { transform: translateX(26px); }
+input:disabled + .slider { background-color: #e0e0e0; cursor: not-allowed; }
+
 
 /* 【修改點】按鈕發光效果 */
 .btn.priority-glow {
-    /* 讓動畫在 1.2 秒內無限循環 */
-    animation: priority-fire-pulse 1.2s infinite;
-    /* 確保縮放從中心開始 */
+    animation: priority-strong-pulse 1.2s infinite;
     transform-origin: center;
 }
 
 /* 【修改點】新的 @keyframes */
-@keyframes priority-fire-pulse {
+@keyframes priority-strong-pulse {
     0% {
         transform: scale(1);
-        /* 內圈金光 + 外圈橘光 */
-        box-shadow: 0 0 10px 3px rgba(255, 220, 0, 0.8), 
-                    0 0 15px 8px rgba(255, 100, 0, 0.6);
+        /* 使用更鮮豔的桃紅色 (rgba(255, 0, 150, 0.9)) */
+        box-shadow: 0 0 12px 6px rgba(255, 0, 150, 0.9);
     }
-    50% {
-        transform: scale(1.05); /* 按鈕放大 5% */
-        /* 光暈擴散並變淡 */
-        box-shadow: 0 0 20px 10px rgba(255, 220, 0, 0.4), 
-                    0 0 30px 20px rgba(255, 100, 0, 0);
+    70% {
+        transform: scale(1.03); /* 輕微放大 */
+        /* 擴散範圍變得非常大 (25px) */
+        box-shadow: 0 0 30px 25px rgba(255, 0, 150, 0);
     }
     100% {
         transform: scale(1);
-        /* 恢復原狀，形成呼吸感 */
-        box-shadow: 0 0 10px 3px rgba(255, 220, 0, 0.8), 
-                    0 0 15px 8px rgba(255, 100, 0, 0.6);
+        box-shadow: 0 0 12px 6px rgba(255, 0, 150, 0.9);
     }
 }
 </style>
@@ -3015,6 +2999,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
