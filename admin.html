@@ -1067,7 +1067,8 @@ const translations = {
         'alert_password_mismatch': '兩次輸入的新密碼不一致',
         'alert_current_password_wrong': '目前密碼錯誤',
         'alert_password_change_success': '密碼更改成功！',
-        'alert_password_change_fail': '更改密碼失敗，請稍後再試'
+        'alert_password_change_fail': '更改密碼失敗，請稍後再試',
+        'alert_move_priority_fail': '無法將成員移動到不同的優先級群組中。' // 【新增翻譯】
     },
     'en': {
         'page_title': "Admin Panel - Liao Jia-Tai's Member System",
@@ -1223,7 +1224,8 @@ const translations = {
         'alert_password_mismatch': 'The new passwords do not match',
         'alert_current_password_wrong': 'Current password is wrong',
         'alert_password_change_success': 'Password changed successfully!',
-        'alert_password_change_fail': 'Password change failed, please try again later'
+        'alert_password_change_fail': 'Password change failed, please try again later',
+        'alert_move_priority_fail': 'Cannot move a member between different priority groups.' // 【新增翻譯】
     }
 };
 
@@ -1306,13 +1308,14 @@ const firebaseConfig = {
     appId: "1:970681171187:web:f3f86b743e27667a994b86"
 };
 
-firebase.initializeApp(firebaseConfig);
+// 【修正】只初始化一次
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const database = firebase.database();
 
 let isAuthReady = false;
-let isDomReady = false; // 新增 DOM 狀態旗標
-
-// ▼▼▼ 修正：將 Firebase 認證邏輯與 DOM 載入邏輯分開 ▼▼▼
+let isDomReady = false; 
 
 firebase.auth().onAuthStateChanged((user) => {
     console.log('✅ Firebase Auth 狀態改變');
@@ -1326,29 +1329,24 @@ firebase.auth().onAuthStateChanged((user) => {
             alert('系統初始化失敗，請重新整理頁面');
         });
     }
-    // 嘗試初始化
     tryInitialize();
 });
 
-// 頁面載入時，更新 DOM 狀態旗標並嘗試初始化
 document.addEventListener('DOMContentLoaded', () => {
     console.log('✅ DOM 已載入');
     isDomReady = true;
-    // 嘗試初始化
     tryInitialize();
 });
 
 function tryInitialize() {
-    // 只有在 DOM 和 Firebase 都準備好之後，才執行
     if (isDomReady && isAuthReady) {
         console.log('🚀 DOM 與 Firebase 均已就緒，開始初始化...');
         
         if (!window.appInitialized) {
             window.appInitialized = true;
-            initializeAdminPage(); // 這是您的主要啟動函數
+            initializeAdminPage(); 
         }
         
-        // 單獨執行語言設定
         const savedLang = localStorage.getItem('language') || 'zh';
         setLanguage(savedLang);
     }
@@ -1841,7 +1839,7 @@ function renderGameSession(gameSession) {
     }
 }
 
-// 【已修改】 包含插隊圖示
+// 【已修改】 包含插隊圖示 和 上下移動按鈕
 function renderQueueList(queue) {
     const container = document.getElementById('adminQueueList');
     const lang = getCurrentLang();
@@ -1858,8 +1856,13 @@ function renderQueueList(queue) {
         const levelText = q.level === 'legend' ? trans.level_legend_simple : (q.level === 'diamond' ? trans.level_diamond_simple : trans.level_gold_simple);
         const badgeClass = q.level === 'legend' ? 'badge-legend' : (q.level === 'diamond' ? 'badge-diamond' : 'badge-gold');
         
-        // 【新增】顯示插隊圖示
         const priorityIcon = q.priorityLevel === 2 ? '🔥' : (q.priorityLevel === 1 ? '💎' : '');
+
+        // 【新增】上移/下移按鈕
+        const upButton = (index === 0) ? '' : 
+            `<button class="btn btn-small" style="padding: 5px 10px;" onclick="moveQueueItem('${q.username}', 'up')">⬆️</button>`;
+        const downButton = (index === queue.length - 1) ? '' : 
+            `<button class="btn btn-small" style="padding: 5px 10px;" onclick="moveQueueItem('${q.username}', 'down')">⬇️</button>`;
 
         return `
         <div class="queue-item">
@@ -1868,7 +1871,11 @@ function renderQueueList(queue) {
                 <span class="badge ${badgeClass}" style="margin-left: 10px;">${levelText}</span>
                 <div style="font-size: 12px; color: #666; margin-top: 3px;">UID: ${q.gameUID}</div>
             </div>
-            <button class="btn btn-danger btn-small" onclick="removeFromQueue('${q.username}')">${trans.queue_remove_button}</button>
+            <div class="admin-actions">
+                ${upButton}
+                ${downButton}
+                <button class="btn btn-danger btn-small" onclick="removeFromQueue('${q.username}')">${trans.queue_remove_button}</button>
+            </div>
         </div>
         `;
     }).join('');
@@ -2088,6 +2095,59 @@ async function clearQueue() {
         hideLoading();
     }
 }
+
+// 【新增】手動調整排隊順序的函數
+async function moveQueueItem(username, direction) {
+    const lang = getCurrentLang();
+    const trans = translations[lang];
+    showLoading();
+    
+    try {
+        const data = await loadData(); // 取得當前已排序的列表
+        
+        const currentIndex = data.queue.findIndex(q => q.username === username);
+        if (currentIndex === -1) throw new Error("找不到該用戶");
+
+        const targetIndex = (direction === 'up') ? currentIndex - 1 : currentIndex + 1;
+        
+        if (targetIndex < 0 || targetIndex >= data.queue.length) {
+            // 理論上不會發生，因為按鈕會隱藏，但還是做個防呆
+            hideLoading();
+            return; 
+        }
+
+        const itemA = data.queue[currentIndex]; // 正在移動的
+        const itemB = data.queue[targetIndex]; // 被交換的
+        
+        // 檢查優先級
+        const priorityA = itemA.priorityLevel || 0;
+        const priorityB = itemB.priorityLevel || 0;
+        
+        if (priorityA !== priorityB) {
+            alert(trans.alert_move_priority_fail);
+            hideLoading();
+            return;
+        }
+        
+        // 優先級相同，交換 joinTime
+        const tempTime = itemA.joinTime;
+        itemA.joinTime = itemB.joinTime;
+        itemB.joinTime = tempTime;
+        
+        // 將更新後的 joinTime 寫回 Firebase
+        await database.ref('queue/' + itemA.username + '/joinTime').set(itemA.joinTime);
+        await database.ref('queue/' + itemB.username + '/joinTime').set(itemB.joinTime);
+        
+        await refreshAdminDashboard(); // 立即刷新畫面
+        
+    } catch (error) {
+        console.error("調整順序失敗:", error);
+        alert(trans.alert_op_fail);
+    } finally {
+        hideLoading();
+    }
+}
+
 
 async function generateCode() {
     const level = document.getElementById('codeLevel').value;
@@ -2578,6 +2638,3 @@ async function exportToExcel(isAuto = false) {
 </script>
 </body>
 </html>
-</body>
-</html>
-
