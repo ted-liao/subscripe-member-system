@@ -2534,7 +2534,7 @@ function togglePriorityGlow(isON, quota) {
         } else {
             btn.classList.remove('priority-glow');
             // 恢復按鈕文字
-            btn.innerHTML = `🚀 ${trans.queue_join_button || '一鍵排隊'}`;
+            btn.innerHTML = ` ${trans.queue_join_button || '一鍵排隊'}`;
         }
     }
 }
@@ -2888,7 +2888,7 @@ const translations = {
         'queue_position_suffix': 'people ahead of you',
         'queue_leave': 'Leave Queue',
         'queue_join_title': 'Join Queue Now',
-        'queue_join_button': 'One-Click Join',
+        'queue_join_button': '🚀One-Click Join',
         'queue_status_title': 'Current Queue Status',
         'queue_status_people': 'people)',
         'queue_empty': 'The queue is currently empty',
@@ -3003,5 +3003,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
