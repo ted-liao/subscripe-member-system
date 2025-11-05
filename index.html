@@ -2400,14 +2400,14 @@ ${(currentUser.level === 'diamond' || currentUser.level === 'legend') ? `
     }
 }
 
-// 【已修改】 包含插隊次數扣除邏輯
+// 【已修改】 包含插隊次數扣除邏輯 + 確認視窗
 async function joinQueue() {
     showLoading();
     
     const lang = getCurrentLang();
     const trans = translations[lang];
 
-    // 【新增】檢查開關狀態和優先級
+    // 檢查開關狀態和優先級
     const switchElement = document.getElementById('prioritySwitch');
     const usePriority = switchElement ? switchElement.checked : false;
     
@@ -2417,10 +2417,18 @@ async function joinQueue() {
         if (currentUser.priorityQuota <= 0) {
             alert(trans.queue_priority_no_quota || '您的優先排隊權限已用完');
             switchElement.checked = false; // 關掉開關
-            togglePriorityGlow(false); // 關掉光暈
+            togglePriorityGlow(false, 0); // 關掉光暈
             hideLoading();
             return;
         }
+        
+        // 【新增】確認視窗
+        const confirmMsg = trans.alert_priority_confirm || '確定要使用 1 次優先排隊權限嗎？';
+        if (!confirm(confirmMsg)) {
+            hideLoading(); // 用戶取消，隱藏 loading
+            return;      // 中斷執行
+        }
+        
         // 傳說 = 2, 鑽石 = 1
         priorityLevel = (currentUser.level === 'legend') ? 2 : 1;
     }
@@ -2461,7 +2469,6 @@ async function joinQueue() {
         hideLoading();
     }
 }
-
 
 // 【已修改】 使用原子操作 .remove()
 async function leaveQueue() {
@@ -2799,6 +2806,7 @@ const translations = {
         'queue_priority_switch': '優先排隊',
         'queue_priority_quota': '本月剩餘 <span>{0}</span> 次權限',
         'queue_priority_no_quota': '您的優先排隊權限已用完'
+        'alert_priority_confirm': '確定要使用 1 次優先排隊權限嗎？'
     },
     'en': {
         'page_title': "Ted's Member System",
@@ -2946,6 +2954,7 @@ const translations = {
         'queue_priority_switch': 'Priority Queue',
         'queue_priority_quota': '<span>{0}</span> priority credits left this month',
         'queue_priority_no_quota': 'You have no priority queue credits left'
+        'alert_priority_confirm': 'Are you sure you want to use 1 priority queue credit?'
     }
 };
 
@@ -3015,6 +3024,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
