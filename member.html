@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title data-lang-key="page_title">會員方案 - 廖嘉泰の會員管理系統</title>
 <style>
+/* ... (您所有的 CSS 樣式都保持不變) ... */
 * {
     margin: 0;
     padding: 0;
@@ -58,11 +59,10 @@ body {
     align-items: center;
 }
 
-/* ▼▼▼ 1. 新增的 CSS 樣式 ▼▼▼ */
 .lang-switcher {
     display: flex;
     align-items: center;
-    margin-right: 15px; /* 和返回按鈕隔開 */
+    margin-right: 15px;
 }
 .btn-lang {
     background: none;
@@ -78,18 +78,15 @@ body {
 .btn-lang:hover {
     opacity: 1;
 }
-/* 當前啟用語言的樣式 */
 .btn-lang.active {
     opacity: 1;
     text-decoration: underline;
     text-underline-offset: 3px;
 }
 a.btn {
-    text-decoration: none; /* 移除 a 標籤按鈕的底線 */
-    color: white; /* 確保文字是白色的 */
+    text-decoration: none;
+    color: white;
 }
-/* ▲▲▲ CSS 結束 ▲▲▲ */
-
 
 .card {
     background: white;
@@ -183,7 +180,7 @@ a.btn {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    min-height: 30px; /* 列表最小高度 */
+    min-height: 30px;
 }
 
 .member-badge {
@@ -221,7 +218,6 @@ a.btn {
     color: #f0f0f0;
 }
 
-/* 傳說 */
 .tier-legend {
     background: linear-gradient(135deg, #FF6B6B 10%, #C44569 100%);
     color: white;
@@ -249,7 +245,6 @@ a.btn {
     color: white;
 }
 
-/* 鑽石 */
 .tier-diamond {
     background: linear-gradient(135deg, #B9F2FF 10%, #00B4DB 100%);
     color: #005670;
@@ -280,7 +275,6 @@ a.btn {
     color: #005670;
 }
 
-/* 黃金 */
 .tier-gold {
     background: linear-gradient(135deg, #FFD700 10%, #FFA500 100%);
     color: #333;
@@ -310,7 +304,6 @@ a.btn {
     color: #333;
 }
 
-/* 載入中 spinner */
 .loading-spinner {
     width: 40px;
     height: 40px;
@@ -353,7 +346,6 @@ a.btn {
     .member-tier-card {
         padding: 20px;
     }
-    /* 讓語言切換器也換行 */
     .user-section {
         flex-wrap: wrap;
     }
@@ -514,84 +506,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const database = firebase.database();
 
-// 匿名登入
-firebase.auth().signInAnonymously().catch((error) => {
-    console.error("Firebase 匿名登入失敗:", error);
-});
 
-// 監聽認證狀態
-firebase.auth().onAuthStateChanged((user) => {
-    if (user) {
-        console.log("Firebase 認證成功，正在載入會員名單...");
-        loadMemberLists();
-    } else {
-        console.log("Firebase 尚未認證...");
-    }
-    // 認證後，執行一次語言設定
-    document.dispatchEvent(new Event('DOMContentLoaded'));
-});
-
-// 載入會員名單 (已修改，支援多語言)
-async function loadMemberLists() {
-    const lang = getCurrentLang(); // 先獲取當前語言
-    const trans = translations[lang];
-    try {
-        const membersSnapshot = await database.ref('members').once('value');
-        const membersData = membersSnapshot.val() || {};
-        
-        const allMembers = Object.values(membersData);
-
-        const now = Math.floor(Date.now() / 1000);
-        
-        const legendMembers = allMembers
-            .filter(m => m.level === 'legend' && (m.remainingSeconds - (now - m.lastUpdateTime)) > 0 && !m.isAdmin)
-            .map(m => m.nickname);
-
-        const diamondMembers = allMembers
-            .filter(m => m.level === 'diamond' && (m.remainingSeconds - (now - m.lastUpdateTime)) > 0 && !m.isAdmin)
-            .map(m => m.nickname);
-            
-        const goldMembers = allMembers
-            .filter(m => m.level === 'gold' && (m.remainingSeconds - (now - m.lastUpdateTime)) > 0 && !m.isAdmin)
-            .map(m => m.nickname);
-
-        renderList('legend-members', legendMembers);
-        renderList('diamond-members', diamondMembers);
-        renderList('gold-members', goldMembers);
-
-    } catch (error) {
-        console.error("載入會員名單失敗:", error);
-        // 使用翻譯字典顯示錯誤
-        document.getElementById('legend-members').innerHTML = `<p style='color:red;'>${trans.loading_fail}</p>`;
-        document.getElementById('diamond-members').innerHTML = `<p style='color:red;'>${trans.loading_fail}</p>`;
-        document.getElementById('gold-members').innerHTML = `<p style='color:red;'>${trans.loading_fail}</p>`;
-    }
-}
-
-// 顯示列表 (已修改，支援多語言)
-function renderList(elementId, members) {
-    const container = document.getElementById(elementId);
-    const lang = getCurrentLang();
-    const trans = translations[lang];
-    
-    if (!members || members.length === 0) {
-        // 使用翻譯字典顯示 "目前尚無會員"
-        container.innerHTML = `<span class='member-badge' style='opacity: 0.7;'>${trans.no_members}</span>`;
-        return;
-    }
-    
-    container.innerHTML = ""; 
-    
-    members.forEach(nickname => {
-        const badge = document.createElement('span');
-        badge.className = 'member-badge';
-        badge.textContent = nickname;
-        container.appendChild(badge);
-    });
-}
-
-
-// --- 翻譯邏輯 ---
+// --- ▼▼▼ 翻譯邏輯 (移到最前面) ▼▼▼ ---
 
 // 輔助函數：獲取當前語言
 function getCurrentLang() {
@@ -698,7 +614,86 @@ function setLanguage(lang) {
     });
 
     // 4. 重新載入動態列表 (因為 "目前尚無會員" 這段文字需要更新)
-    loadMemberLists();
+    // 確保 loadMemberLists 存在後才呼叫
+    if (typeof loadMemberLists === 'function') {
+        loadMemberLists();
+    }
+}
+// --- ▲▲▲ 翻譯邏輯結束 ▲▲▲ ---
+
+
+// 匿名登入
+firebase.auth().signInAnonymously().catch((error) => {
+    console.error("Firebase 匿名登入失敗:", error);
+});
+
+// 監聽認證狀態
+firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+        console.log("Firebase 認證成功，正在載入會員名單...");
+        loadMemberLists(); // 現在呼叫是安全的，因為 translations 已經在上面定義了
+    } else {
+        console.log("Firebase 尚未認證...");
+    }
+    // 認證後，執行一次語言設定
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+});
+
+// 載入會員名單 (已修改，支援多語言)
+async function loadMemberLists() {
+    const lang = getCurrentLang();
+    const trans = translations[lang]; // 現在可以安全讀取
+    try {
+        const membersSnapshot = await database.ref('members').once('value');
+        const membersData = membersSnapshot.val() || {};
+        
+        const allMembers = Object.values(membersData);
+
+        const now = Math.floor(Date.now() / 1000);
+        
+        const legendMembers = allMembers
+            .filter(m => m.level === 'legend' && (m.remainingSeconds - (now - m.lastUpdateTime)) > 0 && !m.isAdmin)
+            .map(m => m.nickname);
+
+        const diamondMembers = allMembers
+            .filter(m => m.level === 'diamond' && (m.remainingSeconds - (now - m.lastUpdateTime)) > 0 && !m.isAdmin)
+            .map(m => m.nickname);
+            
+        const goldMembers = allMembers
+            .filter(m => m.level === 'gold' && (m.remainingSeconds - (now - m.lastUpdateTime)) > 0 && !m.isAdmin)
+            .map(m => m.nickname);
+
+        renderList('legend-members', legendMembers);
+        renderList('diamond-members', diamondMembers);
+        renderList('gold-members', goldMembers);
+
+    } catch (error) {
+        console.error("載入會員名單失敗:", error);
+        document.getElementById('legend-members').innerHTML = `<p style='color:red;'>${trans.loading_fail}</p>`;
+        document.getElementById('diamond-members').innerHTML = `<p style='color:red;'>${trans.loading_fail}</p>`;
+        document.getElementById('gold-members').innerHTML = `<p style='color:red;'>${trans.loading_fail}</p>`;
+    }
+}
+
+// 顯示列表 (已修改，支援多語言)
+function renderList(elementId, members) {
+    const container = document.getElementById(elementId);
+    const lang = getCurrentLang();
+    const trans = translations[lang]; // 現在可以安全讀取
+    
+    if (!members || members.length === 0) {
+        container.innerHTML = `<span class='member-badge' style='opacity: 0.7;'>${trans.no_members}</span>`;
+        return;
+    }
+    
+    container.innerHTML = ""; 
+    
+    members.forEach(nickname => {
+        const badge = document.createElement('span');
+        badge.className = 'member-badge';
+        badge.textContent = nickname;
+        container.appendChild(badge);
+    });
 }
 
 // 頁面載入時，自動套用儲存的語言
@@ -706,6 +701,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const savedLang = localStorage.getItem('language') || 'zh'; // 預設為中文
     setLanguage(savedLang);
 });
+
 </script>
 
 </body>
