@@ -1779,7 +1779,7 @@ function closeEditMemberModal() {
     editingMember = null;
 }
 
-// 【已修改】 包含插隊次數邏輯
+// 【已修改】 包含插隊次數邏輯 + 註冊後自動跳轉登入
 async function register() {
     const activationCode = document.getElementById('regActivationCode').value.trim().toUpperCase();
     const username = document.getElementById('regUsername').value.trim();
@@ -1877,6 +1877,15 @@ async function register() {
 
         alert(trans.alert_register_success);
         closeRegisterModal();
+
+        // --- ▼▼▼ 這就是你要求的新功能 ▼▼▼ ---
+        // 1. 自動開啟登入視窗
+        openLoginModal();
+        
+        // 2. (貼心功能) 自動填入剛註冊的使用者名稱
+        document.getElementById('loginUsername').value = username;
+        // --- ▲▲▲ 新功能結束 ▲▲▲ ---
+
     } catch (error) {
         console.error('註冊失敗:', error);
         alert(trans.alert_register_fail);
@@ -3025,5 +3034,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
