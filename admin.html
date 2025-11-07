@@ -721,188 +721,6 @@ a.btn {
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-</head>
-<body>
-
-<div id="loadingOverlay" class="loading-overlay">
-    <div class="loading-spinner"></div>
-</div>
-
-<div class="container">
-    <div class="top-bar">
-        <div class="header">
-            <h1 data-lang-key="admin_title">⚙️ 管理後台</h1>
-            <p data-lang-key="app_subtitle">📢 廖嘉泰の會員管理系統</p>
-        </div>
-
-        <div class="user-section" id="userSection">
-            <div class="lang-switcher">
-                <button class="btn-lang" onclick="setLanguage('en')">English</button>
-                <span style="color: white; margin: 0 5px;">|</span>
-                <button class="btn-lang active" onclick="setLanguage('zh')">中文</button>
-            </div>
-            </div>
-    </div>
-
-    <div id="adminDashboard" style="display: none;">
-
-        <div class="admin-grid">
-            <div class="card">
-                <h2 data-lang-key="session_control_title">🎮 遊戲場次控制</h2>
-                <div id="currentGameSession">
-                    </div>
-                <div class="input-group">
-                    <label data-lang-key="session_name_label">場次名稱 (例如: 會員場)</label>
-                    <input type="text" id="sessionGameName" data-lang-key="session_name_placeholder" placeholder="CODM 會員場">
-                </div>
-                <div class="input-group">
-                    <label><span data-lang-key="session_start_label">預計開始時間</span> <span class="optional" data-lang-key="session_start_note">(留空則為立即)</span></label>
-                    <input type="datetime-local" id="sessionStartTime">
-                </div>
-                <div class="input-group">
-                    <label data-lang-key="session_slots_label">名額</label>
-                    <input type="number" id="sessionSlots" value="10">
-                </div>
-                <div class="input-group">
-                    <label><span data-lang-key="session_desc_label">描述</span> <span class="optional" data-lang-key="optional">(選填)</span></label>
-                    <input type="text" id="sessionDescription" data-lang-key="session_desc_placeholder" placeholder="地圖:...">
-                </div>
-                <button class="btn" onclick="createGameSession()" data-lang-key="session_create_button">🚀 開啟/預約場次</button>
-                <button class="btn btn-danger" onclick="closeGameSession()" data-lang-key="session_close_button">❌ 關閉場次</button>
-            </div>
-
-            <div class="card">
-                <h2 data-lang-key="queue_list_title">👥 目前排隊名單</h2>
-                <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
-                    <span id="queueCount"></span>
-                    <button class="btn btn-danger btn-small" onclick="clearQueue()" data-lang-key="queue_clear_button">清空名單</button>
-                </div>
-                <div class="list-container" id="adminQueueList">
-                    </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2 data-lang-key="code_admin_title">🔑 兌換碼管理</h2>
-            <div class="sub-tabs">
-                <button class="sub-tab active" onclick="showCodeSubTab('generate')"><span data-lang-key="code_tab_generate">產生新碼</span></button>
-                <button class="sub-tab" onclick="showCodeSubTab('unused')"><span data-lang-key="code_tab_unused">未使用</span> (<span id="unusedCodeCount">0</span>)</button>
-                <button class="sub-tab" onclick="showCodeSubTab('used')"><span data-lang-key="code_tab_used">已使用</span> (<span id="usedCodeCount">0</span>)</button>
-                </div>
-
-            <div id="generate" class="sub-page active">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                    <div class="input-group">
-                        <label data-lang-key="code_level_label">會員等級</label>
-                        <select id="codeLevel">
-                            <option value="gold" data-lang-key="level_gold">💛 黃金會員</option>
-                            <option value="diamond" data-lang-key="level_diamond">💎 鑽石會員</option>
-                            <option value="legend" data-lang-key="level_legend">🔥 傳說會員</option>
-                        </select>
-                    </div>
-                    <div class="input-group">
-                        <label data-lang-key="code_days_label">天數</label>
-                        <input type="number" id="codeDays" value="30">
-                    </div>
-                    <div class="input-group">
-                        <label data-lang-key="code_amount_label">數量</label>
-                        <input type="number" id="codeAmount" value="1">
-                    </div>
-                </div>
-                <button class="btn" onclick="generateCode()" data-lang-key="code_generate_button">產生兌換碼</button>
-                <div id="generatedCodesList" style="margin-top: 20px;"></div>
-            </div>
-
-            <div id="unused" class="sub-page">
-                <div class="list-container" id="unusedCodeList"></div>
-            </div>
-
-            <div id="used" class="sub-page">
-                <div class="list-container" id="usedCodeList"></div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2 data-lang-key="member_admin_title">🧑‍🤝‍🧑 會員管理</h2>
-            <div class="sub-tabs">
-                <button class="sub-tab active" onclick="showMemberSubTab('active')"><span data-lang-key="member_tab_active">生效中</span> (<span id="activeMemberCount">0</span>)</button>
-                <button class="sub-tab" onclick="showMemberSubTab('expired')"><span data-lang-key="member_tab_expired">已到期</span> (<span id="expiredMemberCount">0</span>)</button>
-                </div>
-
-            <div id="activeMembers" class="sub-page active">
-                <div class="list-container" id="activeMemberList"></div>
-            </div>
-            <div id="expiredMembers" class="sub-page">
-                <div class="list-container" id="expiredMemberList"></div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <h2 data-lang-key="backup_title">📈 系統備份</h2>
-            <div class="backup-info" id="backupInfo">
-            </div>
-            <button class="btn btn-success" onclick="exportToExcel()" data-lang-key="backup_button">🗂️ 立即導出 Excel 備份</button>
-        </div>
-
-    </div>
-</div>
-
-<div id="loginModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="loginModalTitle" data-lang-key="login_title_admin">管理員登入</h2>
-            <button class="modal-close" onclick="closeLoginModal()">×</button>
-        </div>
-        <div class="input-group">
-            <label data-lang-key="username">使用者名稱</label>
-            <input type="text" id="loginUsername" data-lang-key="username_placeholder" placeholder="請輸入使用者名稱">
-        </div>
-        <div class="input-group">
-            <label data-lang-key="password">密碼</label>
-            <input type="password" id="loginPassword" data-lang-key="password_placeholder" placeholder="請輸入密碼">
-        </div>
-        <button class="btn" onclick="login()" style="width: 100%; margin-bottom: 10px;" data-lang-key="login">登入</button>
-    </div>
-</div>
-
-<div id="registerModal" class="modal">
-</div>
-
-<div id="forgotPasswordModal" class="modal">
-</div>
-
-<div id="changePasswordModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 data-lang-key="change_password_title">更改密碼</h2>
-            <button class="modal-close" onclick="closeChangePasswordModal()">×</button>
-        </div>
-        <div class="input-group">
-            <label data-lang-key="current_password">目前密碼</label>
-            <input type="password" id="currentPassword" data-lang-key="current_password_placeholder" placeholder="請輸入目前密碼">
-        </div>
-        <div class="input-group">
-            <label data-lang-key="new_password">新密碼</label>
-            <input type="password" id="changeNewPassword" data-lang-key="password_reg_placeholder" placeholder="請輸入新密碼（至少6個字元）">
-        </div>
-        <div class="input-group">
-            <label data-lang-key="confirm_new_password">確認新密碼</label>
-            <input type="password" id="changeConfirmPassword" data-lang-key="confirm_password_placeholder" placeholder="請再次輸入新密碼">
-        </div>
-        <button class="btn" onclick="changePassword()" style="width: 100%;" data-lang-key="confirm_change">確認更改</button>
-    </div>
-</div>
-
-<div id="editMemberModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 data-lang-key="edit_member_title">編輯會員</h2>
-            <button class="modal-close" onclick="closeEditMemberModal()">×</button>
-        </div>
-        <div id="editMemberContent"></div>
-    </div>
-</div>
-
 
 <script>
 // --- ▼▼▼ 翻譯邏輯 (已移到最前面) ▼▼▼ ---
@@ -926,7 +744,7 @@ const translations = {
         'password': '密碼',
         'password_placeholder': '請輸入密碼',
         'login_title_admin': '管理員登入',
-        'session_control_title': '遊戲場次控制',
+        'session_control_title': '🎮 遊戲場次控制',
         'session_name_label': '場次名稱 (例如: 會員場)',
         'session_name_placeholder': 'CODM 會員場',
         'session_start_label': '預計開始時間',
@@ -935,15 +753,16 @@ const translations = {
         'session_desc_label': '描述',
         'optional': '(選填)',
         'session_desc_placeholder': '地圖:...',
-        'session_create_button': '開啟/預約場次',
-        'session_close_button': '關閉場次',
-        'queue_list_title': '目前排隊名單',
+        'session_create_button': '🚀 開啟/預約場次',
+        'session_close_button': '❌ 關閉場次',
+        'queue_list_title': '👥 目前排隊名單',
         'queue_clear_button': '清空名單',
         'queue_total_prefix': '總數: ',
         'queue_total_suffix': ' 人',
         'queue_empty': '目前沒有人排隊',
         'queue_remove_button': '移除',
-        'code_admin_title': '兌換碼管理',
+        'queue_move_button': '↕️ 移位', // 【新增翻譯】
+        'code_admin_title': '🔑 兌換碼管理',
         'code_tab_generate': '產生新碼',
         'code_tab_unused': '未使用',
         'code_tab_used': '已使用',
@@ -961,7 +780,7 @@ const translations = {
         'code_delete_button': '刪除',
         'code_used_by': '使用者:',
         'code_used_date': '使用日期:',
-        'member_admin_title': '會員管理',
+        'member_admin_title': '🧑‍🤝‍🧑 會員管理',
         'member_tab_active': '生效中',
         'member_tab_expired': '已到期',
         'member_no_active': '沒有生效中的會員',
@@ -973,8 +792,8 @@ const translations = {
         'member_remaining_label': '剩餘時間:',
         'member_join_date_label': '加入日期:',
         'member_admin': '管理員',
-        'backup_title': '系統備份',
-        'backup_button': '立即導出 Excel 備份',
+        'backup_title': '📈 系統備份',
+        'backup_button': '🗂️ 立即導出 Excel 備份',
         'backup_last_time': '上次備份時間:',
         'backup_none': '尚未備份過',
         'change_password_title': '更改密碼',
@@ -1068,12 +887,15 @@ const translations = {
         'alert_password_mismatch': '兩次輸入的新密碼不一致',
         'alert_current_password_wrong': '目前密碼錯誤',
         'alert_password_change_success': '密碼更改成功！',
-        'alert_password_change_fail': '更改密碼失敗，請稍後再試'
+        'alert_password_change_fail': '更改密碼失敗，請稍後再試',
+        'alert_move_prompt_title': '將 {username} 移動到第幾位？', // 【新增翻譯】
+        'alert_move_invalid_number': '請輸入一個有效的數字', // 【新增翻譯】
+        'alert_move_too_large': '數字太大，最大只能是 {max}' // 【新增翻譯】
     },
     'en': {
-        'page_title': "Admin Panel - Ted's Member System",
+        'page_title': "Admin Panel - Liao Jia-Tai's Member System",
         'admin_title': '⚙️ Admin Panel',
-        'app_subtitle': "📢 Ted's Member System",
+        'app_subtitle': "📢 Liao Jia-Tai's Member System",
         'back_to_home': '🏠 Back to Front',
         'login': 'Login',
         'logout': 'Logout',
@@ -1082,7 +904,7 @@ const translations = {
         'password': 'Password',
         'password_placeholder': 'Enter your password',
         'login_title_admin': 'Admin Login',
-        'session_control_title': 'Game Session Control',
+        'session_control_title': '🎮 Game Session Control',
         'session_name_label': 'Session Name (e.g., Member Game)',
         'session_name_placeholder': 'CODM Member Game',
         'session_start_label': 'Expected Start Time',
@@ -1091,15 +913,16 @@ const translations = {
         'session_desc_label': 'Description',
         'optional': '(Optional)',
         'session_desc_placeholder': 'Map:...',
-        'session_create_button': 'Open/Schedule Session',
-        'session_close_button': 'Close Session',
-        'queue_list_title': 'Current Queue List',
+        'session_create_button': '🚀 Open/Schedule Session',
+        'session_close_button': '❌ Close Session',
+        'queue_list_title': '👥 Current Queue List',
         'queue_clear_button': 'Clear List',
         'queue_total_prefix': 'Total: ',
         'queue_total_suffix': ' People',
         'queue_empty': 'The queue is currently empty',
         'queue_remove_button': 'Remove',
-        'code_admin_title': 'Activation Code Management',
+        'queue_move_button': '↕️ Move', // 【新增翻譯】
+        'code_admin_title': '🔑 Activation Code Management',
         'code_tab_generate': 'Generate New',
         'code_tab_unused': 'Unused',
         'code_tab_used': 'Used',
@@ -1117,7 +940,7 @@ const translations = {
         'code_delete_button': 'Delete',
         'code_used_by': 'Used By:',
         'code_used_date': 'Used Date:',
-        'member_admin_title': 'Member Management',
+        'member_admin_title': '🧑‍🤝‍🧑 Member Management',
         'member_tab_active': 'Active',
         'member_tab_expired': 'Expired',
         'member_no_active': 'No active members',
@@ -1129,8 +952,8 @@ const translations = {
         'member_remaining_label': 'Time Left:',
         'member_join_date_label': 'Join Date:',
         'member_admin': 'Admin',
-        'backup_title': 'System Backup',
-        'backup_button': 'Export Excel Backup Now',
+        'backup_title': '📈 System Backup',
+        'backup_button': '🗂️ Export Excel Backup Now',
         'backup_last_time': 'Last Backup Time:',
         'backup_none': 'Never backed up',
         'change_password_title': 'Change Password',
@@ -1224,7 +1047,10 @@ const translations = {
         'alert_password_mismatch': 'The new passwords do not match',
         'alert_current_password_wrong': 'Current password is wrong',
         'alert_password_change_success': 'Password changed successfully!',
-        'alert_password_change_fail': 'Password change failed, please try again later'
+        'alert_password_change_fail': 'Password change failed, please try again later',
+        'alert_move_prompt_title': 'Move {username} to which position?', // 【新增翻譯】
+        'alert_move_invalid_number': 'Please enter a valid number', // 【新增翻譯】
+        'alert_move_too_large': 'Number is too large. Max is {max}' // 【新增翻譯】
     }
 };
 
@@ -1862,11 +1688,8 @@ function renderQueueList(queue) {
         
         const priorityIcon = q.priorityLevel === 2 ? '🔥' : (q.priorityLevel === 1 ? '💎' : '');
 
-        // 【新增】上移/下移按鈕
-        const upButton = (index === 0) ? '' : 
-            `<button class="btn btn-small" style="padding: 5px 10px;" onclick="moveQueueItem('${q.username}', 'up')">⬆️</button>`;
-        const downButton = (index === queue.length - 1) ? '' : 
-            `<button class="btn btn-small" style="padding: 5px 10px;" onclick="moveQueueItem('${q.username}', 'down')">⬇️</button>`;
+        // 【修改】按鈕邏輯
+        const moveButton = `<button class="btn btn-small" style="padding: 5px 10px;" onclick="promptMoveItem('${q.username}', ${index + 1})">${trans.queue_move_button}</button>`;
 
         return `
         <div class="queue-item">
@@ -1876,8 +1699,7 @@ function renderQueueList(queue) {
                 <div style="font-size: 12px; color: #666; margin-top: 3px;">UID: ${q.gameUID}</div>
             </div>
             <div class="admin-actions">
-                ${upButton}
-                ${downButton}
+                ${moveButton}
                 <button class="btn btn-danger btn-small" onclick="removeFromQueue('${q.username}')">${trans.queue_remove_button}</button>
             </div>
         </div>
@@ -2089,7 +1911,17 @@ async function clearQueue() {
 
     showLoading();
     try {
+        // 【修改】清除排隊時，也要清除手動排序
         await database.ref('queue').set(null);
+        
+        // 清除所有人的 adminOrder
+        const data = await loadData();
+        const updates = {};
+        data.queue.forEach(q => {
+            updates[`/queue/${q.username}/adminOrder`] = null;
+        });
+        await database.ref().update(updates);
+
         alert(trans.alert_queue_clear_success);
         await refreshAdminDashboard();
     } catch (error) {
@@ -2100,34 +1932,49 @@ async function clearQueue() {
     }
 }
 
-// 【已修改】 移除優先級檢查，改為手動設置 adminOrder
-async function moveQueueItem(username, direction) {
+// 【已修改】 移除舊的 moveQueueItem，改用新的 promptMoveItem
+async function promptMoveItem(username, currentPosition) {
     const lang = getCurrentLang();
     const trans = translations[lang];
-    showLoading();
     
+    const newPositionStr = prompt(trans.alert_move_prompt_title.replace('{username}', username), currentPosition);
+    
+    if (newPositionStr === null || newPositionStr === "") {
+        return; // 用戶取消
+    }
+    
+    const newPosition = parseInt(newPositionStr);
+    
+    if (isNaN(newPosition) || newPosition <= 0) {
+        alert(trans.alert_move_invalid_number);
+        return;
+    }
+    
+    showLoading();
     try {
         const data = await loadData(); // 1. 取得當前已排序的列表
         let queue = data.queue;
         
-        const currentIndex = queue.findIndex(q => q.username === username);
-        if (currentIndex === -1) throw new Error("找不到該用戶");
-
-        const targetIndex = (direction === 'up') ? currentIndex - 1 : currentIndex + 1;
-        
-        if (targetIndex < 0 || targetIndex >= queue.length) {
+        if (newPosition > queue.length) {
+            alert(trans.alert_move_too_large.replace('{max}', queue.length));
             hideLoading();
-            return; 
+            return;
         }
-
+        
         // 2. 在本地陣列中移動
-        const [itemToMove] = queue.splice(currentIndex, 1);
-        queue.splice(targetIndex, 0, itemToMove);
+        const itemToMove = queue.find(q => q.username === username);
+        const oldIndex = queue.findIndex(q => q.username === username);
+        
+        if (oldIndex > -1) {
+            queue.splice(oldIndex, 1); // 移除
+        }
+        queue.splice(newPosition - 1, 0, itemToMove); // 插入到新位置 (index 是 newPosition - 1)
         
         // 3. 建立一個更新物件，為 *所有* 項目分配新的 adminOrder
         const updates = {};
         queue.forEach((item, index) => {
             // `index + 1` 確保 order 從 1 開始
+            // 這樣排序後，adminOrder 會是 1, 2, 3...
             updates[`/queue/${item.username}/adminOrder`] = index + 1;
         });
         
@@ -2634,8 +2481,3 @@ async function exportToExcel(isAuto = false) {
 </script>
 </body>
 </html>
-
-
-
-
-
