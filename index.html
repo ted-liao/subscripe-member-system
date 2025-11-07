@@ -1231,61 +1231,60 @@ async function initializeDefaultAdmin() {
 
 // 【已修改】 包含排序邏輯
 async function loadData() {
-    try {
-        const membersSnapshot = await database.ref('members').once('value');
-        const codesSnapshot = await database.ref('activationCodes').once('value');
-        const queueSnapshot = await database.ref('queue').once('value');
-        const sessionSnapshot = await database.ref('gameSession').once('value');
+    try {
+        const membersSnapshot = await database.ref('members').once('value');
+        const codesSnapshot = await database.ref('activationCodes').once('value');
+        const queueSnapshot = await database.ref('queue').once('value');
+        const sessionSnapshot = await database.ref('gameSession').once('value');
 
-        const membersData = membersSnapshot.val() || {};
-        const members = Object.keys(membersData).map(key => ({
-            ...membersData[key],
-            username: key
-        }));
+        const membersData = membersSnapshot.val() || {};
+        const members = Object.keys(membersData).map(key => ({
+            ...membersData[key],
+            username: key
+        }));
 
-        const codesData = codesSnapshot.val() || {};
-        const activationCodes = Object.values(codesData);
+        const codesData = codesSnapshot.val() || {};
+        const activationCodes = Object.values(codesData);
 
-        // --- ▼▼▼ 這是新的排序邏輯 ▼▼▼ ---
-        const queueData = queueSnapshot.val() || {};
-        const queue = Object.values(queueData); // 1. 從物件轉為陣列
+        const queueData = queueSnapshot.val() || {};
+        const queue = Object.values(queueData); // 1. 從物件轉為陣列
 
-        queue.sort((a, b) => {
-            const adminA = a.adminOrder || 9999; // 9999 代表沒有手動排過
-            const adminB = b.adminOrder || 9999;
+        // 【修改】 採用新的排序邏輯
+        queue.sort((a, b) => {
+            const adminA = a.adminOrder || 9999; // 9999 代表沒有手動排過
+            const adminB = b.adminOrder || 9999;
 
-            // 1. 如果有手動排序，以此為準
-            if (adminA !== 9999 || adminB !== 9999) {
-                return adminA - adminB;
-            }
-            
-            // 2. 如果都沒有手動排序，才用優先級
-            const priorityA = a.priorityLevel || 0;
-            const priorityB = b.priorityLevel || 0;
-            if (priorityA !== priorityB) {
-                return priorityB - priorityA; // 優先級高的在前
-            }
-            
-            // 3. 優先級也相同，用加入時間
-            return new Date(a.joinTime) - new Date(b.joinTime);
-        });
-        // --- ▲▲▲ 排序邏輯結束 ▲▲▲ ---
+            // 1. 如果有手動排序，以此為準
+            if (adminA !== 9999 || adminB !== 9999) {
+                return adminA - adminB;
+            }
+            
+            // 2. 如果都沒有手動排序，才用優先級
+            const priorityA = a.priorityLevel || 0;
+            const priorityB = b.priorityLevel || 0;
+            if (priorityA !== priorityB) {
+                return priorityB - priorityA; // 優先級高的在前
+            }
+            
+            // 3. 優先級也相同，用加入時間
+            return new Date(a.joinTime) - new Date(b.joinTime);
+        });
 
-        return {
-            members,
-            activationCodes,
-            queue, // 3. 回傳排好序的陣列
-            gameSession: sessionSnapshot.val()
-        };
-    } catch (error) {
-        console.error('載入資料失敗:', error);
-        return {
-            members: [],
-            activationCodes: [],
-            queue: [], // 回傳空陣列
-            gameSession: null
-        };
-    }
+        return {
+            members,
+            activationCodes,
+            queue, // 3. 回傳排好序的陣列
+            gameSession: sessionSnapshot.val()
+        };
+    } catch (error) {
+        console.error('載入資料失敗:', error);
+        return {
+            members: [],
+            activationCodes: [],
+            queue: [], // 回傳空陣列
+            gameSession: null
+        };
+    }
 }
 
 async function saveData(members, activationCodes, queue, gameSession) {
@@ -3039,6 +3038,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
