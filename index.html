@@ -387,7 +387,59 @@ a.tab:hover {
     justify-content: space-between;
     align-items: center;
 }
+/* ===== 新增的部分，讓排隊外觀和 admin 一樣 ===== */
+.queue-item {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-left: 4px solid #667eea;
+    transition: all 0.3s;
+}
 
+.queue-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.queue-item.current {
+    background: #e8f5e9;
+    border-left-color: #28a745;
+}
+
+.queue-item .admin-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.queue-item .badge {
+    font-size: 13px;
+    padding: 3px 10px;
+}
+
+.priority-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.priority-badge.legend {
+    background: linear-gradient(135deg, #FF6B6B 0%, #C44569 100%);
+    color: white;
+}
+
+.priority-badge.diamond {
+    background: linear-gradient(135deg, #B9F2FF 0%, #00B4DB 100%);
+    color: white;
+}
+/* ===== 新增結束 ===== */
 .queue-item.current {
     background: #d4edda;
     border: 2px solid #28a745;
@@ -3058,6 +3110,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
