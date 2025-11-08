@@ -669,6 +669,25 @@ a.btn {
     padding: 10px;
 }
 
+.priority-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-left: 8px;
+}
+
+.priority-badge.legend {
+    background: linear-gradient(135deg, #FF6B6B 0%, #C44569 100%);
+    color: white;
+}
+
+.priority-badge.diamond {
+    background: linear-gradient(135deg, #B9F2FF 0%, #00B4DB 100%);
+    color: white;
+}
+
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -944,6 +963,8 @@ const translations = {
         'queue_empty': '目前沒有人排隊',
         'queue_remove_button': '移除',
         'queue_move_button': '↕️ 移位',
+        'priority_legend': '🔥優先',
+        'priority_diamond': '💎優先',
         'code_admin_title': '兌換碼管理',
         'code_tab_generate': '產生新碼',
         'code_tab_unused': '未使用',
@@ -1072,7 +1093,7 @@ const translations = {
         'alert_password_change_fail': '更改密碼失敗，請稍後再試',
         'alert_move_prompt_title': '將 {username} 移動到第幾位？',
         'alert_move_invalid_number': '請輸入一個有效的數字',
-        'alert_move_too_large': '數字太大，最大只能是 {max}', // <-- 【修正】 補上逗號
+        'alert_move_too_large': '數字太大，最大只能是 {max}',
     },
     'en': {
         'page_title': "Admin Panel - Liao Jia-Tai's Member System",
@@ -1104,6 +1125,8 @@ const translations = {
         'queue_empty': 'The queue is currently empty',
         'queue_remove_button': 'Remove',
         'queue_move_button': '↕️ Move',
+        'priority_legend': '🔥Priority',
+        'priority_diamond': '💎Priority',
         'code_admin_title': 'Activation Code Management',
         'code_tab_generate': 'Generate New',
         'code_tab_unused': 'Unused',
@@ -1232,7 +1255,7 @@ const translations = {
         'alert_password_change_fail': 'Password change failed, please try again later',
         'alert_move_prompt_title': 'Move {username} to which position?',
         'alert_move_invalid_number': 'Please enter a valid number',
-        'alert_move_too_large': 'Number is too large. Max is {max}', // <-- 【修正】 補上逗號
+        'alert_move_too_large': 'Number is too large. Max is {max}',
     }
 };
 
@@ -1851,7 +1874,7 @@ function renderGameSession(gameSession) {
     }
 }
 
-// 【已修改】 包含插隊圖示 和 「移位」按鈕
+// 【已修改】優先標記顯示在右側
 function renderQueueList(queue) {
     const container = document.getElementById('adminQueueList');
     const lang = getCurrentLang();
@@ -1868,16 +1891,22 @@ function renderQueueList(queue) {
         const levelText = q.level === 'legend' ? trans.level_legend_simple : (q.level === 'diamond' ? trans.level_diamond_simple : trans.level_gold_simple);
         const badgeClass = q.level === 'legend' ? 'badge-legend' : (q.level === 'diamond' ? 'badge-diamond' : 'badge-gold');
         
-        const priorityIcon = q.priorityLevel === 2 ? '🔥' : (q.priorityLevel === 1 ? '💎' : '');
+        // 【修改】優先標記現在顯示在右側
+        let priorityBadge = '';
+        if (q.priorityLevel === 2) {
+            priorityBadge = `<span class="priority-badge legend">${trans.priority_legend}</span>`;
+        } else if (q.priorityLevel === 1) {
+            priorityBadge = `<span class="priority-badge diamond">${trans.priority_diamond}</span>`;
+        }
 
-        // 【修改】按鈕邏輯：改用新的 "移位" 按鈕
         const moveButton = `<button class="btn btn-small" style="padding: 5px 10px;" onclick="promptMoveItem('${q.username}', ${index + 1})">${trans.queue_move_button}</button>`;
 
         return `
         <div class="queue-item">
             <div>
-                <strong>${priorityIcon} #${index + 1} ${q.nickname}</strong>
+                <strong>#${index + 1} ${q.nickname}</strong>
                 <span class="badge ${badgeClass}" style="margin-left: 10px;">${levelText}</span>
+                ${priorityBadge}
                 <div style="font-size: 12px; color: #666; margin-top: 3px;">UID: ${q.gameUID}</div>
             </div>
             <div class="admin-actions">
@@ -1888,6 +1917,7 @@ function renderQueueList(queue) {
         `;
     }).join('');
 }
+
 function renderCodeLists(activationCodes) {
     const unused = activationCodes.filter(c => !c.used);
     const used = activationCodes.filter(c => c.used);
@@ -2653,11 +2683,3 @@ async function exportToExcel(isAuto = false) {
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
