@@ -1627,13 +1627,20 @@ data.queue.slice(0, 10).map((q, index) => {
         q.level === 'diamond' ? 'badge-diamond' : 'badge-gold';
     const isCurrent = q.username === currentUser.username;
     
-    // 【新增】顯示插隊圖示
-    const priorityIcon = q.priorityLevel === 2 ? '🔥' : (q.priorityLevel === 1 ? '💎' : '');
+    // 【修改】改用右側標記
+    let priorityBadge = '';
+    if (q.priorityLevel === 2) {
+        priorityBadge = `<span class="priority-badge legend">${trans.priority_legend || '🔥優先'}</span>`;
+    } else if (q.priorityLevel === 1) {
+        priorityBadge = `<span class="priority-badge diamond">${trans.priority_diamond || '💎優先'}</span>`;
+    }
 
     return `
 <div class="queue-item ${isCurrent ? 'current' : ''}">
     <div>
-        <strong>${priorityIcon} #${index + 1} ${q.nickname}</strong>
+        <strong>#${index + 1} ${q.nickname}</strong>
+        <span class="badge ${badgeClass}" style="margin-left: 10px;">${levelText}</span>
+        ${priorityBadge}
         <span class="badge ${badgeClass}" style="margin-left: 10px;">${levelText}</span>
         <div style="font-size: 12px; color: #666; margin-top: 3px;">CODM UID: ${q.gameUID}</div>
     </div>
@@ -2381,19 +2388,25 @@ ${(currentUser.level === 'diamond' || currentUser.level === 'legend') ? `
     <h3 style="margin-bottom: 15px;">${trans.queue_status_title} (${data.queue.length}${trans.queue_status_people}</h3>
     ${data.queue.length === 0 ? `<div class="empty-state" style="padding: 20px;">${trans.queue_empty}</div>` :
     data.queue.slice(0, 10).map((q, index) => {
-        const levelText = trans[levelSimpleKey(q.level)];
-        const badgeClass = q.level === 'legend' ? 'badge-legend' :
-            q.level === 'diamond' ? 'badge-diamond' : 'badge-gold';
-        const isCurrent = q.username === currentUser.username;
-        
-        // 【新增】顯示插隊圖示
-        const priorityIcon = q.priorityLevel === 2 ? '🔥' : (q.priorityLevel === 1 ? '💎' : '');
+    const levelText = trans[levelSimpleKey(q.level)];
+    const badgeClass = q.level === 'legend' ? 'badge-legend' :
+        q.level === 'diamond' ? 'badge-diamond' : 'badge-gold';
+    const isCurrent = q.username === currentUser.username;
+    
+    // 【修改】改用右側標記
+    let priorityBadge = '';
+    if (q.priorityLevel === 2) {
+        priorityBadge = `<span class="priority-badge legend">${trans.priority_legend || '🔥優先'}</span>`;
+    } else if (q.priorityLevel === 1) {
+        priorityBadge = `<span class="priority-badge diamond">${trans.priority_diamond || '💎優先'}</span>`;
+    }
 
-        return `
+    return `
 <div class="queue-item ${isCurrent ? 'current' : ''}">
     <div>
-        <strong>${priorityIcon} #${index + 1} ${q.nickname}</strong>
+        <strong>#${index + 1} ${q.nickname}</strong>
         <span class="badge ${badgeClass}" style="margin-left: 10px;">${levelText}</span>
+        ${priorityBadge}
         <div style="font-size: 12px; color: #666; margin-top: 3px;">CODM UID: ${q.gameUID}</div>
     </div>
     <div style="font-size: 14px; color: #666;">
@@ -2816,6 +2829,8 @@ const translations = {
         'alert_leave_queue_confirm': '確定要離開排隊嗎？',
         'alert_leave_queue_success': '已離開排隊',
         'alert_leave_queue_fail': '離開排隊失敗，請稍後再試',
+        'priority_legend': '🔥優先',
+        'priority_diamond': '💎優先',
         // 【新增翻譯】
         'queue_priority_switch': '優先排隊',
         'queue_priority_quota': '本月剩餘 <span>{0}</span> 次權限',
@@ -2964,6 +2979,8 @@ const translations = {
         'alert_leave_queue_confirm': 'Are you sure you want to leave the queue?',
         'alert_leave_queue_success': 'You have left the queue',
         'alert_leave_queue_fail': 'Failed to leave queue, please try again later',
+        'priority_legend': '🔥Priority',
+        'priority_diamond': '💎Priority',
         // 【新增翻譯】
         'queue_priority_switch': 'Priority Queue',
         'queue_priority_quota': '<span>{0}</span> priority credits left this month',
@@ -3038,6 +3055,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
