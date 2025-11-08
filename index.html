@@ -2408,9 +2408,11 @@ ${(currentUser.level === 'diamond' || currentUser.level === 'legend') ? `
         <strong>#${index + 1} ${q.nickname}</strong>
         <span class="badge ${badgeClass}" style="margin-left: 10px;">${levelText}</span>
         ${priorityBadge}
-        <div style="font-size: 12px; color: #666; margin-top: 3px;">CODM UID: ${q.gameUID}</div>
+        <div style="font-size: 12px; color: #666; margin-top: 3px;">
+            UID: ${q.gameUID}
+        </div>
     </div>
-    <div style="font-size: 14px; color: #666;">
+    <div style="font-size: 13px; color: #666;">
         ${new Date(q.joinTime).toLocaleTimeString('zh-TW')}
     </div>
 </div>
@@ -3056,6 +3058,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
